@@ -15,7 +15,7 @@ namespace cminus::io{
 
 		virtual std::size_t get_size() const override;
 
-		virtual std::size_t read(std::byte *buffer, std::size_t size) override;
+		virtual std::size_t read(std::byte *buffer, std::size_t size) const override;
 
 	protected:
 		std::istream &buffer_;

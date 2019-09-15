@@ -13,7 +13,7 @@ std::size_t cminus::io::buffer_binary_reader::get_size() const{
 	return size_;
 }
 
-std::size_t cminus::io::buffer_binary_reader::read(std::byte *buffer, std::size_t size){
+std::size_t cminus::io::buffer_binary_reader::read(std::byte *buffer, std::size_t size) const{
 	if ((size = std::min((size_ - position_), size)) == 0u)
 		return 0u;//Nothing to copy
 

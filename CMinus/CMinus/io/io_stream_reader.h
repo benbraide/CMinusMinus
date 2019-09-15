@@ -17,12 +17,12 @@ namespace cminus::io{
 
 		virtual std::size_t get_size() const override;
 
-		virtual std::size_t read(std::byte *buffer, std::size_t size) override;
+		virtual std::size_t read(std::byte *buffer, std::size_t size) const override;
 
 	protected:
 		virtual bool can_read_scalar_(std::size_t size, std::type_info &type_info) const override;
 
-		virtual std::size_t read_scalar_(std::byte *buffer, std::size_t size, const std::type_info &type_info) override;
+		virtual std::size_t read_scalar_(std::byte *buffer, std::size_t size, const std::type_info &type_info) const override;
 
 		std::istream &buffer_;
 	};
@@ -41,16 +41,16 @@ namespace cminus::io{
 
 		virtual std::size_t get_size() const override;
 
-		virtual std::size_t read(std::byte *buffer, std::size_t size) override;
+		virtual std::size_t read(std::byte *buffer, std::size_t size) const override;
 
-		virtual std::size_t read_buffer(char *buffer, std::size_t count) override;
+		virtual std::size_t read_buffer(char *buffer, std::size_t count) const override;
 
-		virtual std::size_t read_buffer(wchar_t *buffer, std::size_t count) override;
+		virtual std::size_t read_buffer(wchar_t *buffer, std::size_t count) const override;
 
 	protected:
 		virtual bool can_read_scalar_(std::size_t size, std::type_info &type_info) const override;
 
-		virtual std::size_t read_scalar_(std::byte *buffer, std::size_t size, const std::type_info &type_info) override;
+		virtual std::size_t read_scalar_(std::byte *buffer, std::size_t size, const std::type_info &type_info) const override;
 
 		std::wistream &buffer_;
 	};

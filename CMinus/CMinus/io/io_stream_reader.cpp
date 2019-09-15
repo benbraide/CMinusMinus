@@ -13,7 +13,7 @@ std::size_t cminus::io::stream_reader::get_size() const{
 	return static_cast<std::size_t>(-1);
 }
 
-std::size_t cminus::io::stream_reader::read(std::byte *buffer, std::size_t size){
+std::size_t cminus::io::stream_reader::read(std::byte *buffer, std::size_t size) const{
 	buffer_.read(reinterpret_cast<char *>(buffer), size);
 	return size;
 }
@@ -22,7 +22,7 @@ bool cminus::io::stream_reader::can_read_scalar_(std::size_t size, std::type_inf
 	return (type_info != typeid(wchar_t));
 }
 
-std::size_t cminus::io::stream_reader::read_scalar_(std::byte *buffer, std::size_t size, const std::type_info &type_info){
+std::size_t cminus::io::stream_reader::read_scalar_(std::byte *buffer, std::size_t size, const std::type_info &type_info) const{
 	if (&type_info == &typeid(bool))
 		buffer_ >> *reinterpret_cast<bool *>(buffer);
 	else if (&type_info == &typeid(char))
@@ -68,16 +68,16 @@ std::size_t cminus::io::wide_stream_reader::get_size() const{
 	return static_cast<std::size_t>(-1);
 }
 
-std::size_t cminus::io::wide_stream_reader::read(std::byte *buffer, std::size_t size){
+std::size_t cminus::io::wide_stream_reader::read(std::byte *buffer, std::size_t size) const{
 	buffer_.read(reinterpret_cast<wchar_t *>(buffer), (size / sizeof(wchar_t)));
 	return (size - (size % sizeof(wchar_t)));
 }
 
-std::size_t cminus::io::wide_stream_reader::read_buffer(char *buffer, std::size_t count){
+std::size_t cminus::io::wide_stream_reader::read_buffer(char *buffer, std::size_t count) const{
 	return 0u;
 }
 
-std::size_t cminus::io::wide_stream_reader::read_buffer(wchar_t *buffer, std::size_t count){
+std::size_t cminus::io::wide_stream_reader::read_buffer(wchar_t *buffer, std::size_t count) const{
 	buffer_.read(buffer, count);
 	return (sizeof(wchar_t) * count);
 }
@@ -86,7 +86,7 @@ bool cminus::io::wide_stream_reader::can_read_scalar_(std::size_t size, std::typ
 	return (type_info != typeid(char) && type_info != typeid(unsigned char) && type_info != typeid(signed char));
 }
 
-std::size_t cminus::io::wide_stream_reader::read_scalar_(std::byte *buffer, std::size_t size, const std::type_info &type_info){
+std::size_t cminus::io::wide_stream_reader::read_scalar_(std::byte *buffer, std::size_t size, const std::type_info &type_info) const{
 	if (&type_info == &typeid(bool))
 		buffer_ >> *reinterpret_cast<bool *>(buffer);
 	else if (&type_info == &typeid(wchar_t))

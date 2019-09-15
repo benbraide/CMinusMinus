@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "io/io_stream_writer.h"
+#include "memory/memory_object.h"
 
 int main(){
 	cminus::io::stream_writer sw(std::cout);

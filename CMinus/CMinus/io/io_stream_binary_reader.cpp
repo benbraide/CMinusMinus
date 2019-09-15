@@ -13,7 +13,7 @@ std::size_t cminus::io::stream_binary_reader::get_size() const{
 	return static_cast<std::size_t>(-1);
 }
 
-std::size_t cminus::io::stream_binary_reader::read(std::byte *buffer, std::size_t size){
+std::size_t cminus::io::stream_binary_reader::read(std::byte *buffer, std::size_t size) const{
 	buffer_.read(reinterpret_cast<char *>(buffer), size);
 	return size;
 }

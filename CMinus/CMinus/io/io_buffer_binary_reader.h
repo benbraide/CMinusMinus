@@ -17,11 +17,11 @@ namespace cminus::io{
 
 		virtual std::size_t get_size() const override;
 
-		virtual std::size_t read(std::byte *buffer, std::size_t size) override;
+		virtual std::size_t read(std::byte *buffer, std::size_t size) const override;
 
 	protected:
 		const std::byte *buffer_;
 		std::size_t size_;
-		std::size_t position_ = 0u;
+		mutable std::size_t position_ = 0u;
 	};
 }
