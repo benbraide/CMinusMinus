@@ -1,5 +1,8 @@
 #pragma once
 
+#include "../evaluator/initializer.h"
+#include "../evaluator/evaluator_object.h"
+
 #include "type_object.h"
 
 namespace cminus::type{
@@ -33,13 +36,15 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<evaluator::object> get_evaluator() const override;
 
-		virtual std::shared_ptr<evaluator::object> get_initializer() const override;
+		virtual std::shared_ptr<evaluator::initializer> get_initializer() const override;
 
 		virtual std::shared_ptr<object> remove_ref(std::shared_ptr<object> self = nullptr) const override;
 
 		virtual std::shared_ptr<object> remove_const(std::shared_ptr<object> self = nullptr) const override;
 
 		virtual std::shared_ptr<object> convert_auto(std::shared_ptr<object> target) const override;
+
+		virtual void set_nan_state(bool value) override;
 
 		virtual object *get_non_proxy() const override;
 

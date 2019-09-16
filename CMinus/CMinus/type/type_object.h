@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../memory/memory_reference.h"
-#include "../evaluator/evaluator_object.h"
 
 namespace cminus::memory{
 	class reference;
@@ -9,6 +8,11 @@ namespace cminus::memory{
 
 namespace cminus::node{
 	class object;
+}
+
+namespace cminus::evaluator{
+	class object;
+	class initializer;
 }
 
 namespace cminus::type{
@@ -68,15 +72,17 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const = 0;
 
-		virtual std::shared_ptr<evaluator::object> get_evaluator() const = 0;
+		virtual std::shared_ptr<evaluator::object> get_evaluator() const;
 
-		virtual std::shared_ptr<evaluator::object> get_initializer() const;
+		virtual std::shared_ptr<evaluator::initializer> get_initializer() const;
 
 		virtual std::shared_ptr<object> remove_ref(std::shared_ptr<object> self = nullptr) const;
 
 		virtual std::shared_ptr<object> remove_const(std::shared_ptr<object> self = nullptr) const;
 
 		virtual std::shared_ptr<object> convert_auto(std::shared_ptr<object> target) const;
+
+		virtual void set_nan_state(bool value);
 
 		virtual object *get_non_proxy() const;
 

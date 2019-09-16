@@ -17,3 +17,11 @@ const cminus::attribute::collection &cminus::declaration::object::get_attributes
 cminus::attribute::collection &cminus::declaration::object::get_attributes(){
 	return attributes_;
 }
+
+unsigned int cminus::declaration::object::get_flags() const{
+	return flags_;
+}
+
+bool cminus::declaration::object::is(unsigned int flag, bool all) const{
+	return (all ? ((flags_ & flag) == flag) : ((flags_ & flag) != 0u));
+}

@@ -53,7 +53,7 @@ std::shared_ptr<cminus::evaluator::object> cminus::type::proxy::get_evaluator() 
 	return target_->get_evaluator();
 }
 
-std::shared_ptr<cminus::evaluator::object> cminus::type::proxy::get_initializer() const{
+std::shared_ptr<cminus::evaluator::initializer> cminus::type::proxy::get_initializer() const{
 	return target_->get_initializer();
 }
 
@@ -67,6 +67,10 @@ std::shared_ptr<cminus::type::object> cminus::type::proxy::remove_const(std::sha
 
 std::shared_ptr<cminus::type::object> cminus::type::proxy::convert_auto(std::shared_ptr<object> target) const{
 	return target_->convert_auto(target);
+}
+
+void cminus::type::proxy::set_nan_state(bool value){
+	target_->set_nan_state(value);
 }
 
 cminus::type::object *cminus::type::proxy::get_non_proxy() const{

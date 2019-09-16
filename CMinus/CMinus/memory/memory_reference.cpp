@@ -43,7 +43,7 @@ std::size_t cminus::memory::reference::write_ownership(reference &target){
 	address_ = target.address_;
 	target.address_ = 0u;
 
-	type_ = type_->remove_ref();
+	type_ = type_->remove_ref(type_);
 	deallocator_ = std::move(target.deallocator_);
 
 	return sizeof(void *);

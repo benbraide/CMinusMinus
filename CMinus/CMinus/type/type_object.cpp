@@ -1,6 +1,9 @@
 #include "../node/node_object.h"
 #include "../storage/storage_object.h"
 
+#include "../evaluator/initializer.h"
+#include "../evaluator/evaluator_object.h"
+
 #include "type_object.h"
 #include "proxy_type.h"
 
@@ -22,28 +25,40 @@ cminus::storage::object *cminus::type::object::get_parent() const{
 }
 
 void cminus::type::object::construct(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const{
-	if (initialization == nullptr)
-		construct_(target, std::vector<std::shared_ptr<memory::reference>>{});
-	else
-		construct_(target, std::vector<std::shared_ptr<memory::reference>>{ initialization->evaluate() });
+	if (initialization != nullptr){
+		std::vector<std::shared_ptr<memory::reference>> args;
+		args.reserve(initialization->get_list_count());
+
+		initialization->traverse_list([&](const node::object &entry){
+			args.push_back(entry.evaluate());
+		});
+
+		construct_(target, std::vector<std::shared_ptr<memory::reference>>{ args });
+	}
+	else//No initialization
+		construct(target, std::vector<std::shared_ptr<memory::reference>>{});
 }
 
 void cminus::type::object::construct(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const{
-	construct_(target, initialization);
+	if (initialization.empty()){
+		if (auto default_value = get_default_value(); default_value != nullptr)
+			construct_(target, std::vector<std::shared_ptr<memory::reference>>{ default_value });
+		else//Throw
+			return;
+	}
+	else
+		construct_(target, initialization);
 }
 
 void cminus::type::object::construct(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const{
 	if (initialization == nullptr)
-		construct_(target, std::vector<std::shared_ptr<memory::reference>>{});
+		construct(target, std::vector<std::shared_ptr<memory::reference>>{});
 	else
 		construct_(target, std::vector<std::shared_ptr<memory::reference>>{ initialization });
 }
 
 void cminus::type::object::construct(std::shared_ptr<memory::reference> target) const{
-	if (auto default_value = get_default_value(); default_value == nullptr)
-		construct_(target, std::vector<std::shared_ptr<memory::reference>>{});
-	else//Use default value
-		construct_(target, std::vector<std::shared_ptr<memory::reference>>{ default_value });
+	construct(target, std::vector<std::shared_ptr<memory::reference>>{});
 }
 
 void cminus::type::object::destruct(std::shared_ptr<memory::reference> target) const{}
@@ -60,8 +75,12 @@ bool cminus::type::object::is_exact(const object &target) const{
 	return (&target == this || get_score(target) == get_score_value(score_result_type::exact));
 }
 
-std::shared_ptr<cminus::evaluator::object> cminus::type::object::get_initializer() const{
-	return get_evaluator();
+std::shared_ptr<cminus::evaluator::object> cminus::type::object::get_evaluator() const{
+	return nullptr;
+}
+
+std::shared_ptr<cminus::evaluator::initializer> cminus::type::object::get_initializer() const{
+	return nullptr;
 }
 
 int cminus::type::object::get_score_value(score_result_type score){
@@ -101,6 +120,8 @@ std::shared_ptr<cminus::type::object> cminus::type::object::remove_const(std::sh
 std::shared_ptr<cminus::type::object> cminus::type::object::convert_auto(std::shared_ptr<object> target) const{
 	return nullptr;
 }
+
+void cminus::type::object::set_nan_state(bool value){}
 
 cminus::type::object *cminus::type::object::get_non_proxy() const{
 	return const_cast<object *>(this);
