@@ -3,7 +3,7 @@
 #include "function_declaration_base.h"
 
 namespace cminus::declaration{
-	class function_group_base : public object{
+	class function_group_base{
 	public:
 		virtual ~function_group_base() = default;
 

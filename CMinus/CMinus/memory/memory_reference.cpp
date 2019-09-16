@@ -2,6 +2,14 @@
 
 #include "memory_reference.h"
 
+std::size_t cminus::memory::reference::get_position() const{
+	return 0u;
+}
+
+std::size_t cminus::memory::reference::get_size() const{
+	return ((type_ == nullptr) ? 0u : type_->get_size());
+}
+
 std::size_t cminus::memory::reference::set(std::byte value, std::size_t size){
 	return runtime::object::memory_object->set(get_address(), value, std::min(type_->get_size(), size));
 }
@@ -16,6 +24,29 @@ std::size_t cminus::memory::reference::write(const io::binary_reader &buffer, st
 
 std::size_t cminus::memory::reference::write(std::size_t source_address, std::size_t size){
 	return runtime::object::memory_object->write(get_address(), source_address, std::min(type_->get_size(), size));
+}
+
+std::size_t cminus::memory::reference::write_address(std::size_t value){
+	return ((type_ == nullptr || !type_->is_ref()) ? 0u : runtime::object::memory_object->write_scalar(address_, value));
+}
+
+std::size_t cminus::memory::reference::write_ownership(reference &target){
+	if (!target.is_lvalue())//R-value is required
+		return write_address(target.get_address());
+
+	if (type_ == nullptr || !type_->is_ref())
+		return 0u;
+
+	if (deallocator_ != nullptr)//Deallocate previous
+		deallocator_();
+
+	address_ = target.address_;
+	target.address_ = 0u;
+
+	type_ = type_->remove_ref();
+	deallocator_ = std::move(target.deallocator_);
+
+	return sizeof(void *);
 }
 
 std::size_t cminus::memory::reference::read(std::byte *buffer, std::size_t size) const{
@@ -35,7 +66,7 @@ std::shared_ptr<cminus::type::object> cminus::memory::reference::get_type() cons
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::memory::reference::apply_offset(std::size_t value, std::shared_ptr<type::object> type) const{
-	auto entry = std::make_shared<memory::reference>((get_address() + value), ((type == nullptr) ? type_ : type)->remove_ref(), attributes_, context_);
+	auto entry = std::make_shared<memory::reference>((get_address() + value), ((type == nullptr) ? type_ : type)->remove_ref(), attributes_.get_list(), context_);
 	if (entry != nullptr)//Copy l-value state
 		entry->is_lvalue_ = is_lvalue_;
 
@@ -47,7 +78,7 @@ std::shared_ptr<cminus::memory::reference> cminus::memory::reference::clone() co
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::memory::reference::bound_context(std::shared_ptr<reference> value) const{
-	return std::make_shared<memory::reference>(address_, type_, attributes_, value);
+	return std::make_shared<memory::reference>(address_, type_, attributes_.get_list(), value);
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::memory::reference::get_context() const{
@@ -71,10 +102,7 @@ bool cminus::memory::reference::is_lvalue() const{
 }
 
 void cminus::memory::reference::allocate_memory_(){
-	if (type_ == nullptr)
-		return;
-
-	auto block = runtime::object::memory_object->allocate_block(type_->get_memory_size());
+	auto block = allocate_block_();
 	if (block == nullptr || (address_ = block->get_address()) == 0u)
 		throw memory::exception::allocation_failure();
 
@@ -89,6 +117,14 @@ void cminus::memory::reference::allocate_memory_(){
 	};
 }
 
+std::shared_ptr<cminus::memory::block> cminus::memory::reference::allocate_block_() const{
+	return runtime::object::memory_object->allocate_block(get_memory_size_());
+}
+
+std::size_t cminus::memory::reference::get_memory_size_() const{
+	return ((type_ == nullptr) ? 0u : type_->get_memory_size());
+}
+
 cminus::memory::undefined_reference::undefined_reference(std::shared_ptr<reference> context)
 	: reference(0u, nullptr, attribute::collection::list_type{}, context){}
 
@@ -98,3 +134,15 @@ cminus::memory::function_reference::function_reference(declaration::function_gro
 	: reference(entry.get_address(), nullptr, attribute::collection::list_type{}, context){}
 
 cminus::memory::function_reference::~function_reference() = default;
+
+cminus::memory::rval_reference::rval_reference(std::shared_ptr<type::object> type)
+	: reference(0u, nullptr, attribute::collection::list_type{}, nullptr){
+	is_lvalue_ = false;
+}
+
+cminus::memory::rval_reference::rval_reference(std::size_t address, std::shared_ptr<type::object> type)
+	: reference(address, nullptr, attribute::collection::list_type{}, nullptr){
+	is_lvalue_ = false;
+}
+
+cminus::memory::rval_reference::~rval_reference() = default;

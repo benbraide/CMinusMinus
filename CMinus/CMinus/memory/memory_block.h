@@ -68,9 +68,6 @@ namespace cminus::memory{
 		virtual std::shared_ptr<block> get_offset_block(std::size_t value) const override;
 
 		virtual bool is_write_protected() const;
-
-	protected:
-		virtual void before_write_() const override;
 	};
 
 	class access_protected_block : public block{
@@ -84,9 +81,6 @@ namespace cminus::memory{
 		virtual std::shared_ptr<block> get_offset_block(std::size_t value) const override;
 
 		virtual bool is_access_protected() const;
-
-	protected:
-		virtual void before_read_() const override;
 	};
 
 	class protected_block : public block{
@@ -102,11 +96,6 @@ namespace cminus::memory{
 		virtual bool is_write_protected() const;
 
 		virtual bool is_access_protected() const;
-
-	protected:
-		virtual void before_write_() const override;
-
-		virtual void before_read_() const override;
 	};
 
 	class free_block : public protected_block{

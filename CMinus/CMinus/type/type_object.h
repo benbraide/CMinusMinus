@@ -20,7 +20,7 @@ namespace cminus::type{
 		dynamic,
 	};
 
-	class object : public std::enable_shared_from_this<object>{
+	class object{
 	public:
 		enum class score_result_type{
 			nil,
@@ -72,9 +72,31 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<evaluator::object> get_initializer() const;
 
-		virtual std::shared_ptr<object> remove_ref() const;
+		virtual std::shared_ptr<object> remove_ref(std::shared_ptr<object> self = nullptr) const;
+
+		virtual std::shared_ptr<object> remove_const(std::shared_ptr<object> self = nullptr) const;
+
+		virtual std::shared_ptr<object> convert_auto(std::shared_ptr<object> target) const;
+
+		virtual object *get_non_proxy() const;
 
 		virtual bool is_ref() const;
+
+		virtual bool is_const() const;
+
+		virtual bool is_auto() const;
+
+		virtual bool is_explicit_auto() const;
+
+		virtual bool is_any() const;
+
+		virtual bool is_explicit_any() const;
+
+		virtual bool is_nan() const;
+
+		virtual bool is_explicit_nan() const;
+
+		virtual bool is_undefined() const;
 
 		static int get_score_value(score_result_type score);
 

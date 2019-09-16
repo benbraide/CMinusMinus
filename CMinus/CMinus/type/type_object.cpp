@@ -2,6 +2,7 @@
 #include "../storage/storage_object.h"
 
 #include "type_object.h"
+#include "proxy_type.h"
 
 cminus::type::object::object(const std::string &name, storage::object *parent)
 	: name_(name), parent_(parent){}
@@ -87,6 +88,58 @@ int cminus::type::object::get_score_value(score_result_type score){
 	}
 
 	return 0;
+}
+
+std::shared_ptr<cminus::type::object> cminus::type::object::remove_ref(std::shared_ptr<object> self) const{
+	return ((self.get() == this) ? self : std::make_shared<proxy>(*const_cast<object *>(this)));
+}
+
+std::shared_ptr<cminus::type::object> cminus::type::object::remove_const(std::shared_ptr<object> self) const{
+	return ((self.get() == this) ? self : std::make_shared<proxy>(*const_cast<object *>(this)));
+}
+
+std::shared_ptr<cminus::type::object> cminus::type::object::convert_auto(std::shared_ptr<object> target) const{
+	return nullptr;
+}
+
+cminus::type::object *cminus::type::object::get_non_proxy() const{
+	return const_cast<object *>(this);
+}
+
+bool cminus::type::object::is_ref() const{
+	return false;
+}
+
+bool cminus::type::object::is_const() const{
+	return false;
+}
+
+bool cminus::type::object::is_auto() const{
+	return false;
+}
+
+bool cminus::type::object::is_explicit_auto() const{
+	return false;
+}
+
+bool cminus::type::object::is_any() const{
+	return false;
+}
+
+bool cminus::type::object::is_explicit_any() const{
+	return false;
+}
+
+bool cminus::type::object::is_nan() const{
+	return false;
+}
+
+bool cminus::type::object::is_explicit_nan() const{
+	return false;
+}
+
+bool cminus::type::object::is_undefined() const{
+	return false;
 }
 
 void cminus::type::object::construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const{

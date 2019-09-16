@@ -1,3 +1,5 @@
+#include "../runtime/runtime_object.h"
+
 #include "memory_block.h"
 
 cminus::memory::block::block(std::size_t address, std::byte *buffer, std::size_t size)
@@ -79,11 +81,11 @@ std::shared_ptr<cminus::memory::block> cminus::memory::block::get_offset_block(s
 }
 
 bool cminus::memory::block::is_write_protected() const{
-	return false;
+	return (buffer_ == nullptr);
 }
 
 bool cminus::memory::block::is_access_protected() const{
-	return false;
+	return (buffer_ == nullptr);
 }
 
 bool cminus::memory::block::is_resizable() const{
@@ -91,12 +93,12 @@ bool cminus::memory::block::is_resizable() const{
 }
 
 void cminus::memory::block::before_write_() const{
-	if (buffer_ == nullptr)
+	if (is_write_protected())
 		throw exception::write_protected(address_);
 }
 
 void cminus::memory::block::before_read_() const{
-	if (buffer_ == nullptr)
+	if (is_access_protected())
 		throw exception::access_protected(address_);
 }
 
@@ -113,11 +115,7 @@ std::shared_ptr<cminus::memory::block> cminus::memory::write_protected_block::ge
 }
 
 bool cminus::memory::write_protected_block::is_write_protected() const{
-	return true;
-}
-
-void cminus::memory::write_protected_block::before_write_() const{
-	throw exception::write_protected(address_);
+	return (!runtime::object::is_system || block::is_write_protected());
 }
 
 cminus::memory::access_protected_block::access_protected_block(std::size_t address, std::byte *buffer, std::size_t size)
@@ -133,11 +131,7 @@ std::shared_ptr<cminus::memory::block> cminus::memory::access_protected_block::g
 }
 
 bool cminus::memory::access_protected_block::is_access_protected() const{
-	return true;
-}
-
-void cminus::memory::access_protected_block::before_read_() const{
-	throw exception::access_protected(address_);
+	return (!runtime::object::is_system || block::is_access_protected());
 }
 
 cminus::memory::protected_block::protected_block(std::size_t address, std::byte *buffer, std::size_t size)
@@ -153,19 +147,11 @@ std::shared_ptr<cminus::memory::block> cminus::memory::protected_block::get_offs
 }
 
 bool cminus::memory::protected_block::is_write_protected() const{
-	return true;
+	return (!runtime::object::is_system || block::is_write_protected());
 }
 
 bool cminus::memory::protected_block::is_access_protected() const{
-	return true;
-}
-
-void cminus::memory::protected_block::before_write_() const{
-	throw exception::write_protected(address_);
-}
-
-void cminus::memory::protected_block::before_read_() const{
-	throw exception::access_protected(address_);
+	return (!runtime::object::is_system || block::is_access_protected());
 }
 
 cminus::memory::free_block::free_block(std::size_t address, std::size_t size)

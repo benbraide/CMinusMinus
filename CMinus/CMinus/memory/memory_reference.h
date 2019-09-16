@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../runtime/runtime_object.h"
+#include "../runtime/runtime_value_guard.h"
+
 #include "../attribute/attribute_collection.h"
 #include "../declaration/function_declaration_group_base.h"
 
@@ -19,6 +21,10 @@ namespace cminus::memory{
 		reference(std::size_t address, std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
 			: type_(type), context_(context), attributes_(attributes, type), address_(address){}
 
+		virtual std::size_t get_position() const override;
+
+		virtual std::size_t get_size() const override;
+
 		virtual std::size_t set(std::byte value, std::size_t size) override;
 
 		virtual std::size_t write(const std::byte *buffer, std::size_t size) override;
@@ -26,6 +32,10 @@ namespace cminus::memory{
 		virtual std::size_t write(const io::binary_reader &buffer, std::size_t size);
 
 		virtual std::size_t write(std::size_t source_address, std::size_t size);
+
+		virtual std::size_t write_address(std::size_t value);
+
+		virtual std::size_t write_ownership(reference &target);
 
 		virtual std::size_t read(std::byte *buffer, std::size_t size) const override;
 
@@ -54,6 +64,10 @@ namespace cminus::memory{
 	protected:
 		virtual void allocate_memory_();
 
+		virtual std::shared_ptr<block> allocate_block_() const;
+
+		virtual std::size_t get_memory_size_() const;
+
 		std::shared_ptr<type::object> type_;
 		std::shared_ptr<reference> context_;
 
@@ -76,5 +90,32 @@ namespace cminus::memory{
 		function_reference(declaration::function_group_base &entry, std::shared_ptr<reference> context);
 
 		virtual ~function_reference();
+	};
+
+	class rval_reference : public reference{
+	public:
+		explicit rval_reference(std::shared_ptr<type::object> type);
+
+		rval_reference(std::size_t address, std::shared_ptr<type::object> type);
+
+		virtual ~rval_reference();
+	};
+
+	template <class value_type>
+	class scalar_reference : public rval_reference{
+	public:
+		scalar_reference(std::shared_ptr<type::object> type, value_type value)
+			: rval_reference(0u, type){
+			allocate_memory_();
+			runtime::value_guard guard(runtime::object::is_system, true);
+			runtime::object::memory_object->write_scalar(address_, value);
+		}
+
+		virtual ~scalar_reference() = default;
+
+	protected:
+		virtual std::shared_ptr<block> allocate_block_() const override{
+			return runtime::object::memory_object->allocate_write_protected_block(get_memory_size_());
+		}
 	};
 }
