@@ -2,7 +2,10 @@
 
 #include <string>
 
+#include "../evaluator/evaluator_exception.h"
 #include "../attribute/attribute_collection.h"
+
+#include "declaration_exception.h"
 
 namespace cminus::declaration{
 	struct flags{

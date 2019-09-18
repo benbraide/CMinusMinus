@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../memory/memory_reference.h"
+#include "../declaration/declaration_exception.h"
 
 namespace cminus::memory{
 	class reference;
@@ -40,6 +41,44 @@ namespace cminus::type{
 			too_shortened,
 		};
 
+		enum class query_type{
+			nil,
+			const_,
+			ref,
+			pointer,
+			array_,
+			function,
+			variadic,
+			primitive,
+			scalar,
+			class_,
+			struct_,
+			enum_,
+			auto_,
+			explicit_auto,
+			any_,
+			nan,
+			explicit_nan,
+			undefined,
+			void_,
+			numeric,
+			floating_point,
+			integral,
+			string,
+			boolean,
+			byte,
+			character,
+		};
+
+		enum class conversion_type{
+			nil,
+			remove_ref,
+			remove_const,
+			remove_ref_const,
+			infer,
+			update,
+		};
+
 		object(const std::string &name, storage::object *parent);
 
 		virtual ~object();
@@ -70,39 +109,19 @@ namespace cminus::type{
 
 		virtual int get_score(const object &target) const = 0;
 
+		virtual std::size_t compute_base_offset(const object &base_type) const;
+
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const = 0;
 
 		virtual std::shared_ptr<evaluator::object> get_evaluator() const;
 
 		virtual std::shared_ptr<evaluator::initializer> get_initializer() const;
 
-		virtual std::shared_ptr<object> remove_ref(std::shared_ptr<object> self = nullptr) const;
-
-		virtual std::shared_ptr<object> remove_const(std::shared_ptr<object> self = nullptr) const;
-
-		virtual std::shared_ptr<object> convert_auto(std::shared_ptr<object> target) const;
-
-		virtual void set_nan_state(bool value);
-
 		virtual object *get_non_proxy() const;
 
-		virtual bool is_ref() const;
+		virtual std::shared_ptr<object> convert(conversion_type type, std::shared_ptr<object> self_or_other = nullptr) const;
 
-		virtual bool is_const() const;
-
-		virtual bool is_auto() const;
-
-		virtual bool is_explicit_auto() const;
-
-		virtual bool is_any() const;
-
-		virtual bool is_explicit_any() const;
-
-		virtual bool is_nan() const;
-
-		virtual bool is_explicit_nan() const;
-
-		virtual bool is_undefined() const;
+		virtual bool is(query_type type) const;
 
 		static int get_score_value(score_result_type score);
 

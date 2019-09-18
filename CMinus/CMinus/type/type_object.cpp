@@ -1,5 +1,5 @@
 #include "../node/node_object.h"
-#include "../storage/storage_object.h"
+#include "../storage/global_storage.h"
 
 #include "../evaluator/initializer.h"
 #include "../evaluator/evaluator_object.h"
@@ -41,10 +41,10 @@ void cminus::type::object::construct(std::shared_ptr<memory::reference> target, 
 
 void cminus::type::object::construct(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const{
 	if (initialization.empty()){
-		if (auto default_value = get_default_value(); default_value != nullptr)
+		if (auto default_value = get_default_value(); default_value == nullptr)
+			construct_(target, std::vector<std::shared_ptr<memory::reference>>{});
+		else
 			construct_(target, std::vector<std::shared_ptr<memory::reference>>{ default_value });
-		else//Throw
-			return;
 	}
 	else
 		construct_(target, initialization);
@@ -72,15 +72,19 @@ std::size_t cminus::type::object::get_memory_size() const{
 }
 
 bool cminus::type::object::is_exact(const object &target) const{
-	return (&target == this || get_score(target) == get_score_value(score_result_type::exact));
+	return (&target == this || (parent_ == target.parent_ && name_ == target.name_));
+}
+
+std::size_t cminus::type::object::compute_base_offset(const object &base_type) const{
+	return 0u;
 }
 
 std::shared_ptr<cminus::evaluator::object> cminus::type::object::get_evaluator() const{
-	return nullptr;
+	return runtime::object::global_storage->get_evaluator_for(*this);
 }
 
 std::shared_ptr<cminus::evaluator::initializer> cminus::type::object::get_initializer() const{
-	return nullptr;
+	return runtime::object::global_storage->get_default_initializer();
 }
 
 int cminus::type::object::get_score_value(score_result_type score){
@@ -109,60 +113,21 @@ int cminus::type::object::get_score_value(score_result_type score){
 	return 0;
 }
 
-std::shared_ptr<cminus::type::object> cminus::type::object::remove_ref(std::shared_ptr<object> self) const{
-	return ((self.get() == this) ? self : std::make_shared<proxy>(*const_cast<object *>(this)));
-}
-
-std::shared_ptr<cminus::type::object> cminus::type::object::remove_const(std::shared_ptr<object> self) const{
-	return ((self.get() == this) ? self : std::make_shared<proxy>(*const_cast<object *>(this)));
-}
-
-std::shared_ptr<cminus::type::object> cminus::type::object::convert_auto(std::shared_ptr<object> target) const{
-	return nullptr;
-}
-
-void cminus::type::object::set_nan_state(bool value){}
-
 cminus::type::object *cminus::type::object::get_non_proxy() const{
 	return const_cast<object *>(this);
 }
 
-bool cminus::type::object::is_ref() const{
-	return false;
+std::shared_ptr<cminus::type::object> cminus::type::object::convert(conversion_type type, std::shared_ptr<object> self_or_other) const{
+	return ((self_or_other.get() == this) ? self_or_other : std::make_shared<proxy>(*const_cast<object *>(this)));
 }
 
-bool cminus::type::object::is_const() const{
-	return false;
-}
-
-bool cminus::type::object::is_auto() const{
-	return false;
-}
-
-bool cminus::type::object::is_explicit_auto() const{
-	return false;
-}
-
-bool cminus::type::object::is_any() const{
-	return false;
-}
-
-bool cminus::type::object::is_explicit_any() const{
-	return false;
-}
-
-bool cminus::type::object::is_nan() const{
-	return false;
-}
-
-bool cminus::type::object::is_explicit_nan() const{
-	return false;
-}
-
-bool cminus::type::object::is_undefined() const{
-	return false;
+bool cminus::type::object::is(query_type type) const{
+	return (type == query_type::scalar);
 }
 
 void cminus::type::object::construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const{
-
+	if (!args.empty())
+		get_initializer()->initialize(target, *args.rbegin());
+	else
+		throw declaration::exception::initialization_required();
 }

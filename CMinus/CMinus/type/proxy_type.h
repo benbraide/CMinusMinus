@@ -32,39 +32,19 @@ namespace cminus::type{
 
 		virtual int get_score(const object &target) const override;
 
+		virtual std::size_t compute_base_offset(const object &base_type) const override;
+
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 
 		virtual std::shared_ptr<evaluator::object> get_evaluator() const override;
 
 		virtual std::shared_ptr<evaluator::initializer> get_initializer() const override;
 
-		virtual std::shared_ptr<object> remove_ref(std::shared_ptr<object> self = nullptr) const override;
-
-		virtual std::shared_ptr<object> remove_const(std::shared_ptr<object> self = nullptr) const override;
-
-		virtual std::shared_ptr<object> convert_auto(std::shared_ptr<object> target) const override;
-
-		virtual void set_nan_state(bool value) override;
-
 		virtual object *get_non_proxy() const override;
 
-		virtual bool is_ref() const override;
+		virtual std::shared_ptr<object> convert(conversion_type type, std::shared_ptr<object> self_or_other = nullptr) const override;
 
-		virtual bool is_const() const override;
-
-		virtual bool is_auto() const override;
-
-		virtual bool is_explicit_auto() const override;
-
-		virtual bool is_any() const override;
-
-		virtual bool is_explicit_any() const override;
-
-		virtual bool is_nan() const override;
-
-		virtual bool is_explicit_nan() const override;
-
-		virtual bool is_undefined() const override;
+		virtual bool is(query_type type) const override;
 
 	protected:
 		object *target_;

@@ -36,11 +36,9 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::alloca
 	if (static_value_ != nullptr)
 		return static_value_;
 
-	auto computed_type = type_;
-	if (computed_type->is_auto()){//Infer type
-		if ((computed_type = computed_type->convert_auto(initialization_type)) == nullptr)
-			return nullptr;//Throw
-	}
+	auto computed_type = type_->convert(type::object::conversion_type::infer, initialization_type);
+	if (computed_type == nullptr && (computed_type = type_)->is(type::object::query_type::auto_))
+		throw evaluator::exception::incompatible_rval();
 
 	std::shared_ptr<memory::reference> reference;
 	if (address == 0u)//Allocate memory

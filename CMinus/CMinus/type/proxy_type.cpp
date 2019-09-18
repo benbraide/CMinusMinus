@@ -45,6 +45,10 @@ int cminus::type::proxy::get_score(const object &target) const{
 	return target_->get_score(target);
 }
 
+std::size_t cminus::type::proxy::compute_base_offset(const object &base_type) const{
+	return target_->compute_base_offset(base_type);
+}
+
 std::shared_ptr<cminus::memory::reference> cminus::type::proxy::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
 	return target_->cast(data, target_type, type);
 }
@@ -57,58 +61,14 @@ std::shared_ptr<cminus::evaluator::initializer> cminus::type::proxy::get_initial
 	return target_->get_initializer();
 }
 
-std::shared_ptr<cminus::type::object> cminus::type::proxy::remove_ref(std::shared_ptr<object> self) const{
-	return ((self.get() == this) ? self : target_->remove_ref(nullptr));
-}
-
-std::shared_ptr<cminus::type::object> cminus::type::proxy::remove_const(std::shared_ptr<object> self) const{
-	return ((self.get() == this) ? self : target_->remove_const(nullptr));
-}
-
-std::shared_ptr<cminus::type::object> cminus::type::proxy::convert_auto(std::shared_ptr<object> target) const{
-	return target_->convert_auto(target);
-}
-
-void cminus::type::proxy::set_nan_state(bool value){
-	target_->set_nan_state(value);
+std::shared_ptr<cminus::type::object> cminus::type::proxy::convert(conversion_type type, std::shared_ptr<object> self_or_other) const{
+	return target_->convert(type, self_or_other);
 }
 
 cminus::type::object *cminus::type::proxy::get_non_proxy() const{
 	return target_->get_non_proxy();
 }
 
-bool cminus::type::proxy::is_ref() const{
-	return target_->is_ref();
-}
-
-bool cminus::type::proxy::is_const() const{
-	return target_->is_const();
-}
-
-bool cminus::type::proxy::is_auto() const{
-	return target_->is_auto();
-}
-
-bool cminus::type::proxy::is_explicit_auto() const{
-	return target_->is_explicit_auto();
-}
-
-bool cminus::type::proxy::is_any() const{
-	return target_->is_any();
-}
-
-bool cminus::type::proxy::is_explicit_any() const{
-	return target_->is_explicit_any();
-}
-
-bool cminus::type::proxy::is_nan() const{
-	return target_->is_nan();
-}
-
-bool cminus::type::proxy::is_explicit_nan() const{
-	return target_->is_explicit_nan();
-}
-
-bool cminus::type::proxy::is_undefined() const{
-	return target_->is_undefined();
+bool cminus::type::proxy::is(query_type type) const{
+	return target_->is(type);
 }

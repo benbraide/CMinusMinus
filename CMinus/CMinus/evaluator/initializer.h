@@ -11,6 +11,6 @@ namespace cminus::evaluator{
 	public:
 		virtual ~initializer();
 
-		virtual void initialize(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> value) const = 0;
+		virtual void initialize(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> value) const;
 	};
 }
