@@ -37,3 +37,4 @@
 *.vcxproj
 *.filters
 *.user
+/CMinus/.vs/CMinus/v16

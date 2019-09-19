@@ -64,7 +64,7 @@ void cminus::type::object::construct(std::shared_ptr<memory::reference> target) 
 void cminus::type::object::destruct(std::shared_ptr<memory::reference> target) const{}
 
 std::shared_ptr<cminus::memory::reference> cminus::type::object::get_default_value() const{
-	return nullptr;
+	return runtime::object::global_storage->get_zero_value(std::make_shared<proxy>(*const_cast<object *>(this)));
 }
 
 std::size_t cminus::type::object::get_memory_size() const{
@@ -92,16 +92,9 @@ int cminus::type::object::get_score_value(score_result_type score){
 	case score_result_type::exact:
 		return 100;
 	case score_result_type::assignable:
-		return 90;
-	case score_result_type::ancestor:
-	case score_result_type::widened:
 		return 80;
-	case score_result_type::too_widened:
-		return 70;
-	case score_result_type::shortened:
+	case score_result_type::ancestor:
 		return 60;
-	case score_result_type::too_shortened:
-		return 50;
 	case score_result_type::compatible:
 		return 30;
 	case score_result_type::class_compatible:

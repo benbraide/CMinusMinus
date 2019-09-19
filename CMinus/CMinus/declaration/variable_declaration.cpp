@@ -37,11 +37,17 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::alloca
 		return static_value_;
 
 	auto computed_type = type_->convert(type::object::conversion_type::infer, initialization_type);
-	if (computed_type == nullptr && (computed_type = type_)->is(type::object::query_type::auto_))
+	if (computed_type == nullptr && (computed_type = type_)->is(type::object::query_type::inferred))
 		throw evaluator::exception::incompatible_rval();
 
 	std::shared_ptr<memory::reference> reference;
-	if (address == 0u)//Allocate memory
+	if (computed_type->is(type::object::query_type::indirect)){
+		if (address == 0u)//Allocate memory
+			reference = std::make_shared<memory::indirect_reference>(computed_type, attributes_.get_list(), nullptr);
+		else//Use address
+			reference = std::make_shared<memory::indirect_reference>(address, computed_type, attributes_.get_list(), nullptr);
+	}
+	else if (address == 0u)//Allocate memory
 		reference = std::make_shared<memory::reference>(computed_type, attributes_.get_list(), nullptr);
 	else//Use address
 		reference = std::make_shared<memory::reference>(address, computed_type, attributes_.get_list(), nullptr);

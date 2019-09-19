@@ -35,10 +35,6 @@ namespace cminus::type{
 			offspring,
 			compatible,
 			class_compatible,
-			widened,
-			shortened,
-			too_widened,
-			too_shortened,
 		};
 
 		enum class query_type{
@@ -58,7 +54,6 @@ namespace cminus::type{
 			explicit_auto,
 			any_,
 			nan,
-			explicit_nan,
 			undefined,
 			void_,
 			numeric,
@@ -68,6 +63,8 @@ namespace cminus::type{
 			boolean,
 			byte,
 			character,
+			inferred,
+			indirect,
 		};
 
 		enum class conversion_type{
@@ -75,6 +72,7 @@ namespace cminus::type{
 			remove_ref,
 			remove_const,
 			remove_ref_const,
+			remove_indirection,
 			infer,
 			update,
 		};

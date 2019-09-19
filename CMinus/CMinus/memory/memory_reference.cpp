@@ -1,6 +1,14 @@
 #include "../type/type_object.h"
+#include "../storage/global_storage.h"
 
 #include "memory_reference.h"
+
+cminus::memory::reference::~reference(){
+	if (deallocator_ != nullptr){
+		deallocator_();
+		deallocator_ = nullptr;
+	}
+}
 
 std::size_t cminus::memory::reference::get_position() const{
 	return 0u;
@@ -27,26 +35,11 @@ std::size_t cminus::memory::reference::write(std::size_t source_address, std::si
 }
 
 std::size_t cminus::memory::reference::write_address(std::size_t value){
-	return ((type_ == nullptr || !type_->is(type::object::query_type::ref)) ? 0u : runtime::object::memory_object->write_scalar(address_, value));
+	return 0u;
 }
 
-std::size_t cminus::memory::reference::write_ownership(reference &target){
-	if (!target.is_lvalue())//R-value is required
-		return write_address(target.get_address());
-
-	if (type_ == nullptr || !type_->is(type::object::query_type::ref))
-		return 0u;
-
-	if (deallocator_ != nullptr)//Deallocate previous
-		deallocator_();
-
-	address_ = target.address_;
-	target.address_ = 0u;
-
-	type_ = type_->convert(type::object::conversion_type::remove_ref, type_);
-	deallocator_ = std::move(target.deallocator_);
-
-	return sizeof(void *);
+std::size_t cminus::memory::reference::write_ownership(std::shared_ptr<reference> target){
+	return 0u;
 }
 
 std::size_t cminus::memory::reference::read(std::byte *buffer, std::size_t size) const{
@@ -67,7 +60,12 @@ std::shared_ptr<cminus::type::object> cminus::memory::reference::get_type() cons
 
 std::shared_ptr<cminus::memory::reference> cminus::memory::reference::apply_offset(std::size_t value, std::shared_ptr<type::object> type) const{
 	auto target_type = ((type == nullptr) ? type_ : type);
-	auto entry = std::make_shared<memory::reference>((get_address() + value), target_type->convert(type::object::conversion_type::remove_ref, target_type), attributes_.get_list(), context_);
+	auto entry = std::make_shared<memory::reference>(
+		(get_address() + value),
+		target_type->convert(type::object::conversion_type::remove_indirection, target_type),
+		attributes_.get_list(),
+		context_
+	);
 
 	if (entry != nullptr)//Copy l-value state
 		entry->is_lvalue_ = is_lvalue_;
@@ -96,7 +94,7 @@ cminus::attribute::collection &cminus::memory::reference::get_attributes(){
 }
 
 std::size_t cminus::memory::reference::get_address() const{
-	return ((type_ == nullptr || !type_->is(type::object::query_type::ref)) ? address_ : runtime::object::memory_object->read_scalar<std::size_t>(address_));
+	return address_;
 }
 
 bool cminus::memory::reference::is_lvalue() const{
@@ -133,9 +131,37 @@ cminus::memory::undefined_reference::undefined_reference(std::shared_ptr<referen
 cminus::memory::undefined_reference::~undefined_reference() = default;
 
 cminus::memory::function_reference::function_reference(declaration::function_group_base &entry, std::shared_ptr<reference> context)
-	: reference(entry.get_address(), nullptr, attribute::collection::list_type{}, context){}
+	: reference(entry.get_address(), runtime::object::global_storage->get_cached_type(storage::global::cached_type::function), attribute::collection::list_type{}, context){}
+
+cminus::memory::function_reference::function_reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
+	: reference(address, type, attribute::collection::list_type{}, context){}
 
 cminus::memory::function_reference::~function_reference() = default;
+
+cminus::memory::indirect_reference::~indirect_reference(){
+	if (deallocator_ != nullptr){
+		deallocator_();
+		deallocator_ = nullptr;
+	}
+}
+
+std::size_t cminus::memory::indirect_reference::write_address(std::size_t value){
+	return runtime::object::memory_object->write_scalar(address_, value);
+}
+
+std::size_t cminus::memory::indirect_reference::write_ownership(std::shared_ptr<reference> target){
+	if (target == nullptr || owned_ != nullptr || write_address(target->get_address()) == 0u)
+		return 0u;
+
+	owned_ = target;
+	type_ = type_->convert(type::object::conversion_type::remove_ref, type_);
+
+	return type_->get_size();
+}
+
+std::size_t cminus::memory::indirect_reference::get_address() const{
+	return runtime::object::memory_object->read_scalar<std::size_t>(address_);
+}
 
 cminus::memory::rval_reference::rval_reference(std::shared_ptr<type::object> type)
 	: reference(0u, nullptr, attribute::collection::list_type{}, nullptr){

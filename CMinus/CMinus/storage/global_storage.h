@@ -22,13 +22,30 @@ namespace cminus::storage{
 			string,
 		};
 
+		enum class cached_type{
+			nil,
+			void_,
+			bool_,
+			byte_,
+			char_,
+			wchar_,
+			function,
+			string,
+		};
+
 		global();
 
 		virtual ~global();
 
+		virtual std::shared_ptr<type::object> get_cached_type(cached_type type) const;
+
 		virtual std::shared_ptr<evaluator::object> get_evaluator_for(const type::object &target_type) const;
 
 		virtual std::shared_ptr<evaluator::initializer> get_default_initializer() const;
+
+		virtual std::shared_ptr<memory::reference> copy(std::shared_ptr<memory::reference> value) const;
+
+		virtual std::shared_ptr<memory::reference> get_zero_value(std::shared_ptr<type::object> type) const;
 
 	protected:
 		std::unordered_map<evaluator_type, std::shared_ptr<evaluator::object>> evaluators_;

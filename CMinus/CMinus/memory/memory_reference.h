@@ -21,6 +21,8 @@ namespace cminus::memory{
 		reference(std::size_t address, std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
 			: type_(type), context_(context), attributes_(attributes, type), address_(address){}
 
+		virtual ~reference();
+
 		virtual std::size_t get_position() const override;
 
 		virtual std::size_t get_size() const override;
@@ -35,7 +37,7 @@ namespace cminus::memory{
 
 		virtual std::size_t write_address(std::size_t value);
 
-		virtual std::size_t write_ownership(reference &target);
+		virtual std::size_t write_ownership(std::shared_ptr<reference> target);
 
 		virtual std::size_t read(std::byte *buffer, std::size_t size) const override;
 
@@ -89,7 +91,33 @@ namespace cminus::memory{
 	public:
 		function_reference(declaration::function_group_base &entry, std::shared_ptr<reference> context);
 
+		function_reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
+
 		virtual ~function_reference();
+	};
+
+	class indirect_reference : public reference{
+	public:
+		template <typename attributes_type>
+		indirect_reference(std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
+			: reference(0u, type, attributes, context){
+			allocate_memory_();
+		}
+
+		template <typename attributes_type>
+		indirect_reference(std::size_t address, std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
+			: reference(address, type, attributes, context){}
+
+		virtual ~indirect_reference();
+
+		virtual std::size_t write_address(std::size_t value) override;
+
+		virtual std::size_t write_ownership(std::shared_ptr<reference> target) override;
+
+		virtual std::size_t get_address() const override;
+
+	protected:
+		std::shared_ptr<reference> owned_;
 	};
 
 	class rval_reference : public reference{
