@@ -64,7 +64,7 @@ void cminus::type::object::construct(std::shared_ptr<memory::reference> target) 
 void cminus::type::object::destruct(std::shared_ptr<memory::reference> target) const{}
 
 std::shared_ptr<cminus::memory::reference> cminus::type::object::get_default_value() const{
-	return runtime::object::global_storage->get_zero_value(std::make_shared<proxy>(*const_cast<object *>(this)));
+	return runtime::object::global_storage->get_zero_value(convert(conversion_type::clone));
 }
 
 std::size_t cminus::type::object::get_memory_size() const{
@@ -72,7 +72,7 @@ std::size_t cminus::type::object::get_memory_size() const{
 }
 
 bool cminus::type::object::is_exact(const object &target) const{
-	return (&target == this || (parent_ == target.parent_ && name_ == target.name_));
+	return (target.get_non_proxy() == this || (parent_ == target.get_parent() && name_ == target.get_name()));
 }
 
 std::size_t cminus::type::object::compute_base_offset(const object &base_type) const{
@@ -91,10 +91,12 @@ int cminus::type::object::get_score_value(score_result_type score){
 	switch (score){
 	case score_result_type::exact:
 		return 100;
-	case score_result_type::assignable:
+	case score_result_type::auto_assignable:
 		return 80;
 	case score_result_type::ancestor:
 		return 60;
+	case score_result_type::assignable:
+		return 50;
 	case score_result_type::compatible:
 		return 30;
 	case score_result_type::class_compatible:
@@ -114,7 +116,7 @@ std::shared_ptr<cminus::type::object> cminus::type::object::convert(conversion_t
 	return ((self_or_other.get() == this) ? self_or_other : std::make_shared<proxy>(*const_cast<object *>(this)));
 }
 
-bool cminus::type::object::is(query_type type) const{
+bool cminus::type::object::is(query_type type, const object *arg) const{
 	return (type == query_type::scalar);
 }
 

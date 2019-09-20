@@ -18,6 +18,15 @@ cminus::evaluator::exception::code cminus::evaluator::exception::invalid_type::g
 	return code::invalid_type;
 }
 
+cminus::evaluator::exception::inferred_type::inferred_type()
+	: base("Assignment target is an inferred type. Failed to infer type from initialization"){}
+
+cminus::evaluator::exception::inferred_type::~inferred_type() = default;
+
+cminus::evaluator::exception::code cminus::evaluator::exception::inferred_type::get_code() const{
+	return code::inferred_type;
+}
+
 cminus::evaluator::exception::incompatible_rval::incompatible_rval()
 	: base("Cannot assign specified value to target"){}
 

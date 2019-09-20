@@ -6,6 +6,7 @@ namespace cminus::evaluator::exception{
 	enum class code{
 		nil,
 		invalid_type,
+		inferred_type,
 		incompatible_rval,
 		rval_assignment,
 		const_assignment,
@@ -38,6 +39,15 @@ namespace cminus::evaluator::exception{
 		invalid_type();
 
 		virtual ~invalid_type();
+
+		virtual code get_code() const override;
+	};
+
+	class inferred_type : public base{
+	public:
+		inferred_type();
+
+		virtual ~inferred_type();
 
 		virtual code get_code() const override;
 	};

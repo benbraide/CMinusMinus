@@ -13,10 +13,9 @@ void cminus::evaluator::initializer::initialize(std::shared_ptr<memory::referenc
 	if (compatible_value == nullptr)
 		throw exception::incompatible_rval();
 
-	if (target_type->is(type::object::query_type::indirect))
+	value_type = target_type->convert(type::object::conversion_type::update, value_type);
+	if (target_type->is(type::object::query_type::ref))
 		target->write_ownership(compatible_value);
 	else//Copy value
 		target->write(*compatible_value, target_type->get_size());
-
-	target_type->convert(type::object::conversion_type::update, value_type);
 }

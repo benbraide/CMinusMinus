@@ -69,6 +69,6 @@ cminus::type::object *cminus::type::proxy::get_non_proxy() const{
 	return target_->get_non_proxy();
 }
 
-bool cminus::type::proxy::is(query_type type) const{
-	return target_->is(type);
+bool cminus::type::proxy::is(query_type type, const object *arg) const{
+	return target_->is(type, arg);
 }

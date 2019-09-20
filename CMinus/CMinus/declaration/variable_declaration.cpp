@@ -36,12 +36,15 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::alloca
 	if (static_value_ != nullptr)
 		return static_value_;
 
-	auto computed_type = type_->convert(type::object::conversion_type::infer, initialization_type);
-	if (computed_type == nullptr && (computed_type = type_)->is(type::object::query_type::inferred))
-		throw evaluator::exception::incompatible_rval();
+	auto computed_type = ((initialization_type == nullptr) ? nullptr : type_->convert(type::object::conversion_type::infer, initialization_type));
+	if (computed_type == nullptr)//No conversion
+		computed_type = type_;
+
+	if (computed_type->is(type::object::query_type::inferred))//Conversion required
+		throw evaluator::exception::inferred_type();
 
 	std::shared_ptr<memory::reference> reference;
-	if (computed_type->is(type::object::query_type::indirect)){
+	if (computed_type->is(type::object::query_type::ref)){
 		if (address == 0u)//Allocate memory
 			reference = std::make_shared<memory::indirect_reference>(computed_type, attributes_.get_list(), nullptr);
 		else//Use address

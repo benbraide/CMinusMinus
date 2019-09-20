@@ -30,6 +30,7 @@ namespace cminus::type{
 		enum class score_result_type{
 			nil,
 			exact,
+			auto_assignable,
 			assignable,
 			ancestor,
 			offspring,
@@ -42,6 +43,7 @@ namespace cminus::type{
 			const_,
 			ref,
 			pointer,
+			nullptr_,
 			array_,
 			function,
 			variadic,
@@ -52,19 +54,21 @@ namespace cminus::type{
 			enum_,
 			auto_,
 			explicit_auto,
-			any_,
 			nan,
 			undefined,
 			void_,
 			numeric,
 			floating_point,
 			integral,
+			unsigned_integral,
 			string,
 			boolean,
 			byte,
 			character,
 			inferred,
-			indirect,
+			offspring_of,
+			child_of,
+			updatable,
 		};
 
 		enum class conversion_type{
@@ -73,8 +77,10 @@ namespace cminus::type{
 			remove_const,
 			remove_ref_const,
 			remove_indirection,
+			remove_pointer,
 			infer,
 			update,
+			clone,
 		};
 
 		object(const std::string &name, storage::object *parent);
@@ -119,7 +125,7 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<object> convert(conversion_type type, std::shared_ptr<object> self_or_other = nullptr) const;
 
-		virtual bool is(query_type type) const;
+		virtual bool is(query_type type, const object *arg = nullptr) const;
 
 		static int get_score_value(score_result_type score);
 

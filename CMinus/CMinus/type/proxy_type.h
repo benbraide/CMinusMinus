@@ -44,7 +44,7 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<object> convert(conversion_type type, std::shared_ptr<object> self_or_other = nullptr) const override;
 
-		virtual bool is(query_type type) const override;
+		virtual bool is(query_type type, const object *arg = nullptr) const override;
 
 	protected:
 		object *target_;

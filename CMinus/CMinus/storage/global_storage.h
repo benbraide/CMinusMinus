@@ -24,6 +24,7 @@ namespace cminus::storage{
 
 		enum class cached_type{
 			nil,
+			undefined,
 			void_,
 			bool_,
 			byte_,
