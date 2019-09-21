@@ -6,7 +6,7 @@
 #include "storage_object.h"
 
 namespace cminus::storage{
-	class global : public object{
+	class global : public named_object{
 	public:
 		enum class evaluator_type{
 			nil,

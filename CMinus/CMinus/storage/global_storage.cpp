@@ -4,7 +4,7 @@
 #include "global_storage.h"
 
 cminus::storage::global::global()
-	: object("", nullptr){
+	: named_object("", nullptr){
 	runtime::object::global_storage = this;
 	runtime::object::current_storage = this;
 

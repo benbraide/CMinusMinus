@@ -237,7 +237,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::function_primitive::cas
 }
 
 bool cminus::type::function_primitive::is(query_type type, const object *arg) const{
-	return (type == query_type::function || primitive::is(type, arg));
+	return (type == query_type::function || type == query_type::generic_function || primitive::is(type, arg));
 }
 
 cminus::type::auto_primitive::auto_primitive()

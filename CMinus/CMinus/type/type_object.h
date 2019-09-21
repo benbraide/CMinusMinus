@@ -46,6 +46,8 @@ namespace cminus::type{
 			nullptr_,
 			array_,
 			function,
+			generic_function,
+			const_function,
 			variadic,
 			primitive,
 			scalar,
@@ -70,6 +72,8 @@ namespace cminus::type{
 			child_of,
 			updatable,
 			modified,
+			exact_parameter_types,
+			exact_return_type,
 		};
 
 		enum class conversion_type{

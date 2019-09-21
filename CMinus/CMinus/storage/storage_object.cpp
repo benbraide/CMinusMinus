@@ -1,22 +1,11 @@
 #include "storage_object.h"
 
-cminus::storage::object::object(const std::string &name, object *parent)
-	: name_(name), parent_(parent){}
-
 cminus::storage::object::~object(){
 	destroy_entries_();
 }
 
-const std::string &cminus::storage::object::get_name() const{
-	return name_;
-}
-
 std::string cminus::storage::object::get_qname() const{
-	return ((parent_ == nullptr) ? name_ : (parent_->get_qname() + "::" + name_));
-}
-
-cminus::storage::object *cminus::storage::object::get_parent() const{
-	return parent_;
+	return ((get_parent() == nullptr) ? get_name() : (get_parent()->get_qname() + "::" + get_name()));
 }
 
 void cminus::storage::object::add(std::shared_ptr<declaration::object> entry, std::size_t address){
@@ -70,7 +59,13 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::object::find(const s
 			return entry;
 	}
 
-	return ((search_tree && parent_ != nullptr) ? parent_->find(name, true) : nullptr);
+	if (!search_tree)
+		return nullptr;
+
+	if (auto parent = get_parent(); parent != nullptr)
+		return parent->find(name, true);
+
+	return nullptr;
 }
 
 std::shared_ptr<cminus::attribute::object> cminus::storage::object::find_attribute(const std::string &name, bool search_tree) const{
@@ -80,7 +75,13 @@ std::shared_ptr<cminus::attribute::object> cminus::storage::object::find_attribu
 			return entry;
 	}
 
-	return ((search_tree && parent_ != nullptr) ? parent_->find_attribute(name, true) : nullptr);
+	if (!search_tree)
+		return nullptr;
+
+	if (auto parent = get_parent(); parent != nullptr)
+		return parent->find_attribute(name, true);
+
+	return nullptr;
 }
 
 std::shared_ptr<cminus::type::object> cminus::storage::object::find_type(const std::string &name, bool search_tree) const{
@@ -90,7 +91,13 @@ std::shared_ptr<cminus::type::object> cminus::storage::object::find_type(const s
 			return entry;
 	}
 
-	return ((search_tree && parent_ != nullptr) ? parent_->find_type(name, true) : nullptr);
+	if (!search_tree)
+		return nullptr;
+
+	if (auto parent = get_parent(); parent != nullptr)
+		return parent->find_type(name, true);
+
+	return nullptr;
 }
 
 std::shared_ptr<cminus::storage::object> cminus::storage::object::find_storage(const std::string &name, bool search_tree) const{
@@ -100,7 +107,13 @@ std::shared_ptr<cminus::storage::object> cminus::storage::object::find_storage(c
 			return entry;
 	}
 
-	return ((search_tree && parent_ != nullptr) ? parent_->find_storage(name, true) : nullptr);
+	if (!search_tree)
+		return nullptr;
+
+	if (auto parent = get_parent(); parent != nullptr)
+		return parent->find_storage(name, true);
+
+	return nullptr;
 }
 
 void cminus::storage::object::destroy_entries_(){
@@ -225,4 +238,19 @@ std::shared_ptr<cminus::storage::object> cminus::storage::object::find_storage_(
 	}
 
 	return std::dynamic_pointer_cast<object>(find_type_(name));
+}
+
+cminus::storage::named_object::named_object(const std::string &name, object *parent)
+	: name_(name), parent_(parent){}
+
+cminus::storage::named_object::~named_object(){
+	destroy_entries_();
+}
+
+const std::string &cminus::storage::named_object::get_name() const{
+	return name_;
+}
+
+cminus::storage::object *cminus::storage::named_object::get_parent() const{
+	return parent_;
 }

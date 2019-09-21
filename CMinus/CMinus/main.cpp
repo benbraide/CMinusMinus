@@ -4,12 +4,6 @@
 #include "memory/memory_object.h"
 
 int main(){
-	struct test{};
-
-	test ti;
-	sizeof(test);
-	sizeof(ti);
-
 	cminus::io::stream_writer sw(std::cout);
 	sw.write_scalar(0);
 

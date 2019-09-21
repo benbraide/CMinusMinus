@@ -17,3 +17,21 @@ cminus::declaration::exception::initialization_required::~initialization_require
 cminus::declaration::exception::code cminus::declaration::exception::initialization_required::get_code() const{
 	return code::initialization_required;
 }
+
+cminus::declaration::exception::function_redefinition::function_redefinition()
+	: base("Function is already defined"){}
+
+cminus::declaration::exception::function_redefinition::~function_redefinition() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::function_redefinition::get_code() const{
+	return code::function_redefinition;
+}
+
+cminus::declaration::exception::function_redeclaration::function_redeclaration()
+	: base("Function is already declared"){}
+
+cminus::declaration::exception::function_redeclaration::~function_redeclaration() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::function_redeclaration::get_code() const{
+	return code::function_redeclaration;
+}

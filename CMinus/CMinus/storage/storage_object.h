@@ -40,15 +40,13 @@ namespace cminus::storage{
 			storage,
 		};
 
-		object(const std::string &name, object *parent);
-
 		virtual ~object();
 
-		virtual const std::string &get_name() const;
+		virtual const std::string &get_name() const = 0;
 
 		virtual std::string get_qname() const;
 
-		virtual object *get_parent() const;
+		virtual object *get_parent() const = 0;
 
 		virtual void add(std::shared_ptr<declaration::object> entry, std::size_t address);
 
@@ -91,9 +89,6 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<object> find_storage_(const std::string &name) const;
 
-		std::string name_;
-		object *parent_;
-
 		std::list<std::shared_ptr<memory::reference>> entries_;
 		std::unordered_map<std::string, memory::reference *> named_entries_;
 
@@ -104,5 +99,20 @@ namespace cminus::storage{
 		std::unordered_map<std::string, std::shared_ptr<object>> storages_;
 
 		mutable std::mutex lock_;
+	};
+
+	class named_object : public object{
+	public:
+		named_object(const std::string &name, object *parent);
+
+		virtual ~named_object();
+
+		virtual const std::string &get_name() const override;
+
+		virtual object *get_parent() const override;
+
+	protected:
+		std::string name_;
+		object *parent_;
 	};
 }
