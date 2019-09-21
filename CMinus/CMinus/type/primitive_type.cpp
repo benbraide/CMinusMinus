@@ -1,5 +1,6 @@
 #include "../storage/global_storage.h"
 
+#include "modified_type.h"
 #include "primitive_type.h"
 
 cminus::type::primitive::primitive(const std::string &name)
@@ -261,7 +262,20 @@ std::shared_ptr<cminus::memory::reference> cminus::type::auto_primitive::cast(st
 }
 
 std::shared_ptr<cminus::type::object> cminus::type::auto_primitive::convert(conversion_type type, std::shared_ptr<object> self_or_other) const{
-	return ((type == conversion_type::infer) ? self_or_other : primitive::convert(type, self_or_other));
+	if (type != conversion_type::infer)
+		return primitive::convert(type, self_or_other);
+
+	if (self_or_other == nullptr)
+		return nullptr;
+
+	auto is_ref = self_or_other->is(query_type::ref);
+	if (auto converted = (is_ref ? self_or_other->convert(conversion_type::remove_ref_const, self_or_other) : self_or_other); converted != nullptr){
+		if ((converted = converted->convert(conversion_type::clone, converted)) = nullptr)
+			return nullptr;
+		return ((is_ref && self_or_other->is(query_type::const_)) ? std::make_shared<constant>(converted) : converted);
+	}
+
+	return nullptr;
 }
 
 bool cminus::type::auto_primitive::is(query_type type, const object *arg) const{

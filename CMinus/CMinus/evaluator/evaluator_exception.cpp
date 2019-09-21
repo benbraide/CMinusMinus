@@ -46,12 +46,30 @@ cminus::evaluator::exception::code cminus::evaluator::exception::rval_assignment
 }
 
 cminus::evaluator::exception::const_assignment::const_assignment()
-	: base("Cannot assignment value to a constant target"){}
+	: base("Cannot assign value to a constant target"){}
 
 cminus::evaluator::exception::const_assignment::~const_assignment() = default;
 
 cminus::evaluator::exception::code cminus::evaluator::exception::const_assignment::get_code() const{
 	return code::const_assignment;
+}
+
+cminus::evaluator::exception::rval_ref_assignment::rval_ref_assignment()
+	: base("Ref assignment requires an l-value value"){}
+
+cminus::evaluator::exception::rval_ref_assignment::~rval_ref_assignment() = default;
+
+cminus::evaluator::exception::code cminus::evaluator::exception::rval_ref_assignment::get_code() const{
+	return code::rval_ref_assignment;
+}
+
+cminus::evaluator::exception::const_ref_assignment::const_ref_assignment()
+	: base("Cannot assign constant ref value to a non-constant target"){}
+
+cminus::evaluator::exception::const_ref_assignment::~const_ref_assignment() = default;
+
+cminus::evaluator::exception::code cminus::evaluator::exception::const_ref_assignment::get_code() const{
+	return code::const_ref_assignment;
 }
 
 cminus::evaluator::exception::unsupported_op::unsupported_op()

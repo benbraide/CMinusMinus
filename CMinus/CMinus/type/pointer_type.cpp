@@ -5,7 +5,7 @@ cminus::type::pointer_primitive::pointer_primitive(std::shared_ptr<object> base_
 	: primitive(""), base_type_(base_type){
 	if (base_type == nullptr)
 		name_ = "NullptrType";
-	else if (base_type->is(query_type::ref) || base_type->is(query_type::pointer))
+	else if (base_type->is(query_type::pointer))
 		name_ = (base_type_->get_name() + "*");
 	else
 		name_ = (base_type_->get_name() + " *");

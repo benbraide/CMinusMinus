@@ -69,10 +69,12 @@ namespace cminus::type{
 			offspring_of,
 			child_of,
 			updatable,
+			modified,
 		};
 
 		enum class conversion_type{
 			nil,
+			correct_ref_const,
 			remove_ref,
 			remove_const,
 			remove_ref_const,

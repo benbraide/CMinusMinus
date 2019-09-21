@@ -10,6 +10,8 @@ namespace cminus::evaluator::exception{
 		incompatible_rval,
 		rval_assignment,
 		const_assignment,
+		rval_ref_assignment,
+		const_ref_assignment,
 		unsupported_op,
 	};
 
@@ -75,6 +77,24 @@ namespace cminus::evaluator::exception{
 		const_assignment();
 
 		virtual ~const_assignment();
+
+		virtual code get_code() const override;
+	};
+
+	class rval_ref_assignment : public base{
+	public:
+		rval_ref_assignment();
+
+		virtual ~rval_ref_assignment();
+
+		virtual code get_code() const override;
+	};
+
+	class const_ref_assignment : public base{
+	public:
+		const_ref_assignment();
+
+		virtual ~const_ref_assignment();
 
 		virtual code get_code() const override;
 	};
