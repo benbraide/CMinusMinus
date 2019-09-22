@@ -35,3 +35,39 @@ cminus::declaration::exception::function_redeclaration::~function_redeclaration(
 cminus::declaration::exception::code cminus::declaration::exception::function_redeclaration::get_code() const{
 	return code::function_redeclaration;
 }
+
+cminus::declaration::exception::function_not_found::function_not_found()
+	: base("No function found taking the specified arguments"){}
+
+cminus::declaration::exception::function_not_found::~function_not_found() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::function_not_found::get_code() const{
+	return code::function_not_found;
+}
+
+cminus::declaration::exception::function_not_defined::function_not_defined()
+	: base("Called function has no definition"){}
+
+cminus::declaration::exception::function_not_defined::~function_not_defined() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::function_not_defined::get_code() const{
+	return code::function_not_defined;
+}
+
+cminus::declaration::exception::ambiguous_function_call::ambiguous_function_call()
+	: base("Function call is ambiguous"){}
+
+cminus::declaration::exception::ambiguous_function_call::~ambiguous_function_call() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::ambiguous_function_call::get_code() const{
+	return code::ambiguous_function_call;
+}
+
+cminus::declaration::exception::bad_parameter_list::bad_parameter_list()
+	: base("Function parameter list is ill-formed"){}
+
+cminus::declaration::exception::bad_parameter_list::~bad_parameter_list() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::bad_parameter_list::get_code() const{
+	return code::bad_parameter_list;
+}

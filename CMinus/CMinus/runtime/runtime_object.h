@@ -2,6 +2,8 @@
 
 #include "../memory/memory_object.h"
 
+#include "runtime_exception.h"
+
 namespace cminus::storage{
 	class object;
 	class global;

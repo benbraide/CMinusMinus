@@ -63,6 +63,8 @@ namespace cminus::memory{
 
 		virtual bool is_lvalue() const;
 
+		virtual bool is_const() const;
+
 	protected:
 		virtual void allocate_memory_();
 

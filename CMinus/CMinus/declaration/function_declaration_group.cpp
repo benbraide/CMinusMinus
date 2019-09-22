@@ -56,7 +56,7 @@ void cminus::declaration::function_group::add(std::shared_ptr<function_base> ent
 		}
 	}
 	else if (auto existing_entry_is_defined = it->first->is_defined(); !existing_entry_is_defined && entry->is_defined())
-		it->first->define(entry->get_body());
+		it->first->define(entry->get_definition());
 	else if (existing_entry_is_defined)
 		throw exception::function_redefinition();
 	else
@@ -70,11 +70,38 @@ std::shared_ptr<cminus::declaration::function_base> cminus::declaration::functio
 }
 
 std::shared_ptr<cminus::declaration::function_base> cminus::declaration::function_group::find(const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t *count) const{
-	return nullptr;
+	auto highest_rank_score = type::object::get_score_value(type::object::score_result_type::nil), current_rank_score = highest_rank_score;
+
+	std::size_t match_count = 0u;
+	std::shared_ptr<function_base> highest_ranked;
+
+	for (auto &entry : entries_){
+		if (highest_rank_score < (current_rank_score = entry.first->get_score(args))){
+			highest_rank_score = current_rank_score;
+			highest_ranked = entry.second;
+			match_count = 1u;
+		}
+		else if (highest_rank_score == current_rank_score)
+			++match_count;
+	}
+
+	if (count != nullptr)//Update count
+		*count = ((highest_ranked == nullptr) ? 0u : match_count);
+
+	return highest_ranked;
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::declaration::function_group::call(const std::vector<std::shared_ptr<memory::reference>> &args) const{
-	return nullptr;
+	std::size_t count = 0;
+	auto entry = find(args, &count);
+
+	if (count == 0u || entry == nullptr)
+		throw exception::function_not_found();
+
+	if (1u < count)
+		throw exception::ambiguous_function_call();
+
+	return entry->call_(args);
 }
 
 cminus::declaration::function_group::map_type::const_iterator cminus::declaration::function_group::find_(const type::object &target_type) const{

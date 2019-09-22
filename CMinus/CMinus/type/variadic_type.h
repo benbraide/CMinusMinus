@@ -19,6 +19,8 @@ namespace cminus::type{
 
 		virtual bool is(query_type type, const object *arg = nullptr) const override;
 
+		virtual std::shared_ptr<object> get_base_type() const;
+
 	protected:
 		std::shared_ptr<object> base_type_;
 	};

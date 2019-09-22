@@ -7,7 +7,11 @@ namespace cminus::declaration::exception{
 		nil,
 		initialization_required,
 		function_redefinition,
-		function_redeclaration
+		function_redeclaration,
+		function_not_found,
+		function_not_defined,
+		ambiguous_function_call,
+		bad_parameter_list,
 	};
 
 	class base : public std::exception{
@@ -54,6 +58,42 @@ namespace cminus::declaration::exception{
 		function_redeclaration();
 
 		virtual ~function_redeclaration();
+
+		virtual code get_code() const override;
+	};
+
+	class function_not_found : public base{
+	public:
+		function_not_found();
+
+		virtual ~function_not_found();
+
+		virtual code get_code() const override;
+	};
+
+	class function_not_defined : public base{
+	public:
+		function_not_defined();
+
+		virtual ~function_not_defined();
+
+		virtual code get_code() const override;
+	};
+
+	class ambiguous_function_call : public base{
+	public:
+		ambiguous_function_call();
+
+		virtual ~ambiguous_function_call();
+
+		virtual code get_code() const override;
+	};
+
+	class bad_parameter_list : public base{
+	public:
+		bad_parameter_list();
+
+		virtual ~bad_parameter_list();
 
 		virtual code get_code() const override;
 	};

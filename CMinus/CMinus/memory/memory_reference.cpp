@@ -101,6 +101,10 @@ bool cminus::memory::reference::is_lvalue() const{
 	return (is_lvalue_ && (context_ == nullptr || context_->is_lvalue()));
 }
 
+bool cminus::memory::reference::is_const() const{
+	return (type_->is(type::object::query_type::const_) || (context_ != nullptr && context_->is_const()));
+}
+
 void cminus::memory::reference::allocate_memory_(){
 	auto block = allocate_block_();
 	if (block == nullptr || (address_ = block->get_address()) == 0u)

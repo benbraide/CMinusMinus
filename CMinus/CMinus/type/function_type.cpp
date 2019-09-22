@@ -2,6 +2,11 @@
 
 #include "function_type.h"
 
+cminus::type::function::function(std::shared_ptr<object> return_type)
+	: object("", nullptr), return_type_(return_type){
+	compute_name_();
+}
+
 cminus::type::function::function(std::shared_ptr<object> return_type, const std::vector<std::shared_ptr<object>> &parameter_types)
 	: object("", nullptr), return_type_(return_type), parameter_types_(parameter_types){
 	compute_name_();
@@ -56,6 +61,12 @@ bool cminus::type::function::is(query_type type, const object *arg) const{
 	}
 
 	return (type == query_type::function || object::is(type, arg));
+}
+
+void cminus::type::function::add_parameter_type(std::shared_ptr<object> value){
+	parameter_types_.push_back(value);
+	name_.pop_back();//Erase ')'
+	name_ += (", " + value->get_name() + ")");
 }
 
 void cminus::type::function::compute_name_(){

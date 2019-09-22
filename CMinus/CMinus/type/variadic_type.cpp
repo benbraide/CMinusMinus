@@ -25,3 +25,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::variadic::cast(std::sha
 bool cminus::type::variadic::is(query_type type, const object *arg) const{
 	return (type == query_type::variadic);
 }
+
+std::shared_ptr<cminus::type::object> cminus::type::variadic::get_base_type() const{
+	return base_type_;
+}
