@@ -100,17 +100,17 @@ namespace cminus::type{
 
 		virtual storage::object *get_parent() const;
 
-		virtual void construct(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const;
+		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const;
 
-		virtual void construct(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const;
+		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const;
 
-		virtual void construct(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const;
+		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const;
 
-		virtual void construct(std::shared_ptr<memory::reference> target) const;
+		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target) const;
 
 		virtual void destruct(std::shared_ptr<memory::reference> target) const;
 
-		virtual std::shared_ptr<memory::reference> get_default_value() const;
+		virtual std::shared_ptr<memory::reference> get_default_value(std::shared_ptr<object> self) const;
 
 		virtual std::size_t get_size() const = 0;
 

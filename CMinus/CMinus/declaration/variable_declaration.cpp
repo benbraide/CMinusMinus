@@ -111,5 +111,6 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evalua
 }
 
 void cminus::declaration::variable::initialize_memory_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &value) const{
-	target->get_type()->construct(target, value);
+	auto target_type = target->get_type();
+	target_type->construct(target_type, target, value);
 }

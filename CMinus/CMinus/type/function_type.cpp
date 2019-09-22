@@ -7,12 +7,12 @@ cminus::type::function::function(std::shared_ptr<object> return_type)
 	compute_name_();
 }
 
-cminus::type::function::function(std::shared_ptr<object> return_type, const std::vector<std::shared_ptr<object>> &parameter_types)
+cminus::type::function::function(std::shared_ptr<object> return_type, const std::list<std::shared_ptr<object>> &parameter_types)
 	: object("", nullptr), return_type_(return_type), parameter_types_(parameter_types){
 	compute_name_();
 }
 
-cminus::type::function::function(std::shared_ptr<object> return_type, std::vector<std::shared_ptr<object>> &&parameter_types)
+cminus::type::function::function(std::shared_ptr<object> return_type, std::list<std::shared_ptr<object>> &&parameter_types)
 	: object("", nullptr), return_type_(return_type), parameter_types_(std::move(parameter_types)){
 	compute_name_();
 }

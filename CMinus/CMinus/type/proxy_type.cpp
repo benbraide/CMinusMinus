@@ -5,28 +5,28 @@ cminus::type::proxy::proxy(object &target)
 
 cminus::type::proxy::~proxy() = default;
 
-void cminus::type::proxy::construct(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const{
-	target_->construct(target, initialization);
+void cminus::type::proxy::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const{
+	target_->construct(self, target, initialization);
 }
 
-void cminus::type::proxy::construct(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const{
-	target_->construct(target, initialization);
+void cminus::type::proxy::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const{
+	target_->construct(self, target, initialization);
 }
 
-void cminus::type::proxy::construct(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const{
-	target_->construct(target, initialization);
+void cminus::type::proxy::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const{
+	target_->construct(self, target, initialization);
 }
 
-void cminus::type::proxy::construct(std::shared_ptr<memory::reference> target) const{
-	target_->construct(target);
+void cminus::type::proxy::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target) const{
+	target_->construct(self, target);
 }
 
 void cminus::type::proxy::destruct(std::shared_ptr<memory::reference> target) const{
 	target_->destruct(target);
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::type::proxy::get_default_value() const{
-	return target_->get_default_value();
+std::shared_ptr<cminus::memory::reference> cminus::type::proxy::get_default_value(std::shared_ptr<object> self) const{
+	return target_->get_default_value(self);
 }
 
 std::size_t cminus::type::proxy::get_size() const{

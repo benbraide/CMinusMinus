@@ -49,7 +49,8 @@ void cminus::declaration::function_group::add(std::shared_ptr<function_base> ent
 		if (existing_entry_parent == parent_ || existing_entry_parent == nullptr || entry_parent == nullptr)
 			return;//Existing takes priority
 
-		if (entry_parent == parent_/* || existing_entry_parent->is(type::object::query_type::offspring_of, *entry_parent)*/){//New takes priority
+		auto existing_entry_type_parent = dynamic_cast<type::object *>(existing_entry_parent), entry_type_parent = dynamic_cast<type::object *>(entry_parent);
+		if (entry_parent == parent_ || existing_entry_type_parent->compute_base_offset(*entry_type_parent) == static_cast<std::size_t>(-1)){//New takes priority
 			entries_.erase(it);
 			entries_[entry.get()] = entry;
 			return;

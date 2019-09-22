@@ -7,9 +7,9 @@ namespace cminus::type{
 	public:
 		explicit function(std::shared_ptr<object> return_type);
 
-		function(std::shared_ptr<object> return_type, const std::vector<std::shared_ptr<object>> &parameter_types);
+		function(std::shared_ptr<object> return_type, const std::list<std::shared_ptr<object>> &parameter_types);
 
-		function(std::shared_ptr<object> return_type, std::vector<std::shared_ptr<object>> &&parameter_types);
+		function(std::shared_ptr<object> return_type, std::list<std::shared_ptr<object>> &&parameter_types);
 
 		virtual ~function();
 
@@ -33,6 +33,6 @@ namespace cminus::type{
 		virtual bool is_exact_parameter_types_(const function &function_target) const;
 
 		std::shared_ptr<object> return_type_;
-		std::vector<std::shared_ptr<object>> parameter_types_;
+		std::list<std::shared_ptr<object>> parameter_types_;
 	};
 }

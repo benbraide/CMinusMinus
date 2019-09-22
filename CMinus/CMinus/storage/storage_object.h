@@ -13,24 +13,13 @@
 
 #include "storage_exception.h"
 
+namespace cminus::declaration{
+	class variable;
+}
+
 namespace cminus::storage{
 	class object{
 	public:
-		struct search_options{
-			const object *scope;
-			std::shared_ptr<memory::reference> context;
-			std::string name;
-			bool search_tree;
-			const object **branch;
-		};
-
-		struct unnamed_search_options{
-			const object *scope;
-			std::shared_ptr<memory::reference> context;
-			bool search_tree;
-			const object **branch;
-		};
-
 		enum class entry_type{
 			nil,
 			mem_ref,
@@ -64,10 +53,21 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<object> find_storage(const std::string &name, bool search_tree) const;
 
+		template <typename target_type>
+		target_type *get_first_of() const{
+			if (auto self_target = dynamic_cast<const target_type *>(this); self_target != nullptr)
+				return const_cast<target_type *>(self_target);
+			
+			if (auto parent = get_parent(); parent != nullptr)
+				return parent->get_first_of();
+
+			return nullptr;
+		}
+
 	protected:
 		virtual void destroy_entries_();
 
-		virtual void add_(const std::string &name, std::shared_ptr<memory::reference> entry);
+		virtual void add_(std::shared_ptr<declaration::variable> entry, std::size_t address);
 
 		virtual void add_(std::shared_ptr<declaration::function_base> entry, std::size_t address);
 
@@ -90,7 +90,7 @@ namespace cminus::storage{
 		virtual std::shared_ptr<object> find_storage_(const std::string &name) const;
 
 		std::list<std::shared_ptr<memory::reference>> entries_;
-		std::unordered_map<std::string, memory::reference *> named_entries_;
+		std::unordered_map<std::string, std::shared_ptr<memory::reference>> named_entries_;
 
 		std::unordered_map<std::string, std::shared_ptr<declaration::function_group_base>> functions_;
 		std::unordered_map<std::string, std::shared_ptr<attribute::object>> attributes_;

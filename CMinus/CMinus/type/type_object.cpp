@@ -24,7 +24,7 @@ cminus::storage::object *cminus::type::object::get_parent() const{
 	return parent_;
 }
 
-void cminus::type::object::construct(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const{
+void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const{
 	if (initialization != nullptr){
 		std::vector<std::shared_ptr<memory::reference>> args;
 		args.reserve(initialization->get_list_count());
@@ -36,12 +36,12 @@ void cminus::type::object::construct(std::shared_ptr<memory::reference> target, 
 		construct_(target, std::vector<std::shared_ptr<memory::reference>>{ args });
 	}
 	else//No initialization
-		construct(target, std::vector<std::shared_ptr<memory::reference>>{});
+		construct(self, target, std::vector<std::shared_ptr<memory::reference>>{});
 }
 
-void cminus::type::object::construct(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const{
+void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const{
 	if (initialization.empty()){
-		if (auto default_value = get_default_value(); default_value == nullptr)
+		if (auto default_value = get_default_value(self); default_value == nullptr)
 			construct_(target, std::vector<std::shared_ptr<memory::reference>>{});
 		else
 			construct_(target, std::vector<std::shared_ptr<memory::reference>>{ default_value });
@@ -50,21 +50,21 @@ void cminus::type::object::construct(std::shared_ptr<memory::reference> target, 
 		construct_(target, initialization);
 }
 
-void cminus::type::object::construct(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const{
+void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const{
 	if (initialization == nullptr)
-		construct(target, std::vector<std::shared_ptr<memory::reference>>{});
+		construct(self, target, std::vector<std::shared_ptr<memory::reference>>{});
 	else
 		construct_(target, std::vector<std::shared_ptr<memory::reference>>{ initialization });
 }
 
-void cminus::type::object::construct(std::shared_ptr<memory::reference> target) const{
-	construct(target, std::vector<std::shared_ptr<memory::reference>>{});
+void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target) const{
+	construct(self, target, std::vector<std::shared_ptr<memory::reference>>{});
 }
 
 void cminus::type::object::destruct(std::shared_ptr<memory::reference> target) const{}
 
-std::shared_ptr<cminus::memory::reference> cminus::type::object::get_default_value() const{
-	return runtime::object::global_storage->get_zero_value(convert(conversion_type::clone));
+std::shared_ptr<cminus::memory::reference> cminus::type::object::get_default_value(std::shared_ptr<object> self) const{
+	return runtime::object::global_storage->get_zero_value(convert(conversion_type::clone, self));
 }
 
 std::size_t cminus::type::object::get_memory_size() const{
@@ -76,7 +76,7 @@ bool cminus::type::object::is_exact(const object &target) const{
 }
 
 std::size_t cminus::type::object::compute_base_offset(const object &base_type) const{
-	return 0u;
+	return static_cast<std::size_t>(-1);
 }
 
 std::shared_ptr<cminus::evaluator::object> cminus::type::object::get_evaluator() const{

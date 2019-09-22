@@ -12,17 +12,17 @@ namespace cminus::type{
 
 		virtual ~proxy();
 
-		virtual void construct(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const override;
+		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const override;
 
-		virtual void construct(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const override;
+		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const override;
 
-		virtual void construct(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const override;
+		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const override;
 
-		virtual void construct(std::shared_ptr<memory::reference> target) const override;
+		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target) const override;
 
 		virtual void destruct(std::shared_ptr<memory::reference> target) const override;
 
-		virtual std::shared_ptr<memory::reference> get_default_value() const override;
+		virtual std::shared_ptr<memory::reference> get_default_value(std::shared_ptr<object> self) const override;
 
 		virtual std::size_t get_size() const override;
 

@@ -1,4 +1,5 @@
 #include "../type/variadic_type.h"
+#include "../runtime/runtime_value_guard.h"
 
 #include "function_declaration.h"
 
@@ -104,8 +105,11 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::function::call_(
 		throw exception::function_not_defined();
 
 	std::shared_ptr<memory::reference> return_value;
+	std::shared_ptr<storage::object> storage;
+
 	//logic::storage::runtime_storage_guard guard(runtime, std::make_shared<logic::storage::function>(*this, context, dynamic_cast<logic::storage::object *>(parent_)));
 
+	runtime::value_guard guard(runtime::object::current_storage, storage.get());
 	try{
 		copy_args_( args);
 		evaluate_body_();

@@ -29,8 +29,10 @@ std::shared_ptr<cminus::evaluator::initializer> cminus::storage::global::get_def
 
 std::shared_ptr<cminus::memory::reference> cminus::storage::global::copy(std::shared_ptr<memory::reference> value) const{
 	auto reference = std::make_shared<memory::rval_reference>(value->get_type());
-	if (reference != nullptr)
-		value->get_type()->construct(reference, value);
+	if (reference != nullptr){
+		auto value_type = value->get_type();
+		value_type->construct(value_type, reference, value);
+	}
 
 	return reference;
 }
