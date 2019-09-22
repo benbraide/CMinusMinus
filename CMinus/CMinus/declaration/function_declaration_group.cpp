@@ -1,4 +1,5 @@
 #include "../node/node_object.h"
+#include "../storage/global_storage.h"
 
 #include "function_declaration_group.h"
 
@@ -17,6 +18,19 @@ cminus::storage::object *cminus::declaration::function_group::get_parent() const
 
 std::size_t cminus::declaration::function_group::get_address() const{
 	return address_;
+}
+
+std::shared_ptr<cminus::type::object> cminus::declaration::function_group::get_type() const{
+	switch (entries_.size()){
+	case 0u:
+		return runtime::object::global_storage->get_cached_type(storage::global::cached_type::undefined);
+	case 1u:
+		return entries_.begin()->first->get_type();
+	default:
+		break;
+	}
+
+	return runtime::object::global_storage->get_cached_type(storage::global::cached_type::function);
 }
 
 void cminus::declaration::function_group::add(std::shared_ptr<function_base> entry){

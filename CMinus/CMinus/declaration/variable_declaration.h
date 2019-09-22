@@ -11,7 +11,10 @@ namespace cminus::declaration{
 	public:
 		template <typename attributes_type>
 		variable(const std::string &name, std::shared_ptr<type::object> type, const attributes_type &attributes, unsigned int flags, std::shared_ptr<node::object> initialization)
-			: object(name, type, attributes, flags), initialization_(initialization){}
+			: object(name, type, attributes, flags), initialization_(initialization){
+			if (type_->is(type::object::query_type::function))
+				type_ = type_->convert(type::object::conversion_type::remove_ref_const, type_);
+		}
 
 		virtual ~variable();
 

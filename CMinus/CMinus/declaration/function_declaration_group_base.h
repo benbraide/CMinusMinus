@@ -13,6 +13,8 @@ namespace cminus::declaration{
 
 		virtual std::size_t get_address() const = 0;
 
+		virtual std::shared_ptr<type::object> get_type() const = 0;
+
 		virtual void add(std::shared_ptr<function_base> entry) = 0;
 
 		virtual std::shared_ptr<function_base> find(const type::object &target_type) const = 0;

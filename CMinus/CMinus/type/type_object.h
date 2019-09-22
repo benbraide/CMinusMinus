@@ -87,6 +87,7 @@ namespace cminus::type{
 			infer,
 			update,
 			clone,
+			clone_non_ref_const,
 		};
 
 		object(const std::string &name, storage::object *parent);

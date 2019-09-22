@@ -131,10 +131,14 @@ cminus::memory::undefined_reference::undefined_reference(std::shared_ptr<referen
 cminus::memory::undefined_reference::~undefined_reference() = default;
 
 cminus::memory::function_reference::function_reference(declaration::function_group_base &entry, std::shared_ptr<reference> context)
-	: reference(entry.get_address(), runtime::object::global_storage->get_cached_type(storage::global::cached_type::function), attribute::collection::list_type{}, context){}
+	: reference(entry.get_address(), entry.get_type(), attribute::collection::list_type{}, context){}
 
 cminus::memory::function_reference::function_reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
 	: reference(address, type, attribute::collection::list_type{}, context){}
+
+const cminus::declaration::function_group_base *cminus::memory::function_reference::get_entry() const{
+	return read_scalar<declaration::function_group_base *>();
+}
 
 cminus::memory::function_reference::~function_reference() = default;
 
@@ -164,12 +168,12 @@ std::size_t cminus::memory::indirect_reference::get_address() const{
 }
 
 cminus::memory::rval_reference::rval_reference(std::shared_ptr<type::object> type)
-	: reference(0u, nullptr, attribute::collection::list_type{}, nullptr){
+	: reference(0u, type->convert(type::object::conversion_type::remove_ref_const, type), attribute::collection::list_type{}, nullptr){
 	is_lvalue_ = false;
 }
 
 cminus::memory::rval_reference::rval_reference(std::size_t address, std::shared_ptr<type::object> type)
-	: reference(address, nullptr, attribute::collection::list_type{}, nullptr){
+	: reference(address, type->convert(type::object::conversion_type::remove_ref_const, type), attribute::collection::list_type{}, nullptr){
 	is_lvalue_ = false;
 }
 

@@ -1,6 +1,7 @@
 #include "../storage/global_storage.h"
 
 #include "modified_type.h"
+#include "function_type.h"
 #include "primitive_type.h"
 
 cminus::type::primitive::primitive(const std::string &name)
@@ -19,7 +20,7 @@ int cminus::type::primitive::get_score(const object &target) const{
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
-	if ((type != cast_type::static_ && type != cast_type::rval_static) || !target_type->is_exact(*this))
+	if ((type != cast_type::static_ && type != cast_type::rval_static) || !target_type->convert(conversion_type::remove_ref_const, target_type)->is_exact(*this))
 		return nullptr;
 
 	auto is_ref = target_type->is(query_type::ref);
@@ -103,14 +104,14 @@ int cminus::type::number_primitive::get_score(const object &target) const{
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
-	auto number_target_type = dynamic_cast<const number_primitive *>(target_type->get_non_proxy());
+	auto number_target_type = dynamic_cast<const number_primitive *>(target_type->convert(conversion_type::remove_ref_const, target_type)->get_non_proxy());
 	if (number_target_type == nullptr){
 		if (type == cast_type::reinterpret){
 			if (target_type->is(query_type::ref))
 				return nullptr;
 
 			if (target_type->is(query_type::pointer) && (state_ == state_type::integer || state_ == state_type::unsigned_integer))
-				return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->convert(conversion_type::clone, target_type), read_value_<std::size_t>(data));
+				return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->convert(conversion_type::clone_non_ref_const, target_type), read_value_<std::size_t>(data));
 
 			if (target_type->is(query_type::function) && (state_ == state_type::integer || state_ == state_type::unsigned_integer))
 				return std::make_shared<memory::function_reference>(read_value_<std::size_t>(data), target_type, nullptr);
@@ -188,7 +189,7 @@ std::shared_ptr<cminus::type::object> cminus::type::number_primitive::convert(co
 		return nullptr;
 	}
 
-	if (type == conversion_type::clone)
+	if (type == conversion_type::clone || type == conversion_type::clone_non_ref_const)
 		return std::make_shared<number_primitive>(state_, size_);
 
 	if (type != conversion_type::infer)
@@ -231,9 +232,21 @@ bool cminus::type::function_primitive::is_exact(const object &target) const{
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::function_primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
-	if (!target_type->is(query_type::function))
-		return ((type == cast_type::reinterpret && !target_type->is(query_type::ref)) ? convert_value_to_number_(data->read_scalar<std::size_t>(), target_type) : nullptr);
-	return ((data->is_lvalue() && (type == cast_type::rval_static || (type == cast_type::static_ && target_type->is(query_type::ref)))) ? data : nullptr);
+	if (target_type->is(query_type::generic_function))
+		return ((type == cast_type::rval_static || type == cast_type::static_) ? data : nullptr);
+
+	if (type != cast_type::rval_static && type != cast_type::static_)
+		return ((type == cast_type::reinterpret && !target_type->is(query_type::ref)) ? convert_value_to_number(data->read_scalar<std::size_t>(), target_type) : nullptr);
+
+	auto function_target_type = dynamic_cast<function *>(target_type->convert(conversion_type::remove_ref_const, target_type)->get_non_proxy());
+	if (function_target_type == nullptr)
+		return nullptr;
+
+	auto function_group = data->read_scalar<declaration::function_group_base *>();
+	if (function_group == nullptr || function_group->find(*function_target_type) == nullptr)
+		return nullptr;
+
+	return ((type == cast_type::rval_static) ? data : std::make_shared<memory::function_reference>(function_group->get_address(), target_type, data->get_context()));
 }
 
 bool cminus::type::function_primitive::is(query_type type, const object *arg) const{
@@ -262,20 +275,9 @@ std::shared_ptr<cminus::memory::reference> cminus::type::auto_primitive::cast(st
 }
 
 std::shared_ptr<cminus::type::object> cminus::type::auto_primitive::convert(conversion_type type, std::shared_ptr<object> self_or_other) const{
-	if (type != conversion_type::infer)
-		return primitive::convert(type, self_or_other);
-
-	if (self_or_other == nullptr)
-		return nullptr;
-
-	auto is_ref = self_or_other->is(query_type::ref);
-	if (auto converted = (is_ref ? self_or_other->convert(conversion_type::remove_ref_const, self_or_other) : self_or_other); converted != nullptr){
-		if ((converted = converted->convert(conversion_type::clone, converted)) = nullptr)
-			return nullptr;
-		return ((is_ref && self_or_other->is(query_type::const_)) ? std::make_shared<constant>(converted) : converted);
-	}
-
-	return nullptr;
+	if (type == conversion_type::infer)
+		return ((self_or_other == nullptr) ? nullptr : self_or_other->convert(conversion_type::clone_non_ref_const, self_or_other));
+	return primitive::convert(type, self_or_other);
 }
 
 bool cminus::type::auto_primitive::is(query_type type, const object *arg) const{

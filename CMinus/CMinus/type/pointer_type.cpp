@@ -50,7 +50,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::pointer_primitive::cast
 	if (is_ref && type == cast_type::reinterpret)
 		return nullptr;
 
-	auto pointer_target_type = dynamic_cast<pointer_primitive *>(target_type->get_non_proxy());
+	auto pointer_target_type = dynamic_cast<pointer_primitive *>(target_type->convert(conversion_type::remove_ref_const, target_type)->get_non_proxy());
 	if (is_ref && !target_type->is(query_type::const_)){
 		if ((type != cast_type::static_ && type != cast_type::rval_static) || pointer_target_type == nullptr || !data->is_lvalue())
 			return nullptr;
@@ -63,9 +63,9 @@ std::shared_ptr<cminus::memory::reference> cminus::type::pointer_primitive::cast
 
 	if (pointer_target_type == nullptr){
 		if (base_type_ == nullptr)//This is null
-			return ((type == cast_type::reinterpret) ? convert_value_to_number_(0u, target_type) : nullptr);
+			return ((type == cast_type::reinterpret) ? convert_value_to_number(0u, target_type) : nullptr);
 
-		return ((type == cast_type::reinterpret) ? convert_value_to_number_(data->read_scalar<std::size_t>(), target_type) : nullptr);
+		return ((type == cast_type::reinterpret) ? convert_value_to_number(data->read_scalar<std::size_t>(), target_type) : nullptr);
 	}
 
 	if (base_type_ == nullptr){//This is null

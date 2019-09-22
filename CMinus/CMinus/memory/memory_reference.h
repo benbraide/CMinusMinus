@@ -94,6 +94,8 @@ namespace cminus::memory{
 		function_reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
 
 		virtual ~function_reference();
+
+		virtual const declaration::function_group_base *get_entry() const;
 	};
 
 	class indirect_reference : public reference{

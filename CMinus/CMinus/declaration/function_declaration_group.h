@@ -20,6 +20,8 @@ namespace cminus::declaration{
 
 		virtual std::size_t get_address() const override;
 
+		virtual std::shared_ptr<type::object> get_type() const override;
+
 		virtual void add(std::shared_ptr<function_base> entry) override;
 
 		virtual std::shared_ptr<function_base> find(const type::object &target_type) const;

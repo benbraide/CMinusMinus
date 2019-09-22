@@ -28,9 +28,8 @@ namespace cminus::type{
 
 		static std::string convert_id_to_string(id_type value);
 
-	protected:
 		template <typename value_type>
-		std::shared_ptr<memory::reference> convert_value_to_number_(value_type value, std::shared_ptr<object> target_type) const{
+		static std::shared_ptr<memory::reference> convert_value_to_number(value_type value, std::shared_ptr<object> target_type){
 			if (target_type->is(query_type::unsigned_integral)){
 				switch (target_type->get_size()){
 				case 4u:
