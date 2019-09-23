@@ -113,18 +113,14 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::function::call_(
 	std::shared_ptr<memory::reference> return_value;
 	std::shared_ptr<storage::object> storage;
 
-	if (auto class_parent = dynamic_cast<type::class_ *>(get_parent()); class_parent != nullptr){
-		storage = std::make_shared<storage::class_member>(
-			*this,
-			((args.empty() || is(flags::static_)) ? nullptr : *args.begin())
-		);
-	}
-	else//Non-member function
+	if (dynamic_cast<type::class_ *>(get_parent()) == nullptr)
 		storage = std::make_shared<storage::named_object>(name_, parent_);
+	else//Member function
+		storage = std::make_shared<storage::class_member>(*this);
 
 	runtime::value_guard guard(runtime::object::current_storage, storage.get());
 	try{
-		copy_args_( args);
+		copy_args_(args);
 		evaluate_body_();
 		if (return_declaration_ != nullptr)
 			return_value = copy_return_value_(nullptr);
@@ -243,7 +239,8 @@ void cminus::declaration::function::copy_args_(const std::list<std::shared_ptr<m
 }
 
 void cminus::declaration::function::evaluate_body_() const{
-	get_definition()->evaluate();
+	if (auto definition = get_definition(); definition != nullptr)
+		definition->evaluate();
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::declaration::function::copy_return_value_(std::shared_ptr<memory::reference> value) const{

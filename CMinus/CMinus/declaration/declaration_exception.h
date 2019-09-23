@@ -12,6 +12,7 @@ namespace cminus::declaration::exception{
 		function_not_defined,
 		ambiguous_function_call,
 		bad_parameter_list,
+		bad_init_list,
 		void_function_value_return,
 		value_function_no_return,
 		invalid_function_return,
@@ -97,6 +98,15 @@ namespace cminus::declaration::exception{
 		bad_parameter_list();
 
 		virtual ~bad_parameter_list();
+
+		virtual code get_code() const override;
+	};
+
+	class bad_init_list : public base{
+	public:
+		bad_init_list();
+
+		virtual ~bad_init_list();
 
 		virtual code get_code() const override;
 	};

@@ -1,3 +1,4 @@
+#include "../type/class_type.h"
 #include "../node/node_object.h"
 #include "../storage/global_storage.h"
 
@@ -101,6 +102,9 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::function_group::
 
 	if (1u < count)
 		throw exception::ambiguous_function_call();
+
+	if (auto class_parent = dynamic_cast<type::class_ *>(entry->get_parent()); class_parent != nullptr && !class_parent->is_accessible(entry->get_flags()))
+		throw storage::exception::inaccessible_entry();
 
 	return entry->call_(args);
 }

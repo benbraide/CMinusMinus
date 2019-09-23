@@ -72,6 +72,15 @@ cminus::declaration::exception::code cminus::declaration::exception::bad_paramet
 	return code::bad_parameter_list;
 }
 
+cminus::declaration::exception::bad_init_list::bad_init_list()
+	: base("Constructor initialization list is ill-formed"){}
+
+cminus::declaration::exception::bad_init_list::~bad_init_list() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::bad_init_list::get_code() const{
+	return code::bad_init_list;
+}
+
 cminus::declaration::exception::void_function_value_return::void_function_value_return()
 	: base("A void function cannot return a value"){}
 

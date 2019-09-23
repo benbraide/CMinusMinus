@@ -60,6 +60,10 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> find_static_member(const std::string &name) const;
 
+		virtual const std::list<member_variable_info> &get_member_variables() const;
+
+		virtual const std::list<base_type_info> &get_base_types() const;
+
 	protected:
 		virtual void construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const override;
 
@@ -69,7 +73,7 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> find_(const std::string &name) const override;
 
-		virtual std::shared_ptr<memory::reference> find_(const std::string &name, std::shared_ptr<memory::reference> context) const;
+		virtual std::shared_ptr<memory::reference> find_(const std::string &name, std::shared_ptr<memory::reference> context, std::size_t address_offset) const;
 
 		virtual storage_base *find_storage_(const std::string &name) const override;
 

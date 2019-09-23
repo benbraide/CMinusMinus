@@ -44,7 +44,7 @@ std::shared_ptr<cminus::type::object> cminus::type::constant::convert(conversion
 			return (self_or_other->is(query_type::const_) ? self_or_other : std::make_shared<constant>(computed_base_type));
 	}
 
-	if (type == conversion_type::clone){
+	if (type == conversion_type::clone || type == conversion_type::remove_ref || type == conversion_type::remove_indirection){
 		if (auto computed_base_type = base_type_->convert(type, base_type_); computed_base_type != nullptr && computed_base_type != base_type_)
 			return std::make_shared<constant>(computed_base_type);
 	}
@@ -89,7 +89,7 @@ std::shared_ptr<cminus::type::object> cminus::type::ref::convert(conversion_type
 		}
 	}
 
-	if (type == conversion_type::clone){
+	if (type == conversion_type::clone || type == conversion_type::remove_const){
 		if (auto computed_base_type = base_type_->convert(type, base_type_); computed_base_type != nullptr && computed_base_type != base_type_)
 			return std::make_shared<ref>(computed_base_type);
 	}
@@ -100,7 +100,7 @@ std::shared_ptr<cminus::type::object> cminus::type::ref::convert(conversion_type
 	if (type == conversion_type::remove_ref_const || type == conversion_type::clone_non_ref_const)
 		return base_type_->convert(type, base_type_);
 
-	return ((type == conversion_type::remove_ref) ? base_type_ : modified::convert(type, self_or_other));
+	return ((type == conversion_type::remove_ref || type == conversion_type::remove_indirection) ? base_type_ : modified::convert(type, self_or_other));
 }
 
 bool cminus::type::ref::is(query_type type, const object *arg) const{

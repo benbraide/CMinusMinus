@@ -2,6 +2,7 @@
 #include "../declaration/variable_declaration.h"
 
 #include "proxy_type.h"
+#include "modified_type.h"
 #include "class_type.h"
 
 cminus::type::class_::class_(const std::string &name, storage_base *parent)
@@ -74,7 +75,7 @@ bool cminus::type::class_::add_base(unsigned int access, std::shared_ptr<class_>
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const std::string &name, std::shared_ptr<memory::reference> context) const{
 	std::lock_guard<std::mutex> guard(lock_);
-	return find_(name, context);
+	return find_(name, context, 0u);
 }
 
 const cminus::type::class_::member_variable_info *cminus::type::class_::find_non_static_member(const std::string &name) const{
@@ -108,6 +109,14 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_static_mem
 	return nullptr;
 }
 
+const std::list<cminus::type::class_::member_variable_info> &cminus::type::class_::get_member_variables() const{
+	return member_variables_;
+}
+
+const std::list<cminus::type::class_::base_type_info> &cminus::type::class_::get_base_types() const{
+	return base_types_;
+}
+
 void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const{
 
 }
@@ -139,10 +148,10 @@ bool cminus::type::class_::exists_(const std::string &name, entry_type type) con
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std::string &name) const{
 	auto member_storage = runtime::object::current_storage->get_first_of<storage::class_member>();
-	return find_(name, ((member_storage == nullptr) ? nullptr : member_storage->get_context()));
+	return find_(name, ((member_storage == nullptr) ? nullptr : member_storage->get_context()), 0u);
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std::string &name, std::shared_ptr<memory::reference> context) const{
+std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std::string &name, std::shared_ptr<memory::reference> context, std::size_t address_offset) const{
 	if (auto it = member_variables_map_.find(name); it != member_variables_map_.end()){
 		if (context == nullptr)
 			throw storage::exception::no_member_context();
@@ -150,19 +159,37 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std
 		if (!is_accessible(it->second->value->get_flags()))
 			throw storage::exception::inaccessible_entry();
 
+		std::shared_ptr<type::object> adjusted_type;
+		if (0u < address_offset){
+			adjusted_type = std::make_shared<type::proxy>(*const_cast<class_ *>(this));
+			if (context->get_type()->is(type_base::query_type::const_))
+				adjusted_type = std::make_shared<type::constant>(adjusted_type);
+		}
+
 		return std::make_shared<memory::reference>(
-			(context->get_address() + it->second->address_offset),
+			(address_offset + context->get_address() + it->second->address_offset),
 			it->second->value->get_type(),
 			it->second->value->get_attributes().get_list(),
-			context
+			((address_offset == 0u) ? context : context->apply_offset(address_offset, adjusted_type))
 		);
 	}
 
-	if (auto function_it = functions_.find(name); function_it != functions_.end())
-		return std::make_shared<memory::function_reference>(*function_it->second, ((context == nullptr) ? class_context_ : context));
+	if (auto function_it = functions_.find(name); function_it != functions_.end()){
+		if (address_offset == 0u)
+			return std::make_shared<memory::function_reference>(*function_it->second, ((context == nullptr) ? class_context_ : context));
+
+		std::shared_ptr<type::object> adjusted_type = std::make_shared<type::proxy>(*const_cast<class_ *>(this));
+		if (context->get_type()->is(type_base::query_type::const_))
+			adjusted_type = std::make_shared<type::constant>(adjusted_type);
+
+		return std::make_shared<memory::function_reference>(
+			*function_it->second,
+			((context == nullptr) ? class_context_ : context->apply_offset(address_offset, adjusted_type))
+		);
+	}
 
 	for (auto &base_type : base_types_){
-		if (auto entry = base_type.value->find_(name, context); entry != nullptr)
+		if (auto entry = base_type.value->find_(name, context, (address_offset + base_type.address_offset)); entry != nullptr)
 			return entry;
 	}
 

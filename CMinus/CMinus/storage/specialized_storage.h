@@ -7,7 +7,7 @@
 namespace cminus::storage{
 	class class_member : public object{
 	public:
-		class_member(const declaration::function_base &owner, std::shared_ptr<memory::reference> context);
+		explicit class_member(const declaration::function_base &owner);
 
 		virtual ~class_member();
 
@@ -20,6 +20,8 @@ namespace cminus::storage{
 		virtual const declaration::function_base &get_owner() const;
 
 	protected:
+		virtual void add_(std::shared_ptr<declaration::variable> entry, std::size_t address) override;
+
 		const declaration::function_base &owner_;
 		std::shared_ptr<memory::reference> context_;
 	};
