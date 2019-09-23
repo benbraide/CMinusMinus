@@ -35,3 +35,21 @@ cminus::storage::exception::unnamed_entry::~unnamed_entry() = default;
 cminus::storage::exception::code cminus::storage::exception::unnamed_entry::get_code() const{
 	return code::unnamed_entry;
 }
+
+cminus::storage::exception::inaccessible_entry::inaccessible_entry()
+	: base("Member is inaccessible from current scope"){}
+
+cminus::storage::exception::inaccessible_entry::~inaccessible_entry() = default;
+
+cminus::storage::exception::code cminus::storage::exception::inaccessible_entry::get_code() const{
+	return code::inaccessible_entry;
+}
+
+cminus::storage::exception::no_member_context::no_member_context()
+	: base("A non-static member requires a context"){}
+
+cminus::storage::exception::no_member_context::~no_member_context() = default;
+
+cminus::storage::exception::code cminus::storage::exception::no_member_context::get_code() const{
+	return code::no_member_context;
+}

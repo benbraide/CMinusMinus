@@ -17,6 +17,7 @@ namespace cminus::node{
 }
 
 namespace cminus::declaration{
+	class variable;
 	class function_group;
 
 	class function_base : public object{
@@ -29,7 +30,7 @@ namespace cminus::declaration{
 
 		virtual std::shared_ptr<type::object> get_type() const = 0;
 
-		virtual void add_parameter(std::shared_ptr<object> value) = 0;
+		virtual void add_parameter(std::shared_ptr<variable> value) = 0;
 
 		virtual void define(std::shared_ptr<node::object> definition) = 0;
 
@@ -37,13 +38,13 @@ namespace cminus::declaration{
 
 		virtual bool is_defined() const = 0;
 
-		virtual int get_score(const std::vector<std::shared_ptr<memory::reference>> &args) const = 0;
+		virtual int get_score(const std::list<std::shared_ptr<memory::reference>> &args) const = 0;
 
-		virtual std::shared_ptr<memory::reference> call(const std::vector<std::shared_ptr<memory::reference>> &args) const;
+		virtual std::shared_ptr<memory::reference> call(const std::list<std::shared_ptr<memory::reference>> &args) const;
 
 	protected:
 		friend class function_group;
 
-		virtual std::shared_ptr<memory::reference> call_(const std::vector<std::shared_ptr<memory::reference>> &args) const = 0;
+		virtual std::shared_ptr<memory::reference> call_(const std::list<std::shared_ptr<memory::reference>> &args) const = 0;
 	};
 }

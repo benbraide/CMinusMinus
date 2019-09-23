@@ -70,7 +70,7 @@ std::shared_ptr<cminus::declaration::function_base> cminus::declaration::functio
 	return nullptr;
 }
 
-std::shared_ptr<cminus::declaration::function_base> cminus::declaration::function_group::find(const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t *count) const{
+std::shared_ptr<cminus::declaration::function_base> cminus::declaration::function_group::find(const std::list<std::shared_ptr<memory::reference>> &args, std::size_t *count) const{
 	auto highest_rank_score = type::object::get_score_value(type::object::score_result_type::nil), current_rank_score = highest_rank_score;
 
 	std::size_t match_count = 0u;
@@ -92,7 +92,7 @@ std::shared_ptr<cminus::declaration::function_base> cminus::declaration::functio
 	return highest_ranked;
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::declaration::function_group::call(const std::vector<std::shared_ptr<memory::reference>> &args) const{
+std::shared_ptr<cminus::memory::reference> cminus::declaration::function_group::call(const std::list<std::shared_ptr<memory::reference>> &args) const{
 	std::size_t count = 0;
 	auto entry = find(args, &count);
 

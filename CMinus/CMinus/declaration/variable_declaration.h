@@ -38,6 +38,12 @@ namespace cminus::declaration{
 
 		virtual void initialize_memory(std::shared_ptr<memory::reference> target) const;
 
+		virtual unsigned int set_flags(unsigned int value);
+
+		virtual std::shared_ptr<type::object> set_type(std::shared_ptr<type::object> value);
+
+		virtual std::shared_ptr<node::object> set_initialization(std::shared_ptr<node::object> value);
+
 	protected:
 		virtual std::shared_ptr<memory::reference> evaluate_(std::size_t address, const std::vector<std::shared_ptr<memory::reference>> &initialization) const;
 

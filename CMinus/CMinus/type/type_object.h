@@ -112,6 +112,8 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> get_default_value(std::shared_ptr<object> self) const;
 
+		virtual void extend_argument_list(std::shared_ptr<memory::reference> data, std::list<std::shared_ptr<memory::reference>> &list) const;
+
 		virtual std::size_t get_size() const = 0;
 
 		virtual std::size_t get_memory_size() const;

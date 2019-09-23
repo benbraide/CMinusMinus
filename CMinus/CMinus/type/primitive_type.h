@@ -120,9 +120,11 @@ namespace cminus::type{
 			nan,
 		};
 
-		explicit number_primitive(state_type state = state_type::integer, std::size_t size = sizeof(int));
+		explicit number_primitive(state_type state = state_type::nil, std::size_t size = 0u);
 
 		virtual ~number_primitive();
+
+		virtual std::shared_ptr<memory::reference> get_default_value(std::shared_ptr<object> self) const override;
 
 		virtual std::size_t get_size() const override;
 

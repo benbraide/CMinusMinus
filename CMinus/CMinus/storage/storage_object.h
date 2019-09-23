@@ -9,7 +9,7 @@
 #include "../memory/memory_reference.h"
 #include "../runtime/runtime_object.h"
 
-#include "../declaration/declaration_object.h"
+#include "../declaration/function_declaration_group_base.h"
 
 #include "storage_exception.h"
 
@@ -51,7 +51,9 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<type::object> find_type(const std::string &name, bool search_tree) const;
 
-		virtual std::shared_ptr<object> find_storage(const std::string &name, bool search_tree) const;
+		virtual object *find_storage(const std::string &name, bool search_tree) const;
+
+		virtual bool is_accessible(unsigned int access) const;
 
 		template <typename target_type>
 		target_type *get_first_of() const{
@@ -59,7 +61,7 @@ namespace cminus::storage{
 				return const_cast<target_type *>(self_target);
 			
 			if (auto parent = get_parent(); parent != nullptr)
-				return parent->get_first_of();
+				return parent->get_first_of<target_type>();
 
 			return nullptr;
 		}
@@ -87,14 +89,15 @@ namespace cminus::storage{
 		
 		virtual std::shared_ptr<type::object> find_type_(const std::string &name) const;
 
-		virtual std::shared_ptr<object> find_storage_(const std::string &name) const;
+		virtual object *find_storage_(const std::string &name) const;
 
 		std::list<std::shared_ptr<memory::reference>> entries_;
 		std::unordered_map<std::string, std::shared_ptr<memory::reference>> named_entries_;
 
 		std::unordered_map<std::string, std::shared_ptr<declaration::function_group_base>> functions_;
-		std::unordered_map<std::string, std::shared_ptr<attribute::object>> attributes_;
+		std::unordered_map<std::string, std::shared_ptr<declaration::object>> declarations_;
 
+		std::unordered_map<std::string, std::shared_ptr<attribute::object>> attributes_;
 		std::unordered_map<std::string, std::shared_ptr<type::object>> types_;
 		std::unordered_map<std::string, std::shared_ptr<object>> storages_;
 

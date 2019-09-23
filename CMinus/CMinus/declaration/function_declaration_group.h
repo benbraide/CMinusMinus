@@ -24,11 +24,11 @@ namespace cminus::declaration{
 
 		virtual void add(std::shared_ptr<function_base> entry) override;
 
-		virtual std::shared_ptr<function_base> find(const type::object &target_type) const;
+		virtual std::shared_ptr<function_base> find(const type::object &target_type) const override;
 
-		virtual std::shared_ptr<function_base> find(const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t *count = nullptr) const;
+		virtual std::shared_ptr<function_base> find(const std::list<std::shared_ptr<memory::reference>> &args, std::size_t *count = nullptr) const override;
 
-		virtual std::shared_ptr<memory::reference> call(const std::vector<std::shared_ptr<memory::reference>> &args) const;
+		virtual std::shared_ptr<memory::reference> call(const std::list<std::shared_ptr<memory::reference>> &args) const override;
 
 	protected:
 		virtual map_type::const_iterator find_(const type::object &target_type) const;

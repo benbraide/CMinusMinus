@@ -7,7 +7,7 @@
 namespace cminus::node{
 	class object{
 	public:
-		virtual ~object() = default;
+		virtual ~object();
 
 		virtual std::size_t get_list_count() const;
 

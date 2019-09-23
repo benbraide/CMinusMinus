@@ -2,12 +2,14 @@
 
 #include "../runtime/runtime_object.h"
 #include "../runtime/runtime_value_guard.h"
-
 #include "../attribute/attribute_collection.h"
-#include "../declaration/function_declaration_group_base.h"
 
 #include "memory_block.h"
 
+
+namespace cminus::declaration{
+	class function_group_base;
+}
 namespace cminus::memory{
 	class reference : public io::binary_writer, public io::binary_reader{
 	public:

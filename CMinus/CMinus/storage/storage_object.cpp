@@ -1,4 +1,5 @@
 #include "../declaration/variable_declaration.h"
+#include "../declaration/function_declaration_group.h"
 
 #include "storage_object.h"
 
@@ -92,7 +93,10 @@ std::shared_ptr<cminus::type::object> cminus::storage::object::find_type(const s
 	return nullptr;
 }
 
-std::shared_ptr<cminus::storage::object> cminus::storage::object::find_storage(const std::string &name, bool search_tree) const{
+cminus::storage::object *cminus::storage::object::find_storage(const std::string &name, bool search_tree) const{
+	if (name.empty())
+		return nullptr;
+
 	{//Scoped lock
 		std::lock_guard<std::mutex> guard(lock_);
 		if (auto entry = find_storage_(name); entry != nullptr)
@@ -106,6 +110,10 @@ std::shared_ptr<cminus::storage::object> cminus::storage::object::find_storage(c
 		return parent->find_storage(name, true);
 
 	return nullptr;
+}
+
+bool cminus::storage::object::is_accessible(unsigned int access) const{
+	return true;
 }
 
 void cminus::storage::object::destroy_entries_(){
@@ -126,7 +134,7 @@ void cminus::storage::object::add_(std::shared_ptr<declaration::variable> entry,
 
 	auto value = entry->evaluate(address);
 	if (value == nullptr)
-		return;
+		throw memory::exception::allocation_failure();
 
 	if (auto it = (name.empty() ? named_entries_.end() : named_entries_.find(name)); it == named_entries_.end()){//Entry was previously undefined
 		for (auto entry_it = entries_.begin(); entry_it != entries_.end(); ++entry_it){
@@ -138,8 +146,10 @@ void cminus::storage::object::add_(std::shared_ptr<declaration::variable> entry,
 	}
 
 	entries_.push_back(value);
-	if (!name.empty())
+	if (!name.empty()){
 		named_entries_[name] = value;
+		declarations_[name] = entry;
+	}
 }
 
 void cminus::storage::object::add_(std::shared_ptr<declaration::function_base> entry, std::size_t address){
@@ -156,6 +166,13 @@ void cminus::storage::object::add_(std::shared_ptr<declaration::function_base> e
 
 		if (block == nullptr || block->get_address() == 0u)
 			throw memory::exception::allocation_failure();
+
+		auto group = std::make_shared<declaration::function_group>(name, this, block->get_address());
+		if (group == nullptr)
+			throw memory::exception::allocation_failure();
+
+		group->add(entry);
+		functions_[name] = group;
 	}
 	else//Add to existing
 		function_it->second->add(entry);
@@ -240,16 +257,16 @@ std::shared_ptr<cminus::type::object> cminus::storage::object::find_type_(const 
 	return nullptr;
 }
 
-std::shared_ptr<cminus::storage::object> cminus::storage::object::find_storage_(const std::string &name) const{
-	if (name.empty())
-		return nullptr;
+cminus::storage::object *cminus::storage::object::find_storage_(const std::string &name) const{
+	if (name == get_name())
+		return const_cast<object *>(this);
 
 	if (!storages_.empty()){
 		if (auto it = storages_.find(name); it != storages_.end())
-			return it->second;
+			return it->second.get();
 	}
 
-	return std::dynamic_pointer_cast<object>(find_type_(name));
+	return dynamic_cast<object *>(find_type_(name).get());
 }
 
 cminus::storage::named_object::named_object(const std::string &name, object *parent)

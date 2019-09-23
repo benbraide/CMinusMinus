@@ -83,6 +83,12 @@ cminus::type::number_primitive::number_primitive(state_type state, std::size_t s
 
 cminus::type::number_primitive::~number_primitive() = default;
 
+std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::get_default_value(std::shared_ptr<object> self) const{
+	if (state_ == state_type::nil)//Return a NaN value
+		return runtime::object::global_storage->get_zero_value(std::make_shared<number_primitive>(state_type::nan, sizeof(int)));
+	return primitive::get_default_value(self);
+}
+
 std::size_t cminus::type::number_primitive::get_size() const{
 	return size_;
 }
@@ -135,9 +141,14 @@ std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::cast(
 		return nullptr;//L-value required
 
 	auto cloned_target_type = std::make_shared<number_primitive>(number_target_type->state_, number_target_type->size_);
-	if (number_target_type->state_ == state_ && number_target_type->size_ == size_){//Exact
+	if (number_target_type->state_ == state_type::nil || (number_target_type->state_ == state_ && number_target_type->size_ == size_)){//Exact
 		if (type == cast_type::rval_static || !is_lval || is_ref)
 			return data;//No copy needed
+
+		if (number_target_type->state_ == state_type::nil){
+			cloned_target_type->state_ = state_;
+			cloned_target_type->size_ = size_;
+		}
 
 		auto value = std::make_shared<memory::rval_reference>(cloned_target_type);
 		if (value != nullptr)//Copy bytes
@@ -184,15 +195,15 @@ std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::cast(
 
 std::shared_ptr<cminus::type::object> cminus::type::number_primitive::convert(conversion_type type, std::shared_ptr<object> self_or_other) const{
 	if (type == conversion_type::update){
-		if (auto number_type = dynamic_cast<number_primitive *>(self_or_other->get_non_proxy()); number_type != nullptr)
-			state_ = number_type->state_;
+		if (auto number_type = dynamic_cast<number_primitive *>(self_or_other->get_non_proxy()); number_type != nullptr && (state_ == state_type::nan || number_type->state_ == state_type::nan))
+			state_ = number_type->state_;//Copy target's NaN state
 		return nullptr;
 	}
 
 	if (type == conversion_type::clone || type == conversion_type::clone_non_ref_const)
 		return std::make_shared<number_primitive>(state_, size_);
 
-	if (type != conversion_type::infer)
+	if (type != conversion_type::infer || state_ != state_type::nil)
 		return primitive::convert(type, self_or_other);
 
 	auto number_other = dynamic_cast<number_primitive *>(self_or_other->get_non_proxy());

@@ -67,6 +67,10 @@ std::shared_ptr<cminus::memory::reference> cminus::type::object::get_default_val
 	return runtime::object::global_storage->get_zero_value(convert(conversion_type::clone, self));
 }
 
+void cminus::type::object::extend_argument_list(std::shared_ptr<memory::reference> data, std::list<std::shared_ptr<memory::reference>> &list) const{
+	list.push_back(data);
+}
+
 std::size_t cminus::type::object::get_memory_size() const{
 	return get_size();
 }

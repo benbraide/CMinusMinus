@@ -19,6 +19,8 @@ namespace cminus::declaration{
 
 		virtual std::shared_ptr<function_base> find(const type::object &target_type) const = 0;
 
-		virtual std::shared_ptr<function_base> find(const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t *count = nullptr) const = 0;
+		virtual std::shared_ptr<function_base> find(const std::list<std::shared_ptr<memory::reference>> &args, std::size_t *count = nullptr) const = 0;
+
+		virtual std::shared_ptr<memory::reference> call(const std::list<std::shared_ptr<memory::reference>> &args) const = 0;
 	};
 }

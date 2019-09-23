@@ -1,5 +1,6 @@
 #include "../type/type_object.h"
 #include "../storage/global_storage.h"
+#include "../declaration/function_declaration_group_base.h"
 
 #include "memory_reference.h"
 

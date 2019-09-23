@@ -97,6 +97,24 @@ void cminus::declaration::variable::initialize_memory(std::shared_ptr<memory::re
 	initialize_memory(target, initialization_);
 }
 
+unsigned int cminus::declaration::variable::set_flags(unsigned int value){
+	auto old_value = flags_;
+	flags_ = value;
+	return old_value;
+}
+
+std::shared_ptr<cminus::type::object> cminus::declaration::variable::set_type(std::shared_ptr<type::object> value){
+	auto old_value = type_;
+	type_ = value;
+	return old_value;
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::variable::set_initialization(std::shared_ptr<node::object> value){
+	auto old_value = initialization_;
+	initialization_ = value;
+	return old_value;
+}
+
 std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evaluate_(std::size_t address, const std::vector<std::shared_ptr<memory::reference>> &initialization) const{
 	if (static_value_ != nullptr)
 		return static_value_;

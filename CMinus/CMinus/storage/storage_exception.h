@@ -8,6 +8,8 @@ namespace cminus::storage::exception{
 		duplicate_entry,
 		entry_not_found,
 		unnamed_entry,
+		inaccessible_entry,
+		no_member_context,
 	};
 
 	class base : public std::exception{
@@ -54,6 +56,24 @@ namespace cminus::storage::exception{
 		unnamed_entry();
 
 		virtual ~unnamed_entry();
+
+		virtual code get_code() const override;
+	};
+
+	class inaccessible_entry : public base{
+	public:
+		inaccessible_entry();
+
+		virtual ~inaccessible_entry();
+
+		virtual code get_code() const override;
+	};
+
+	class no_member_context : public base{
+	public:
+		no_member_context();
+
+		virtual ~no_member_context();
 
 		virtual code get_code() const override;
 	};
