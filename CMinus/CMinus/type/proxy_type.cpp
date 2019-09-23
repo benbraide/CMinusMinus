@@ -9,7 +9,7 @@ void cminus::type::proxy::construct(std::shared_ptr<object> self, std::shared_pt
 	target_->construct(self, target, initialization);
 }
 
-void cminus::type::proxy::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const{
+void cminus::type::proxy::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &initialization) const{
 	target_->construct(self, target, initialization);
 }
 

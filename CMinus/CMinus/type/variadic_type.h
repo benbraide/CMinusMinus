@@ -24,4 +24,51 @@ namespace cminus::type{
 	protected:
 		std::shared_ptr<object> base_type_;
 	};
+
+	class in_memory_variadic : public variadic{
+	public:
+		in_memory_variadic(const variadic &target, std::list<std::shared_ptr<memory::reference>> &args);
+
+		virtual ~in_memory_variadic();
+
+		virtual void destruct(std::shared_ptr<memory::reference> target) const override;
+
+		virtual std::size_t get_size() const override;
+
+		virtual std::size_t get_memory_size() const override;
+
+		virtual std::size_t get_count() const;
+
+		virtual std::shared_ptr<memory::reference> get_indexed(std::shared_ptr<memory::reference> data, std::size_t index) const;
+
+	protected:
+		virtual void construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const override;
+
+		std::list<std::shared_ptr<memory::reference>> *args_;
+		std::vector<std::shared_ptr<object>> types_;
+	};
+
+	class expansion_variadic : public object{
+	public:
+		explicit expansion_variadic(std::shared_ptr<in_memory_variadic> base_type);
+
+		virtual ~expansion_variadic();
+
+		virtual void extend_argument_list(std::shared_ptr<memory::reference> data, std::list<std::shared_ptr<memory::reference>> &list) const override;
+
+		virtual std::size_t get_size() const override;
+
+		virtual std::size_t get_memory_size() const override;
+
+		virtual bool is_exact(const object &target) const override;
+
+		virtual int get_score(const object &target) const override;
+
+		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
+
+		virtual std::shared_ptr<in_memory_variadic> get_base_type() const;
+
+	protected:
+		std::shared_ptr<in_memory_variadic> base_type_;
+	};
 }

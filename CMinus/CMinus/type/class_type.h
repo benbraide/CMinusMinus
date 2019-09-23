@@ -61,7 +61,7 @@ namespace cminus::type{
 		virtual std::shared_ptr<memory::reference> find_static_member(const std::string &name) const;
 
 	protected:
-		virtual void construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const override;
+		virtual void construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const override;
 
 		virtual void add_(std::shared_ptr<declaration::variable> entry, std::size_t address) override;
 

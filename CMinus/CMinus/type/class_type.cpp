@@ -108,7 +108,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_static_mem
 	return nullptr;
 }
 
-void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const{
+void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const{
 
 }
 

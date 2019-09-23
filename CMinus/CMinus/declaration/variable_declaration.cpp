@@ -8,24 +8,22 @@ std::shared_ptr<cminus::node::object> cminus::declaration::variable::get_initial
 
 std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evaluate(std::size_t address, std::shared_ptr<node::object> initialization) const{
 	if (initialization == nullptr && (initialization = initialization_) == nullptr)
-		return evaluate_(address, std::vector<std::shared_ptr<memory::reference>>{});
+		return evaluate_(address, std::list<std::shared_ptr<memory::reference>>{});
 
-	std::vector<std::shared_ptr<memory::reference>> args;
-	args.reserve(initialization->get_list_count());
-
+	std::list<std::shared_ptr<memory::reference>> args;
 	initialization->traverse_list([&](const node::object &entry){
 		args.push_back(entry.evaluate());
 	});
 
-	return evaluate_(address, std::vector<std::shared_ptr<memory::reference>>{ args });
+	return evaluate_(address, args);
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evaluate(std::size_t address, const std::vector<std::shared_ptr<memory::reference>> &initialization) const{
+std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evaluate(std::size_t address, const std::list<std::shared_ptr<memory::reference>> &initialization) const{
 	return (initialization.empty() ? evaluate(address, initialization_) : evaluate_(address, initialization));
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evaluate(std::size_t address, std::shared_ptr<memory::reference> initialization) const{
-	return ((initialization == nullptr) ? evaluate(address, initialization_) : evaluate_(address, std::vector<std::shared_ptr<memory::reference>>{ initialization }));
+	return ((initialization == nullptr) ? evaluate(address, initialization_) : evaluate_(address, std::list<std::shared_ptr<memory::reference>>{ initialization }));
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evaluate(std::size_t address) const{
@@ -44,6 +42,9 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::alloca
 		throw evaluator::exception::inferred_type();
 
 	std::shared_ptr<memory::reference> reference;
+	if (computed_type == type_)
+		computed_type = computed_type->convert(type::object::conversion_type::clone, computed_type);
+
 	if (computed_type->is(type::object::query_type::ref)){
 		if (address == 0u)//Allocate memory
 			reference = std::make_shared<memory::indirect_reference>(computed_type, attributes_.get_list(), nullptr);
@@ -66,20 +67,18 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::alloca
 
 void cminus::declaration::variable::initialize_memory(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> value) const{
 	if (value != nullptr || (value = initialization_) != nullptr){
-		std::vector<std::shared_ptr<memory::reference>> args;
-		args.reserve(value->get_list_count());
-
+		std::list<std::shared_ptr<memory::reference>> args;
 		value->traverse_list([&](const node::object &entry){
 			args.push_back(entry.evaluate());
 		});
 
-		initialize_memory_(target, std::vector<std::shared_ptr<memory::reference>>{ args });
+		initialize_memory_(target, args);
 	}
 	else//No initialization
-		initialize_memory_(target, std::vector<std::shared_ptr<memory::reference>>{});
+		initialize_memory_(target, std::list<std::shared_ptr<memory::reference>>{});
 }
 
-void cminus::declaration::variable::initialize_memory(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &value) const{
+void cminus::declaration::variable::initialize_memory(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &value) const{
 	if (value.empty())
 		initialize_memory(target, initialization_);
 	else//Use list
@@ -90,7 +89,7 @@ void cminus::declaration::variable::initialize_memory(std::shared_ptr<memory::re
 	if (value == nullptr)
 		initialize_memory(target, initialization_);
 	else
-		initialize_memory_(target, std::vector<std::shared_ptr<memory::reference>>{ value });
+		initialize_memory_(target, std::list<std::shared_ptr<memory::reference>>{ value });
 }
 
 void cminus::declaration::variable::initialize_memory(std::shared_ptr<memory::reference> target) const{
@@ -115,7 +114,7 @@ std::shared_ptr<cminus::node::object> cminus::declaration::variable::set_initial
 	return old_value;
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evaluate_(std::size_t address, const std::vector<std::shared_ptr<memory::reference>> &initialization) const{
+std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evaluate_(std::size_t address, const std::list<std::shared_ptr<memory::reference>> &initialization) const{
 	if (static_value_ != nullptr)
 		return static_value_;
 
@@ -128,7 +127,7 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evalua
 	return nullptr;
 }
 
-void cminus::declaration::variable::initialize_memory_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &value) const{
+void cminus::declaration::variable::initialize_memory_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &value) const{
 	auto target_type = target->get_type();
 	target_type->construct(target_type, target, value);
 }

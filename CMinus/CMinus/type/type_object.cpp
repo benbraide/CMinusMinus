@@ -26,25 +26,24 @@ cminus::storage::object *cminus::type::object::get_parent() const{
 
 void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const{
 	if (initialization != nullptr){
-		std::vector<std::shared_ptr<memory::reference>> args;
-		args.reserve(initialization->get_list_count());
+		std::list<std::shared_ptr<memory::reference>> args;
 
 		initialization->traverse_list([&](const node::object &entry){
 			args.push_back(entry.evaluate());
 		});
 
-		construct_(target, std::vector<std::shared_ptr<memory::reference>>{ args });
+		construct_(target, args);
 	}
 	else//No initialization
-		construct(self, target, std::vector<std::shared_ptr<memory::reference>>{});
+		construct(self, target, std::list<std::shared_ptr<memory::reference>>{});
 }
 
-void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const{
+void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &initialization) const{
 	if (initialization.empty()){
 		if (auto default_value = get_default_value(self); default_value == nullptr)
-			construct_(target, std::vector<std::shared_ptr<memory::reference>>{});
+			construct_(target, std::list<std::shared_ptr<memory::reference>>{});
 		else
-			construct_(target, std::vector<std::shared_ptr<memory::reference>>{ default_value });
+			construct_(target, std::list<std::shared_ptr<memory::reference>>{ default_value });
 	}
 	else
 		construct_(target, initialization);
@@ -52,13 +51,13 @@ void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_p
 
 void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const{
 	if (initialization == nullptr)
-		construct(self, target, std::vector<std::shared_ptr<memory::reference>>{});
+		construct(self, target, std::list<std::shared_ptr<memory::reference>>{});
 	else
-		construct_(target, std::vector<std::shared_ptr<memory::reference>>{ initialization });
+		construct_(target, std::list<std::shared_ptr<memory::reference>>{ initialization });
 }
 
 void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target) const{
-	construct(self, target, std::vector<std::shared_ptr<memory::reference>>{});
+	construct(self, target, std::list<std::shared_ptr<memory::reference>>{});
 }
 
 void cminus::type::object::destruct(std::shared_ptr<memory::reference> target) const{}
@@ -124,7 +123,7 @@ bool cminus::type::object::is(query_type type, const object *arg) const{
 	return (type == query_type::scalar);
 }
 
-void cminus::type::object::construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const{
+void cminus::type::object::construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const{
 	if (!args.empty())
 		get_initializer()->initialize(target, *args.rbegin());
 	else

@@ -14,7 +14,7 @@ namespace cminus::type{
 
 		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const override;
 
-		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const override;
+		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &initialization) const override;
 
 		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const override;
 

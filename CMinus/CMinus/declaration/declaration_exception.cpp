@@ -71,3 +71,30 @@ cminus::declaration::exception::bad_parameter_list::~bad_parameter_list() = defa
 cminus::declaration::exception::code cminus::declaration::exception::bad_parameter_list::get_code() const{
 	return code::bad_parameter_list;
 }
+
+cminus::declaration::exception::void_function_value_return::void_function_value_return()
+	: base("A void function cannot return a value"){}
+
+cminus::declaration::exception::void_function_value_return::~void_function_value_return() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::void_function_value_return::get_code() const{
+	return code::void_function_value_return;
+}
+
+cminus::declaration::exception::value_function_no_return::value_function_no_return()
+	: base("Function must return a value"){}
+
+cminus::declaration::exception::value_function_no_return::~value_function_no_return() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::value_function_no_return::get_code() const{
+	return code::value_function_no_return;
+}
+
+cminus::declaration::exception::invalid_function_return::invalid_function_return()
+	: base("Constructor and destructor cannot have return statements"){}
+
+cminus::declaration::exception::invalid_function_return::~invalid_function_return() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::invalid_function_return::get_code() const{
+	return code::invalid_function_return;
+}

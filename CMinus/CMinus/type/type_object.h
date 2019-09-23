@@ -102,7 +102,7 @@ namespace cminus::type{
 
 		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const;
 
-		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const;
+		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &initialization) const;
 
 		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const;
 
@@ -139,7 +139,7 @@ namespace cminus::type{
 		static int get_score_value(score_result_type score);
 
 	protected:
-		virtual void construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const;
+		virtual void construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const;
 
 		std::string name_;
 		storage::object *parent_;

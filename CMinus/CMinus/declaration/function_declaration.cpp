@@ -126,17 +126,21 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::function::call_(
 	try{
 		copy_args_( args);
 		evaluate_body_();
-		return_value = copy_return_value_(nullptr);
+		if (return_declaration_ != nullptr)
+			return_value = copy_return_value_(nullptr);
 	}
 	catch (const runtime::exception::return_interrupt &e){//Value returned
-		return_value = copy_return_value_(e.get_value());
+		if (return_declaration_ != nullptr)
+			return_value = copy_return_value_(e.get_value());
+		else
+			throw exception::invalid_function_return();
 	}
 
 	return return_value;
 }
 
 void cminus::declaration::function::init_(std::shared_ptr<type::object> return_type){
-	if (return_type != nullptr){
+	if (return_type != nullptr && !return_type->is(type::object::query_type::undefined)){
 		return_declaration_ = std::make_shared<variable>(
 			"",											//Name
 			return_type,								//Type
@@ -169,33 +173,23 @@ void cminus::declaration::function::copy_args_(const std::list<std::shared_ptr<m
 	auto arg_it = args.begin();
 	auto param_it = parameter_list_.begin();
 
-	std::shared_ptr<object> variadic_declaration;
+	std::shared_ptr<variable> variadic_declaration;
 	std::list<std::shared_ptr<memory::reference>> variadic_args;
 
-	std::shared_ptr<type::object> param_type;
 	std::shared_ptr<node::object> param_initialization;
-
 	for (; arg_it != args.end(); ++arg_it){
 		if (variadic_declaration == nullptr){
 			if (param_it == parameter_list_.end())
 				break;
 
-			param_type = (*param_it)->get_type();
-			param_type = param_type->convert(type::object::conversion_type::clone, param_type);
-
-			param_initialization = (*param_it)->get_initialization();
-			if (dynamic_cast<type::variadic *>(param_type->get_non_proxy()) == nullptr){
+			if (dynamic_cast<type::variadic *>((*param_it)->get_type()->get_non_proxy()) == nullptr){
+				param_initialization = (*param_it)->set_initialization(std::make_shared<node::memory_reference>(*arg_it));
 				try{
-					param_initialization = (*param_it)->set_initialization(std::make_shared<node::memory_reference>(*arg_it));
 					runtime::object::current_storage->add(*param_it, 0u);
-
-					param_type = (*param_it)->set_type(param_type);
 					param_initialization = (*param_it)->set_initialization(param_initialization);
 				}
 				catch (...){
-					param_type = (*param_it)->set_type(param_type);
 					param_initialization = (*param_it)->set_initialization(param_initialization);
-
 					throw;//Forward exception
 				}
 			}
@@ -215,21 +209,11 @@ void cminus::declaration::function::copy_args_(const std::list<std::shared_ptr<m
 
 	for (; param_it != parameter_list_.end(); ++param_it){//Evaluate parameters with default values
 		if (variadic_declaration == nullptr){
-			param_type = (*param_it)->get_type();
-			param_type = param_type->convert(type::object::conversion_type::clone, param_type);
-
-			if (dynamic_cast<type::variadic *>(param_type->get_non_proxy()) == nullptr){
-				if ((*param_it)->get_initialization() == nullptr)
-					throw exception::bad_parameter_list();
-
-				try{
+			if (dynamic_cast<type::variadic *>((*param_it)->get_type()->get_non_proxy()) == nullptr){
+				if ((*param_it)->get_initialization() != nullptr)
 					runtime::object::current_storage->add(*param_it, 0u);
-					param_type = (*param_it)->set_type(param_type);
-				}
-				catch (...){
-					param_type = (*param_it)->set_type(param_type);
-					throw;//Forward exception
-				}
+				else//Error
+					throw exception::bad_parameter_list();
 			}
 			else//Variadic declaration
 				variadic_declaration = *param_it;
@@ -239,12 +223,38 @@ void cminus::declaration::function::copy_args_(const std::list<std::shared_ptr<m
 		else
 			throw exception::bad_parameter_list();
 	}
+
+	if (variadic_declaration == nullptr)
+		return;//No variadic declaration
+
+	auto variadic_type = variadic_declaration->set_type(std::make_shared<type::in_memory_variadic>(
+		*dynamic_cast<type::variadic *>(variadic_declaration->get_type()->get_non_proxy()),
+		variadic_args
+	));
+
+	try{
+		runtime::object::current_storage->add(variadic_declaration, 0u);
+		variadic_type = variadic_declaration->set_type(variadic_type);
+	}
+	catch (...){
+		variadic_type = variadic_declaration->set_type(variadic_type);
+		throw;//Forward exception
+	}
 }
 
 void cminus::declaration::function::evaluate_body_() const{
-
+	get_definition()->evaluate();
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::declaration::function::copy_return_value_(std::shared_ptr<memory::reference> value) const{
-	return nullptr;
+	if (return_declaration_->get_type()->is(type::object::query_type::void_)){
+		if (value != nullptr)
+			throw exception::void_function_value_return();
+		return nullptr;
+	}
+
+	if (value == nullptr)
+		throw exception::value_function_no_return();
+
+	return return_declaration_->evaluate(0u, value);
 }
