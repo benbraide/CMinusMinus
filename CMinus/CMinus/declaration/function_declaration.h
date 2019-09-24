@@ -48,4 +48,29 @@ namespace cminus::declaration{
 		std::size_t min_arg_count_ = 0u;
 		std::size_t max_arg_count_ = 0u;
 	};
+
+	class defined_function : public function{
+	public:
+		using function::function;
+
+		virtual ~defined_function();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+
+	protected:
+		std::shared_ptr<node::object> definition_;
+	};
+
+	class external_function : public function{
+	public:
+		using function::function;
+
+		virtual ~external_function();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+	};
 }

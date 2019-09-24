@@ -50,6 +50,8 @@ namespace cminus::type{
 
 		virtual void add_base(unsigned int access, std::shared_ptr<class_> value);
 
+		virtual void add_default_functions(bool add_on_empty);
+
 		using storage_base::find;
 
 		virtual std::shared_ptr<memory::reference> find(const std::string &name, std::shared_ptr<memory::reference> context) const;

@@ -275,3 +275,26 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::function::copy_r
 
 	return return_declaration_->evaluate(0u, value);
 }
+
+cminus::declaration::defined_function::~defined_function() = default;
+
+void cminus::declaration::defined_function::define(std::shared_ptr<node::object> definition){
+	if (definition_ == nullptr)
+		definition_ = definition;
+	else
+		throw exception::function_redefinition();
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::defined_function::get_definition() const{
+	return definition_;
+}
+
+cminus::declaration::external_function::~external_function() = default;
+
+void cminus::declaration::external_function::define(std::shared_ptr<node::object> definition){
+	throw exception::function_redefinition();
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::external_function::get_definition() const{
+	return nullptr;
+}

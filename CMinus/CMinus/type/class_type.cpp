@@ -143,6 +143,27 @@ void cminus::type::class_::add_base(unsigned int access, std::shared_ptr<class_>
 		throw storage::exception::duplicate_base();
 }
 
+void cminus::type::class_::add_default_functions(bool add_on_empty){
+	if (!add_on_empty || storage_base::find(get_name(), false) == nullptr){//No constructor defined
+		try{
+			add(std::make_shared<declaration::default_constructor>(*this), 0u);
+		}
+		catch (const declaration::exception::base &){}
+
+		try{
+			add(std::make_shared<declaration::copy_constructor>(*this), 0u);
+		}
+		catch (const declaration::exception::base &){}
+	}
+
+	if (storage_base::find(("~" + get_name()), false) == nullptr){//No destructor defined
+		try{
+			add(std::make_shared<declaration::default_destructor>(*this), 0u);
+		}
+		catch (const declaration::exception::base &){}
+	}
+}
+
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const std::string &name, std::shared_ptr<memory::reference> context) const{
 	std::lock_guard<std::mutex> guard(lock_);
 	return find_(name, context, 0u);

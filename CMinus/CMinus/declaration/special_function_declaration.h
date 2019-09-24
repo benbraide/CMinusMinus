@@ -24,7 +24,32 @@ namespace cminus::declaration{
 		std::list<init_info> init_list_;
 	};
 
-	class default_constructor : public constructor{
+	class defined_constructor : public constructor{
+	public:
+		using constructor::constructor;
+
+		virtual ~defined_constructor();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+
+	protected:
+		std::shared_ptr<node::object> definition_;
+	};
+
+	class external_constructor : public constructor{
+	public:
+		using constructor::constructor;
+
+		virtual ~external_constructor();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+	};
+
+	class default_constructor : public external_constructor{
 	public:
 		explicit default_constructor(type::class_ &parent);
 
@@ -40,7 +65,7 @@ namespace cminus::declaration{
 		virtual void evaluate_body_() const override;
 	};
 
-	class copy_constructor : public constructor{
+	class copy_constructor : public external_constructor{
 	public:
 		explicit copy_constructor(type::class_ &parent);
 
@@ -68,7 +93,32 @@ namespace cminus::declaration{
 		virtual void evaluate_body_() const override;
 	};
 
-	class default_destructor : public destructor{
+	class defined_destructor : public destructor{
+	public:
+		using destructor::destructor;
+
+		virtual ~defined_destructor();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+
+	protected:
+		std::shared_ptr<node::object> definition_;
+	};
+
+	class external_destructor : public destructor{
+	public:
+		using destructor::destructor;
+
+		virtual ~external_destructor();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+	};
+
+	class default_destructor : public external_destructor{
 	public:
 		explicit default_destructor(type::class_ &parent);
 
