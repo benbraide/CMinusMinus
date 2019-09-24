@@ -56,7 +56,6 @@ namespace cminus::type{
 			enum_,
 			auto_,
 			explicit_auto,
-			nan,
 			undefined,
 			void_,
 			numeric,
@@ -85,9 +84,6 @@ namespace cminus::type{
 			remove_indirection,
 			remove_pointer,
 			infer,
-			update,
-			clone,
-			clone_non_ref_const,
 		};
 
 		object(const std::string &name, storage::object *parent);
@@ -100,13 +96,13 @@ namespace cminus::type{
 
 		virtual storage::object *get_parent() const;
 
-		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const;
+		virtual void construct(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const;
 
-		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &initialization) const;
+		virtual void construct(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &initialization) const;
 
-		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const;
+		virtual void construct(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const;
 
-		virtual void construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target) const;
+		virtual void construct(std::shared_ptr<memory::reference> target) const;
 
 		virtual void destruct(std::shared_ptr<memory::reference> target) const;
 

@@ -20,17 +20,15 @@ void cminus::declaration::constructor::evaluate_body_() const{
 	auto class_parent = reinterpret_cast<type::class_ *>(parent_);
 
 	for (auto &member_variable : reinterpret_cast<type::class_ *>(parent_)->get_member_variables()){
-		if (auto it = member_init_list.find(member_variable.value->get_name()); it == member_init_list.end()){
+		if (auto it = member_init_list.find(member_variable.value->get_name()); it != member_init_list.end()){
 			member_variable.value->get_type()->construct(
-				member_variable.value->get_type(),
-				class_parent->find(member_variable.value->get_name(), self)
-			);
-		}
-		else{//Construct with specified value
-			member_variable.value->get_type()->construct(
-				member_variable.value->get_type(),
 				class_parent->find(member_variable.value->get_name(), self),
 				it->second
+			);
+		}
+		else{//Construct default
+			member_variable.value->get_type()->construct(
+				class_parent->find(member_variable.value->get_name(), self)
 			);
 		}
 	}
@@ -61,7 +59,6 @@ void cminus::declaration::default_constructor::evaluate_body_() const{
 
 	for (auto &member_variable : class_parent->get_member_variables()){//Default construct member variables
 		member_variable.value->get_type()->construct(
-			member_variable.value->get_type(),
 			class_parent->find(member_variable.value->get_name(), self)
 		);
 	}
@@ -105,7 +102,6 @@ void cminus::declaration::copy_constructor::evaluate_body_() const{
 	auto class_parent = reinterpret_cast<type::class_ *>(parent_);
 	for (auto &member_variable : class_parent->get_member_variables()){//Copy construct member variables
 		member_variable.value->get_type()->construct(
-			member_variable.value->get_type(),
 			class_parent->find(member_variable.value->get_name(), self),
 			class_parent->find(member_variable.value->get_name(), other)
 		);

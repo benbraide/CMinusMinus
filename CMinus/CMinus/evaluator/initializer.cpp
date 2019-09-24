@@ -25,7 +25,6 @@ void cminus::evaluator::initializer::initialize(std::shared_ptr<memory::referenc
 	if (compatible_value == nullptr)
 		throw exception::incompatible_rval();
 
-	value_type = target_type->convert(type::object::conversion_type::update, value_type);
 	if (is_ref)
 		target->write_ownership(compatible_value);
 	else//Copy value

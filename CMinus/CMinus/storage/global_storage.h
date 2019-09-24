@@ -40,11 +40,15 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<type::object> get_cached_type(cached_type type) const;
 
+		virtual std::shared_ptr<type::object> get_cached_type(const type::object &type) const;
+
 		virtual std::shared_ptr<evaluator::object> get_evaluator_for(const type::object &target_type) const;
 
 		virtual std::shared_ptr<evaluator::initializer> get_default_initializer() const;
 
 		virtual std::shared_ptr<memory::reference> copy(std::shared_ptr<memory::reference> value) const;
+
+		virtual std::shared_ptr<memory::reference> get_zero_value(const type::object &type) const;
 
 		virtual std::shared_ptr<memory::reference> get_zero_value(std::shared_ptr<type::object> type) const;
 

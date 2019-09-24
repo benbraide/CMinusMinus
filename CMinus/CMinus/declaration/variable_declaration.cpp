@@ -42,9 +42,6 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::alloca
 		throw evaluator::exception::inferred_type();
 
 	std::shared_ptr<memory::reference> reference;
-	if (computed_type == type_)
-		computed_type = computed_type->convert(type::object::conversion_type::clone, computed_type);
-
 	if (computed_type->is(type::object::query_type::ref)){
 		if (address == 0u)//Allocate memory
 			reference = std::make_shared<memory::indirect_reference>(computed_type, attributes_.get_list(), nullptr);
@@ -128,6 +125,5 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evalua
 }
 
 void cminus::declaration::variable::initialize_memory_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &value) const{
-	auto target_type = target->get_type();
-	target_type->construct(target_type, target, value);
+	target->get_type()->construct(target, value);
 }

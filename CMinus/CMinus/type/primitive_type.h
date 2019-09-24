@@ -33,9 +33,9 @@ namespace cminus::type{
 			if (target_type->is(query_type::unsigned_integral)){
 				switch (target_type->get_size()){
 				case 4u:
-					return std::make_shared<memory::scalar_reference<unsigned __int32>>(target_type->convert(conversion_type::clone, target_type), static_cast<unsigned __int32>(value));
+					return std::make_shared<memory::scalar_reference<unsigned __int32>>(target_type, static_cast<unsigned __int32>(value));
 				case 8u:
-					return std::make_shared<memory::scalar_reference<unsigned __int64>>(target_type->convert(conversion_type::clone, target_type), static_cast<unsigned __int64>(value));
+					return std::make_shared<memory::scalar_reference<unsigned __int64>>(target_type, static_cast<unsigned __int64>(value));
 				default:
 					break;
 				}
@@ -43,9 +43,9 @@ namespace cminus::type{
 			else if (target_type->is(query_type::integral)){
 				switch (target_type->get_size()){
 				case 4u:
-					return std::make_shared<memory::scalar_reference<__int32>>(target_type->convert(conversion_type::clone, target_type), static_cast<__int32>(value));
+					return std::make_shared<memory::scalar_reference<__int32>>(target_type, static_cast<__int32>(value));
 				case 8u:
-					return std::make_shared<memory::scalar_reference<__int64>>(target_type->convert(conversion_type::clone, target_type), static_cast<__int64>(value));
+					return std::make_shared<memory::scalar_reference<__int64>>(target_type, static_cast<__int64>(value));
 				default:
 					break;
 				}
@@ -53,9 +53,9 @@ namespace cminus::type{
 			else if (target_type->is(query_type::floating_point)){
 				switch (target_type->get_size()){
 				case 4u:
-					return std::make_shared<memory::scalar_reference<float>>(target_type->convert(conversion_type::clone, target_type), static_cast<float>(value));
+					return std::make_shared<memory::scalar_reference<float>>(target_type, static_cast<float>(value));
 				case 8u:
-					return std::make_shared<memory::scalar_reference<long double>>(target_type->convert(conversion_type::clone, target_type), static_cast<long double>(value));
+					return std::make_shared<memory::scalar_reference<long double>>(target_type, static_cast<long double>(value));
 				default:
 					break;
 				}
@@ -115,12 +115,14 @@ namespace cminus::type{
 		enum class state_type{
 			nil,
 			integer,
+			long_integer,
 			unsigned_integer,
+			unsigned_long_integer,
 			real,
-			nan,
+			long_real,
 		};
 
-		explicit number_primitive(state_type state = state_type::nil, std::size_t size = 0u);
+		explicit number_primitive(state_type state);
 
 		virtual ~number_primitive();
 
@@ -138,44 +140,41 @@ namespace cminus::type{
 
 		virtual bool is(query_type type, const object *arg = nullptr) const override;
 
+		virtual bool is_nan(const memory::reference &data) const;
+
+		static const __int32 integer_nan_value = std::numeric_limits<__int32>::min();
+		static const __int64 long_integer_nan_value = std::numeric_limits<__int64>::min();
+
+		static const unsigned __int32 unsigned_integer_nan_value = std::numeric_limits<unsigned __int32>::max();
+		static const unsigned __int64 unsigned_long_integer_nan_value = std::numeric_limits<unsigned __int64>::max();
+
+		static const float real_nan_value;
+		static const long double long_real_nan_value;
+
 	protected:
 		template <typename target_type>
 		target_type read_value_(std::shared_ptr<memory::reference> data) const{
-			if (state_ == state_type::integer){
-				switch (size_){
-				case 4u:
-					return static_cast<target_type>(data->read_scalar<__int32>());
-				case 8u:
-					return static_cast<target_type>(data->read_scalar<__int64>());
-				default:
-					break;
-				}
-			}
-			else if (state_ == state_type::unsigned_integer){
-				switch (size_){
-				case 4u:
-					return static_cast<target_type>(data->read_scalar<unsigned __int32>());
-				case 8u:
-					return static_cast<target_type>(data->read_scalar<unsigned __int64>());
-				default:
-					break;
-				}
-			}
-			else if (state_ == state_type::real){
-				switch (size_){
-				case 4u:
-					return static_cast<target_type>(data->read_scalar<float>());
-				case 8u:
-					return static_cast<target_type>(data->read_scalar<long double>());
-				default:
-					break;
-				}
+			switch (state_){
+			case state_type::integer:
+				return static_cast<target_type>(data->read_scalar<__int32>());
+			case state_type::long_integer:
+				return static_cast<target_type>(data->read_scalar<__int64>());
+			case state_type::unsigned_integer:
+				return static_cast<target_type>(data->read_scalar<unsigned __int32>());
+			case state_type::unsigned_long_integer:
+				return static_cast<target_type>(data->read_scalar<unsigned __int64>());
+			case state_type::real:
+				return static_cast<target_type>(data->read_scalar<float>());
+			case state_type::long_real:
+				return static_cast<target_type>(data->read_scalar<long double>());
+			default:
+				break;
 			}
 
 			return target_type();
 		}
 
-		mutable state_type state_;
+		state_type state_;
 		std::size_t size_;
 	};
 

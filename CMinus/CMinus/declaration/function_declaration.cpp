@@ -224,8 +224,8 @@ void cminus::declaration::function::copy_args_(const std::list<std::shared_ptr<m
 		return;//No variadic declaration
 
 	auto variadic_type = variadic_declaration->set_type(std::make_shared<type::in_memory_variadic>(
-		*dynamic_cast<type::variadic *>(variadic_declaration->get_type()->get_non_proxy()),
-		variadic_args
+		dynamic_cast<type::variadic *>(variadic_declaration->get_type()->get_non_proxy())->get_base_type(),
+		variadic_args.size()
 	));
 
 	try{

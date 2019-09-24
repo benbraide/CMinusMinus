@@ -75,21 +75,21 @@ std::shared_ptr<cminus::memory::reference> cminus::type::pointer_primitive::cast
 		if (type == cast_type::rval_static && pointer_target_type->base_type_ == nullptr)
 			return data;
 
-		return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->convert(conversion_type::clone, target_type), 0u);
+		return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->convert(conversion_type::remove_ref_const, target_type), 0u);
 	}
 
 	if (pointer_target_type->base_type_ == nullptr)//Target is null
 		return nullptr;
 
 	if (type == cast_type::reinterpret)
-		return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->convert(conversion_type::clone, target_type), data->read_scalar<std::size_t>());
+		return std::make_shared<memory::scalar_reference<std::size_t>>(target_type, data->read_scalar<std::size_t>());
 
 	if (type != cast_type::static_ && type != cast_type::rval_static)
 		return nullptr;
 
 	if (base_type_->is(query_type::offspring_of, pointer_target_type->base_type_.get())){//Return adjusted pointer
 		return std::make_shared<memory::scalar_reference<std::size_t>>(
-			target_type->convert(conversion_type::clone, target_type),
+			target_type->convert(conversion_type::remove_ref_const, target_type),
 			(data->read_scalar<std::size_t>() + base_type_->compute_base_offset(*pointer_target_type->base_type_))
 		);
 	}
@@ -98,7 +98,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::pointer_primitive::cast
 		return nullptr;
 
 	if (type == cast_type::static_)//Create copy
-		return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->convert(conversion_type::clone, target_type), data->read_scalar<std::size_t>());
+		return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->convert(conversion_type::remove_ref_const, target_type), data->read_scalar<std::size_t>());
 
 	return data;
 }
@@ -110,12 +110,7 @@ std::shared_ptr<cminus::type::object> cminus::type::pointer_primitive::convert(c
 	if (base_type_ == nullptr)
 		return primitive::convert(type, self_or_other);
 
-	if (type == conversion_type::update){
-		self_or_other = base_type_->convert(type, self_or_other);
-		return nullptr;
-	}
-
-	if (type == conversion_type::clone || type == conversion_type::infer){
+	if (type == conversion_type::infer){
 		if (auto computed_base_type = base_type_->convert(type, base_type_); computed_base_type != nullptr && computed_base_type != base_type_)
 			return std::make_shared<pointer_primitive>(computed_base_type);
 	}

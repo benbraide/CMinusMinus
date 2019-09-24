@@ -24,7 +24,7 @@ cminus::storage::object *cminus::type::object::get_parent() const{
 	return parent_;
 }
 
-void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const{
+void cminus::type::object::construct(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const{
 	if (initialization != nullptr){
 		std::list<std::shared_ptr<memory::reference>> args;
 
@@ -35,12 +35,12 @@ void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_p
 		construct_(target, args);
 	}
 	else//No initialization
-		construct(self, target, std::list<std::shared_ptr<memory::reference>>{});
+		construct(target, std::list<std::shared_ptr<memory::reference>>{});
 }
 
-void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &initialization) const{
+void cminus::type::object::construct(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &initialization) const{
 	if (initialization.empty()){
-		if (auto default_value = get_default_value(self); default_value == nullptr)
+		if (auto default_value = get_default_value(nullptr); default_value == nullptr)
 			construct_(target, std::list<std::shared_ptr<memory::reference>>{});
 		else
 			construct_(target, std::list<std::shared_ptr<memory::reference>>{ default_value });
@@ -49,21 +49,23 @@ void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_p
 		construct_(target, initialization);
 }
 
-void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const{
+void cminus::type::object::construct(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const{
 	if (initialization == nullptr)
-		construct(self, target, std::list<std::shared_ptr<memory::reference>>{});
+		construct(target, std::list<std::shared_ptr<memory::reference>>{});
 	else
 		construct_(target, std::list<std::shared_ptr<memory::reference>>{ initialization });
 }
 
-void cminus::type::object::construct(std::shared_ptr<object> self, std::shared_ptr<memory::reference> target) const{
-	construct(self, target, std::list<std::shared_ptr<memory::reference>>{});
+void cminus::type::object::construct(std::shared_ptr<memory::reference> target) const{
+	construct(target, std::list<std::shared_ptr<memory::reference>>{});
 }
 
 void cminus::type::object::destruct(std::shared_ptr<memory::reference> target) const{}
 
 std::shared_ptr<cminus::memory::reference> cminus::type::object::get_default_value(std::shared_ptr<object> self) const{
-	return runtime::object::global_storage->get_zero_value(convert(conversion_type::clone, self));
+	if (self.get() == this)
+		return runtime::object::global_storage->get_zero_value(self);
+	return runtime::object::global_storage->get_zero_value(*this);
 }
 
 void cminus::type::object::extend_argument_list(std::shared_ptr<memory::reference> data, std::list<std::shared_ptr<memory::reference>> &list) const{
@@ -116,7 +118,13 @@ cminus::type::object *cminus::type::object::get_non_proxy() const{
 }
 
 std::shared_ptr<cminus::type::object> cminus::type::object::convert(conversion_type type, std::shared_ptr<object> self_or_other) const{
-	return ((self_or_other.get() == this) ? self_or_other : std::make_shared<proxy>(*const_cast<object *>(this)));
+	if (self_or_other.get() == this)
+		return self_or_other;
+
+	if (auto cached = runtime::object::global_storage->get_cached_type(*this); cached != nullptr)
+		return cached;
+
+	return std::make_shared<proxy>(*const_cast<object *>(this));
 }
 
 bool cminus::type::object::is(query_type type, const object *arg) const{
