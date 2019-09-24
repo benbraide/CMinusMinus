@@ -5,6 +5,10 @@ cminus::type::proxy::proxy(object &target)
 
 cminus::type::proxy::~proxy() = default;
 
+bool cminus::type::proxy::is_constructible(std::shared_ptr<memory::reference> target) const{
+	return target_->is_constructible(target);
+}
+
 void cminus::type::proxy::construct(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const{
 	target_->construct(target, initialization);
 }

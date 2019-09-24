@@ -31,10 +31,13 @@ std::shared_ptr<cminus::evaluator::initializer> cminus::storage::global::get_def
 	return default_initializer_;
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::storage::global::copy(std::shared_ptr<memory::reference> value) const{
-	auto reference = std::make_shared<memory::rval_reference>(value->get_type());
+std::shared_ptr<cminus::memory::reference> cminus::storage::global::copy(std::shared_ptr<memory::reference> value, std::shared_ptr<type::object> target_type) const{
+	if (target_type == nullptr)
+		target_type = value->get_type();
+
+	auto reference = std::make_shared<memory::rval_reference>(target_type);
 	if (reference != nullptr)
-		value->get_type()->construct(reference, value);
+		target_type->construct(reference, value);
 
 	return reference;
 }

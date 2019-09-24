@@ -28,6 +28,8 @@ namespace cminus::type{
 
 		virtual storage_base *get_parent() const override;
 
+		virtual bool is_constructible(std::shared_ptr<memory::reference> target) const override;
+
 		virtual void destruct(std::shared_ptr<memory::reference> target) const override;
 
 		virtual std::shared_ptr<memory::reference> get_default_value(std::shared_ptr<type_base> self) const override;
@@ -42,13 +44,11 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const override;
 
-		virtual std::shared_ptr<type_base> convert(conversion_type type, std::shared_ptr<type_base> self_or_other = nullptr) const override;
-
 		virtual bool is(query_type type, const type_base *arg = nullptr) const override;
 
 		virtual bool is_accessible(unsigned int access) const override;
 
-		virtual bool add_base(unsigned int access, std::shared_ptr<class_> value);
+		virtual void add_base(unsigned int access, std::shared_ptr<class_> value);
 
 		using storage_base::find;
 
@@ -79,7 +79,15 @@ namespace cminus::type{
 
 		virtual class_ *find_base_type_(const std::string &name, bool search_hierarchy) const;
 
+		virtual std::size_t compute_base_offset_(const class_ &base_type, std::size_t offset) const;
+
 		virtual bool is_base_type_(const class_ &target, bool search_hierarchy) const;
+
+		virtual unsigned int get_base_type_access_(const class_ &target, bool skip_immediate) const;
+
+		virtual declaration::function_group_base *get_constructor_(std::shared_ptr<memory::reference> target) const;
+
+		virtual declaration::function_group_base *get_destructor_(std::shared_ptr<memory::reference> target) const;
 
 		std::list<member_variable_info> member_variables_;
 		std::unordered_map<std::string, member_variable_info *> member_variables_map_;
@@ -91,5 +99,6 @@ namespace cminus::type{
 		std::size_t member_size_ = 0u;
 
 		std::shared_ptr<memory::reference> class_context_;
+		std::shared_ptr<memory::reference> dummy_context_;
 	};
 }

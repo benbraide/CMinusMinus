@@ -11,6 +11,8 @@ namespace cminus::runtime::exception{
 	enum class code{
 		nil,
 		return_interrupt,
+		bad_constructor,
+		bad_destructor,
 	};
 
 	class base : public std::exception{
@@ -53,5 +55,23 @@ namespace cminus::runtime::exception{
 		void_return_interrupt();
 
 		virtual ~void_return_interrupt();
+	};
+
+	class bad_constructor : public base{
+	public:
+		bad_constructor();
+
+		virtual ~bad_constructor();
+
+		virtual code get_code() const override;
+	};
+
+	class bad_destructor : public base{
+	public:
+		bad_destructor();
+
+		virtual ~bad_destructor();
+
+		virtual code get_code() const override;
 	};
 }

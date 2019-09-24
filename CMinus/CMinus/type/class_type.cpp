@@ -1,5 +1,8 @@
+#include "../storage/global_storage.h"
 #include "../storage/specialized_storage.h"
+
 #include "../declaration/variable_declaration.h"
+#include "../declaration/special_function_declaration.h"
 
 #include "proxy_type.h"
 #include "modified_type.h"
@@ -8,6 +11,12 @@
 cminus::type::class_::class_(const std::string &name, storage_base *parent)
 	: type_base(name, parent){
 	class_context_ = std::make_shared<memory::rval_reference>(0u, std::make_shared<type::proxy>(*this));
+	dummy_context_ = std::make_shared<memory::reference>(
+		0u,
+		std::make_shared<type::proxy>(*this),
+		attribute::collection::list_type{},
+		nullptr
+	);
 }
 
 cminus::type::class_::~class_(){
@@ -22,8 +31,16 @@ cminus::type::class_::storage_base *cminus::type::class_::get_parent() const{
 	return type_base::get_parent();
 }
 
-void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) const{
+bool cminus::type::class_::is_constructible(std::shared_ptr<memory::reference> target) const{
+	auto constructor = get_constructor_(dummy_context_);
+	return (constructor != nullptr && constructor->find(std::list<std::shared_ptr<memory::reference>>{ dummy_context_, target }) != nullptr);
+}
 
+void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) const{
+	if (auto destructor = get_destructor_(target); destructor != nullptr)
+		target = destructor->call(std::list<std::shared_ptr<memory::reference>>{ target });
+	else
+		throw runtime::exception::bad_destructor();
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::get_default_value(std::shared_ptr<type_base> self) const{
@@ -39,22 +56,53 @@ bool cminus::type::class_::is_exact(const type_base &target) const{
 }
 
 int cminus::type::class_::get_score(const type_base &target) const{
-	return 0;
+	if (target.is(query_type::explicit_auto))
+		return get_score_value(score_result_type::auto_assignable);
+
+	auto class_target = dynamic_cast<class_ *>(target.get_non_proxy());
+	if (class_target == nullptr)
+		return get_score_value(score_result_type::nil);
+
+	if (class_target == this)
+		return get_score_value(score_result_type::exact);
+
+	return get_score_value((compute_base_offset_(*class_target, 0u) == static_cast<std::size_t>(-1)) ? score_result_type::nil : score_result_type::ancestor);
 }
 
 std::size_t cminus::type::class_::compute_base_offset(const type_base &base_type) const{
-	return 0u;
+	if (auto class_base_type = dynamic_cast<const class_ *>(&base_type); class_base_type != nullptr)
+		return compute_base_offset_(*class_base_type, 0u);
+	return static_cast<std::size_t>(-1);
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const{
-	return nullptr;
-}
+	if (type != cast_type::static_ && type != cast_type::rval_static)
+		return nullptr;
 
-std::shared_ptr<cminus::type::class_::type_base> cminus::type::class_::convert(conversion_type type, std::shared_ptr<type_base> self_or_other) const{
-	return nullptr;
+	auto is_ref = target_type->is(query_type::ref);
+	if (is_ref && !target_type->is(query_type::const_) && !data->is_lvalue())
+		return nullptr;
+
+	auto class_target_type = dynamic_cast<class_ *>(target_type->convert(conversion_type::remove_ref_const, target_type)->get_non_proxy());
+	if (class_target_type == nullptr)
+		return nullptr;
+
+	std::size_t base_offset = 0u;
+	if (class_target_type != this && (base_offset = compute_base_offset_(*class_target_type, 0u)) == static_cast<std::size_t>(-1))
+		return nullptr;
+
+	if (is_ref || type == cast_type::rval_static)//No copying
+		return ((base_offset == 0u) ? data : data->apply_offset(base_offset, target_type->convert(conversion_type::remove_ref, target_type)));
+
+	return runtime::object::global_storage->copy(data, target_type->convert(conversion_type::remove_ref, target_type));
 }
 
 bool cminus::type::class_::is(query_type type, const type_base *arg) const{
+	if (type == query_type::offspring_of || type == query_type::child_of){
+		if (auto class_arg = dynamic_cast<const class_ *>(arg); class_arg != nullptr)
+			return is_base_type_(*class_arg, (type == query_type::offspring_of));
+	}
+
 	return (type == query_type::class_);
 }
 
@@ -63,14 +111,36 @@ bool cminus::type::class_::is_accessible(unsigned int access) const{
 	if (class_storage == this)//Private access
 		return true;
 
-	if (class_storage == nullptr || !class_storage->is_base_type_(*this, true))//Public access
+	if (class_storage == nullptr)//Public access
+		return ((access & (declaration::flags::private_ | declaration::flags::protected_)) == 0u);
+
+	auto computed_access = class_storage->get_base_type_access_(*this, true);
+	if ((computed_access & declaration::flags::private_) != 0u)
+		access = declaration::flags::private_;
+	else if ((computed_access & declaration::flags::protected_) != 0u && access != declaration::flags::private_)
+		access = declaration::flags::protected_;
+
+	if (computed_access == declaration::flags::nil)//Public access
 		return ((access & (declaration::flags::private_ | declaration::flags::protected_)) == 0u);
 
 	return ((access & declaration::flags::private_) == 0u);//Protected access
 }
 
-bool cminus::type::class_::add_base(unsigned int access, std::shared_ptr<class_> value){
-	return false;
+void cminus::type::class_::add_base(unsigned int access, std::shared_ptr<class_> value){
+	if (!is_base_type_(*value, false)){
+		if ((access & declaration::flags::private_) != 0u)
+			access = declaration::flags::private_;
+		else if ((access & declaration::flags::protected_) != 0u)
+			access = declaration::flags::protected_;
+		else
+			access = declaration::flags::public_;
+
+		base_types_.push_back(base_type_info{ access, size_, value });
+		base_types_map_[value->get_name()] = &*base_types_.rbegin();
+		size_ += value->size_;
+	}
+	else
+		throw storage::exception::duplicate_base();
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const std::string &name, std::shared_ptr<memory::reference> context) const{
@@ -118,7 +188,13 @@ const std::list<cminus::type::class_::base_type_info> &cminus::type::class_::get
 }
 
 void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const{
+	auto constructor = get_constructor_(target);
+	if (constructor == nullptr)
+		throw runtime::exception::bad_constructor();
 
+	auto computed_args = args;
+	computed_args.insert(computed_args.begin(), target);
+	target = constructor->call(computed_args);
 }
 
 void cminus::type::class_::add_(std::shared_ptr<declaration::variable> entry, std::size_t address){
@@ -159,33 +235,27 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std
 		if (!is_accessible(it->second->value->get_flags()))
 			throw storage::exception::inaccessible_entry();
 
-		std::shared_ptr<type::object> adjusted_type;
-		if (0u < address_offset){
-			adjusted_type = std::make_shared<type::proxy>(*const_cast<class_ *>(this));
-			if (context->get_type()->is(type_base::query_type::const_))
-				adjusted_type = std::make_shared<type::constant>(adjusted_type);
-		}
-
 		return std::make_shared<memory::reference>(
 			(address_offset + context->get_address() + it->second->address_offset),
 			it->second->value->get_type(),
 			it->second->value->get_attributes().get_list(),
-			((address_offset == 0u) ? context : context->apply_offset(address_offset, adjusted_type))
+			context
 		);
 	}
 
-	if (auto function_it = functions_.find(name); function_it != functions_.end()){
-		if (address_offset == 0u)
-			return std::make_shared<memory::function_reference>(*function_it->second, ((context == nullptr) ? class_context_ : context));
+	if (auto entry = storage_base::find_(name); entry != nullptr){
+		if (auto function_entry = dynamic_cast<memory::function_reference *>(entry.get()); function_entry != nullptr){//Bind context
+			return std::make_shared<memory::function_reference>(
+				*function_entry->get_entry(),
+				function_entry->get_type(),
+				((context == nullptr) ? class_context_ : context)
+			);
+		}
 
-		std::shared_ptr<type::object> adjusted_type = std::make_shared<type::proxy>(*const_cast<class_ *>(this));
-		if (context->get_type()->is(type_base::query_type::const_))
-			adjusted_type = std::make_shared<type::constant>(adjusted_type);
+		if (auto declaration_entry = declarations_.find(name); declaration_entry != declarations_.end() && !is_accessible(declaration_entry->second->get_flags()))
+			throw storage::exception::inaccessible_entry();
 
-		return std::make_shared<memory::function_reference>(
-			*function_it->second,
-			((context == nullptr) ? class_context_ : context->apply_offset(address_offset, adjusted_type))
-		);
+		return entry;
 	}
 
 	for (auto &base_type : base_types_){
@@ -193,13 +263,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std
 			return entry;
 	}
 
-	auto entry = storage_base::find_(name);
-	if (entry != nullptr){
-		if (auto declaration_entry = declarations_.find(name); declaration_entry != declarations_.end() && !is_accessible(declaration_entry->second->get_flags()))
-			throw storage::exception::inaccessible_entry();
-	}
-
-	return entry;
+	return nullptr;
 }
 
 cminus::type::class_::storage_base *cminus::type::class_::find_storage_(const std::string &name) const{
@@ -226,6 +290,49 @@ cminus::type::class_ *cminus::type::class_::find_base_type_(const std::string &n
 	return nullptr;
 }
 
+std::size_t cminus::type::class_::compute_base_offset_(const class_ &base_type, std::size_t offset) const{
+	for (auto &entry : base_types_){
+		if (entry.value.get() == &base_type)
+			return (offset + entry.address_offset);
+
+		if (auto value = entry.value->compute_base_offset_(base_type, (offset + entry.address_offset)); value != static_cast<std::size_t>(-1))
+			return value;
+	}
+
+	return static_cast<std::size_t>(-1);
+}
+
 bool cminus::type::class_::is_base_type_(const class_ &target, bool search_hierarchy) const{
 	return (find_base_type_(target.get_name(), search_hierarchy) != nullptr);
+}
+
+unsigned int cminus::type::class_::get_base_type_access_(const class_ &target, bool skip_immediate) const{
+	auto highest_access = declaration::flags::nil;
+	for (auto &base_type : base_types_){
+		if (!skip_immediate){//Apply restrictions
+			if ((base_type.access & declaration::flags::private_) != 0u)
+				highest_access = declaration::flags::private_;
+			else if ((base_type.access & declaration::flags::protected_) != 0u && highest_access != declaration::flags::private_)
+				highest_access = declaration::flags::protected_;
+		}
+
+		if (auto access = base_type.value->get_base_type_access_(target, false); (access & declaration::flags::private_) != 0u)
+			highest_access = declaration::flags::private_;
+		else if ((access & declaration::flags::protected_) != 0u && highest_access != declaration::flags::private_)
+			highest_access = declaration::flags::protected_;
+	}
+
+	return highest_access;
+}
+
+cminus::declaration::function_group_base *cminus::type::class_::get_constructor_(std::shared_ptr<memory::reference> target) const{
+	auto entry = find(get_name(), target);
+	auto function_entry = dynamic_cast<memory::function_reference *>(entry.get());
+	return ((function_entry == nullptr) ? nullptr : function_entry->get_entry());
+}
+
+cminus::declaration::function_group_base *cminus::type::class_::get_destructor_(std::shared_ptr<memory::reference> target) const{
+	auto entry = find(("~" + get_name()), target);
+	auto function_entry = dynamic_cast<memory::function_reference *>(entry.get());
+	return ((function_entry == nullptr) ? nullptr : function_entry->get_entry());
 }

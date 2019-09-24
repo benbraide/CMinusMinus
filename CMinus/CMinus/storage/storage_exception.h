@@ -6,6 +6,7 @@ namespace cminus::storage::exception{
 	enum class code{
 		nil,
 		duplicate_entry,
+		duplicate_base,
 		entry_not_found,
 		unnamed_entry,
 		inaccessible_entry,
@@ -38,6 +39,15 @@ namespace cminus::storage::exception{
 		duplicate_entry();
 
 		virtual ~duplicate_entry();
+
+		virtual code get_code() const override;
+	};
+
+	class duplicate_base : public base{
+	public:
+		duplicate_base();
+
+		virtual ~duplicate_base();
 
 		virtual code get_code() const override;
 	};

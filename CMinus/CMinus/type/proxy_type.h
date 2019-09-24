@@ -12,6 +12,8 @@ namespace cminus::type{
 
 		virtual ~proxy();
 
+		virtual bool is_constructible(std::shared_ptr<memory::reference> target) const override;
+
 		virtual void construct(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const override;
 
 		virtual void construct(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &initialization) const override;

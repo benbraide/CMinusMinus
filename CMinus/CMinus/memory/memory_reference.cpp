@@ -138,10 +138,13 @@ cminus::memory::undefined_reference::~undefined_reference() = default;
 cminus::memory::function_reference::function_reference(declaration::function_group_base &entry, std::shared_ptr<reference> context)
 	: reference(entry.get_address(), entry.get_type(), attribute::collection::list_type{}, context){}
 
+cminus::memory::function_reference::function_reference(declaration::function_group_base &entry, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
+	: reference(entry.get_address(), ((type == nullptr) ? entry.get_type() : type), attribute::collection::list_type{}, context){}
+
 cminus::memory::function_reference::function_reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
 	: reference(address, type, attribute::collection::list_type{}, context){}
 
-const cminus::declaration::function_group_base *cminus::memory::function_reference::get_entry() const{
+cminus::declaration::function_group_base *cminus::memory::function_reference::get_entry() const{
 	return read_scalar<declaration::function_group_base *>();
 }
 

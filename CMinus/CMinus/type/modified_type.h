@@ -25,6 +25,8 @@ namespace cminus::type{
 
 		virtual ~constant();
 
+		virtual bool is_constructible(std::shared_ptr<memory::reference> target) const override;
+
 		virtual bool is_exact(const object &target) const override;
 
 		virtual int get_score(const object &target) const override;

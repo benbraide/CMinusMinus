@@ -28,3 +28,21 @@ cminus::runtime::exception::void_return_interrupt::void_return_interrupt()
 	: return_interrupt(nullptr){}
 
 cminus::runtime::exception::void_return_interrupt::~void_return_interrupt() = default;
+
+cminus::runtime::exception::bad_constructor::bad_constructor()
+	: base("Constructor is ill-formed"){}
+
+cminus::runtime::exception::bad_constructor::~bad_constructor() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::bad_constructor::get_code() const{
+	return code::bad_constructor;
+}
+
+cminus::runtime::exception::bad_destructor::bad_destructor()
+	: base("Destructor is ill-formed"){}
+
+cminus::runtime::exception::bad_destructor::~bad_destructor() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::bad_destructor::get_code() const{
+	return code::bad_destructor;
+}

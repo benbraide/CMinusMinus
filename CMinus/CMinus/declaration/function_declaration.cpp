@@ -64,9 +64,9 @@ int cminus::declaration::function::get_score(const std::list<std::shared_ptr<mem
 	auto param_it = parameter_list_.begin();
 
 	int lowest_rank_score = type::object::get_score_value(type::object::score_result_type::exact), current_rank_score;
-	bool param_is_const, param_is_ref, arg_is_lval, arg_is_const;
+	auto param_is_const = false, param_is_ref = false, arg_is_lval = false, arg_is_const = false;
 
-	std::shared_ptr<type::object> variadic_base_type, param_type;
+	std::shared_ptr<type::object> variadic_base_type, param_type, non_ref_param_type, non_ref_const_param_type;
 	for (; arg_it != args.end(); ++arg_it){
 		if (variadic_base_type == nullptr){
 			if (param_it == parameter_list_.end())
@@ -77,11 +77,9 @@ int cminus::declaration::function::get_score(const std::list<std::shared_ptr<mem
 				param_type = variadic_base_type = variadic_type->get_base_type();
 
 			++param_it;
-			param_is_const = param_type->is(type::object::query_type::const_);
-			param_is_ref = param_type->is(type::object::query_type::ref);
-		}
-		else{
-			param_type = variadic_base_type;
+			non_ref_param_type = param_type->convert(type::object::conversion_type::remove_ref, param_type);
+			non_ref_const_param_type = param_type->convert(type::object::conversion_type::remove_ref_const, param_type);
+
 			param_is_const = param_type->is(type::object::query_type::const_);
 			param_is_ref = param_type->is(type::object::query_type::ref);
 		}
@@ -93,13 +91,16 @@ int cminus::declaration::function::get_score(const std::list<std::shared_ptr<mem
 			if (!param_is_const && (!arg_is_lval || arg_is_const))
 				current_rank_score = type::object::get_score_value(type::object::score_result_type::nil);
 			else
-				current_rank_score = (*arg_it)->get_type()->get_score(*param_type);
+				current_rank_score = (*arg_it)->get_type()->get_score(*non_ref_const_param_type);
 		}
 		else
-			current_rank_score = (*arg_it)->get_type()->get_score(*param_type);
+			current_rank_score = (*arg_it)->get_type()->get_score(*non_ref_const_param_type);
 
-		if (current_rank_score == type::object::get_score_value(type::object::score_result_type::nil))
-			return current_rank_score;
+		if (current_rank_score == type::object::get_score_value(type::object::score_result_type::nil)){
+			if ((param_is_ref && !param_is_const) || !non_ref_param_type->is_constructible(*arg_it))
+				return current_rank_score;
+			current_rank_score = type::object::get_score_value(type::object::score_result_type::class_compatible);
+		}
 
 		if (current_rank_score < lowest_rank_score)
 			lowest_rank_score = (current_rank_score - ((param_is_const == arg_is_const && param_is_ref == arg_is_lval) ? 0 : 1));

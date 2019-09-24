@@ -27,6 +27,10 @@ cminus::type::constant::constant(std::shared_ptr<object> base_type)
 
 cminus::type::constant::~constant() = default;
 
+bool cminus::type::constant::is_constructible(std::shared_ptr<memory::reference> target) const{
+	return base_type_->is_constructible(target);
+}
+
 bool cminus::type::constant::is_exact(const object &target) const{
 	auto constant_target = dynamic_cast<constant *>(target.get_non_proxy());
 	return (constant_target != nullptr && base_type_->is_exact(*constant_target->base_type_));

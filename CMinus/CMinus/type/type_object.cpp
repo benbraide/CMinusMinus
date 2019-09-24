@@ -24,6 +24,10 @@ cminus::storage::object *cminus::type::object::get_parent() const{
 	return parent_;
 }
 
+bool cminus::type::object::is_constructible(std::shared_ptr<memory::reference> target) const{
+	return false;
+}
+
 void cminus::type::object::construct(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const{
 	if (initialization != nullptr){
 		std::list<std::shared_ptr<memory::reference>> args;

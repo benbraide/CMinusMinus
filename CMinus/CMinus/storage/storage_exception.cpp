@@ -18,6 +18,15 @@ cminus::storage::exception::code cminus::storage::exception::duplicate_entry::ge
 	return code::duplicate_entry;
 }
 
+cminus::storage::exception::duplicate_base::duplicate_base()
+	: base("Class is already in base list"){}
+
+cminus::storage::exception::duplicate_base::~duplicate_base() = default;
+
+cminus::storage::exception::code cminus::storage::exception::duplicate_base::get_code() const{
+	return code::duplicate_base;
+}
+
 cminus::storage::exception::entry_not_found::entry_not_found()
 	: base("An entry with the specified name was not found"){}
 
