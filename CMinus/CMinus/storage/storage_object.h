@@ -41,6 +41,8 @@ namespace cminus::storage{
 
 		virtual void add(const std::string &name);
 
+		virtual void add_entry(const std::string &name, std::shared_ptr<memory::reference> value, bool check_existing = true);
+
 		virtual void del(const std::string &name);
 
 		virtual bool exists(const std::string &name, entry_type type = entry_type::nil) const;

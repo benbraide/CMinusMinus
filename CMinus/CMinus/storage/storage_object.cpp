@@ -35,6 +35,16 @@ void cminus::storage::object::add(const std::string &name){
 		named_entries_[name] = entry;
 }
 
+void cminus::storage::object::add_entry(const std::string &name, std::shared_ptr<memory::reference> value, bool check_existing){
+	std::lock_guard<std::mutex> guard(lock_);
+	if (check_existing && !name.empty() && exists_(name, entry_type::mem_ref))
+		throw exception::duplicate_entry();
+
+	entries_.push_back(value);
+	if (!name.empty())
+		named_entries_[name] = value;
+}
+
 void cminus::storage::object::del(const std::string &name){
 	std::lock_guard<std::mutex> guard(lock_);
 	del_(name);

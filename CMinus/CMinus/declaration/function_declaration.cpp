@@ -21,6 +21,9 @@ std::shared_ptr<cminus::type::object> cminus::declaration::function::get_type() 
 }
 
 void cminus::declaration::function::add_parameter(std::shared_ptr<variable> value){
+	if (value->get_flags() != flags::nil)
+		throw exception::bad_parameter_list();
+
 	if (auto & name = value->get_name(); !name.empty()){
 		for (auto parameter : parameter_list_){
 			if (parameter->get_name() == name)
@@ -44,7 +47,6 @@ void cminus::declaration::function::add_parameter(std::shared_ptr<variable> valu
 		++min_arg_count_;
 
 	type_->add_parameter_type(value->get_type());
-	value->set_flags(flags::nil);
 }
 
 bool cminus::declaration::function::is_defined() const{
@@ -172,22 +174,23 @@ void cminus::declaration::function::copy_args_(const std::list<std::shared_ptr<m
 	std::shared_ptr<variable> variadic_declaration;
 	std::list<std::shared_ptr<memory::reference>> variadic_args;
 
-	std::shared_ptr<node::object> param_initialization;
+	const std::string *param_name = nullptr;
+	std::shared_ptr<memory::reference> param_ref;
+	
 	for (; arg_it != args.end(); ++arg_it){
 		if (variadic_declaration == nullptr){
 			if (param_it == parameter_list_.end())
 				break;
 
 			if (dynamic_cast<type::variadic *>((*param_it)->get_type()->get_non_proxy()) == nullptr){
-				param_initialization = (*param_it)->set_initialization(std::make_shared<node::memory_reference>(*arg_it));
-				try{
-					runtime::object::current_storage->add(*param_it, 0u);
-					param_initialization = (*param_it)->set_initialization(param_initialization);
-				}
-				catch (...){
-					param_initialization = (*param_it)->set_initialization(param_initialization);
-					throw;//Forward exception
-				}
+				param_name = &(*param_it)->get_name();
+				if (runtime::object::current_storage->exists(*param_name, storage::object::entry_type::mem_ref))
+					throw exception::bad_parameter_list();
+
+				if ((param_ref = (*param_it)->evaluate(0u, *arg_it)) != nullptr)
+					runtime::object::current_storage->add_entry(*param_name, param_ref, false);
+				else//Error
+					throw memory::exception::allocation_failure();
 			}
 			else{//Variadic declaration
 				variadic_declaration = *param_it;
@@ -206,8 +209,16 @@ void cminus::declaration::function::copy_args_(const std::list<std::shared_ptr<m
 	for (; param_it != parameter_list_.end(); ++param_it){//Evaluate parameters with default values
 		if (variadic_declaration == nullptr){
 			if (dynamic_cast<type::variadic *>((*param_it)->get_type()->get_non_proxy()) == nullptr){
-				if ((*param_it)->get_initialization() != nullptr)
-					runtime::object::current_storage->add(*param_it, 0u);
+				if ((*param_it)->get_initialization() != nullptr){
+					param_name = &(*param_it)->get_name();
+					if (runtime::object::current_storage->exists(*param_name, storage::object::entry_type::mem_ref))
+						throw exception::bad_parameter_list();
+
+					if ((param_ref = (*param_it)->evaluate(0u)) != nullptr)
+						runtime::object::current_storage->add_entry(*param_name, param_ref, false);
+					else//Error
+						throw memory::exception::allocation_failure();
+				}
 				else//Error
 					throw exception::bad_parameter_list();
 			}
@@ -223,19 +234,27 @@ void cminus::declaration::function::copy_args_(const std::list<std::shared_ptr<m
 	if (variadic_declaration == nullptr)
 		return;//No variadic declaration
 
-	auto variadic_type = variadic_declaration->set_type(std::make_shared<type::in_memory_variadic>(
+	auto variadic_type = std::make_shared<type::in_memory_variadic>(
 		dynamic_cast<type::variadic *>(variadic_declaration->get_type()->get_non_proxy())->get_base_type(),
 		variadic_args.size()
-	));
+	);
 
-	try{
-		runtime::object::current_storage->add(variadic_declaration, 0u);
-		variadic_type = variadic_declaration->set_type(variadic_type);
-	}
-	catch (...){
-		variadic_type = variadic_declaration->set_type(variadic_type);
-		throw;//Forward exception
-	}
+	param_name = &variadic_declaration->get_name();
+	auto computed_variadic_declaration = std::make_shared<variable>(
+		*param_name,
+		variadic_type,
+		variadic_declaration->get_attributes().get_list(),
+		flags::nil,
+		nullptr
+	);
+
+	if (runtime::object::current_storage->exists(*param_name, storage::object::entry_type::mem_ref))
+		throw exception::bad_parameter_list();
+
+	if ((param_ref = computed_variadic_declaration->evaluate(0u, variadic_args)) != nullptr)
+		runtime::object::current_storage->add_entry(*param_name, param_ref, false);
+	else//Error
+		throw memory::exception::allocation_failure();
 }
 
 void cminus::declaration::function::evaluate_body_() const{
