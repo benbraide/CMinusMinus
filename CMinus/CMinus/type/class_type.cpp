@@ -200,6 +200,10 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_static_mem
 	return nullptr;
 }
 
+bool cminus::type::class_::is_base_type(const class_ &target, bool search_hierarchy) const{
+	return is_base_type_(target, search_hierarchy);
+}
+
 const std::list<cminus::type::class_::member_variable_info> &cminus::type::class_::get_member_variables() const{
 	return member_variables_;
 }
@@ -240,7 +244,7 @@ void cminus::type::class_::add_(std::shared_ptr<declaration::variable> entry, st
 }
 
 bool cminus::type::class_::exists_(const std::string &name, entry_type type) const{
-	return (member_variables_map_.find(name) != member_variables_map_.end() || storage_base::exists_(name, type));
+	return (member_variables_map_.find(name) != member_variables_map_.end() || base_types_map_.find(name) != base_types_map_.end() || storage_base::exists_(name, type));
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std::string &name) const{

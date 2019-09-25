@@ -1,4 +1,5 @@
 #include "../type/proxy_type.h"
+#include "../type/class_type.h"
 #include "../type/modified_type.h"
 
 #include "variable_declaration.h"
@@ -14,13 +15,41 @@ void cminus::declaration::constructor::add_init(std::shared_ptr<node::object> ke
 }
 
 void cminus::declaration::constructor::evaluate_body_() const{
-	std::unordered_map<std::string, std::shared_ptr<node::object>> member_init_list;
+	auto class_parent = reinterpret_cast<type::class_ *>(parent_);
+	std::unordered_map<std::string, std::shared_ptr<node::object>> init_list;
+
+	std::string computed_name;
+	for (auto &init_item : init_list_){
+		if (auto name = init_item.key->evaluate_as_name(); !name.empty())
+			computed_name = name;
+		else if (auto class_item = dynamic_cast<type::class_ *>(init_item.key->evaluate_as_storage()); class_item != nullptr && class_parent->is_base_type(*class_item, false))
+			computed_name = class_item->get_name();
+		else
+			throw runtime::exception::bad_constructor_init_list();
+
+		if (init_list.find(computed_name) == init_list.end())
+			init_list[computed_name] = init_item.initialization;
+		else
+			throw runtime::exception::bad_constructor_init_list();
+	}
 
 	auto self = runtime::object::current_storage->find("self", false);
-	auto class_parent = reinterpret_cast<type::class_ *>(parent_);
+	for (auto &base_type : class_parent->get_base_types()){
+		if (auto it = init_list.find(base_type.value->get_name()); it != init_list.end()){
+			base_type.value->construct(
+				self->apply_offset(base_type.address_offset, base_type.value),
+				it->second
+			);
+		}
+		else{//Construct default
+			base_type.value->construct(
+				self->apply_offset(base_type.address_offset, base_type.value)
+			);
+		}
+	}
 
 	for (auto &member_variable : reinterpret_cast<type::class_ *>(parent_)->get_member_variables()){
-		if (auto it = member_init_list.find(member_variable.value->get_name()); it != member_init_list.end()){
+		if (auto it = init_list.find(member_variable.value->get_name()); it != init_list.end()){
 			member_variable.value->get_type()->construct(
 				class_parent->find(member_variable.value->get_name(), self),
 				it->second

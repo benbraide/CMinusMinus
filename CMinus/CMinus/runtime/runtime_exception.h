@@ -13,6 +13,7 @@ namespace cminus::runtime::exception{
 		return_interrupt,
 		bad_constructor,
 		bad_destructor,
+		bad_constructor_init_list,
 	};
 
 	class base : public std::exception{
@@ -71,6 +72,15 @@ namespace cminus::runtime::exception{
 		bad_destructor();
 
 		virtual ~bad_destructor();
+
+		virtual code get_code() const override;
+	};
+
+	class bad_constructor_init_list : public base{
+	public:
+		bad_constructor_init_list();
+
+		virtual ~bad_constructor_init_list();
 
 		virtual code get_code() const override;
 	};

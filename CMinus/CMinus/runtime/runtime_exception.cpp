@@ -46,3 +46,12 @@ cminus::runtime::exception::bad_destructor::~bad_destructor() = default;
 cminus::runtime::exception::code cminus::runtime::exception::bad_destructor::get_code() const{
 	return code::bad_destructor;
 }
+
+cminus::runtime::exception::bad_constructor_init_list::bad_constructor_init_list()
+	: base("Constructor initialization list is ill-formed"){}
+
+cminus::runtime::exception::bad_constructor_init_list::~bad_constructor_init_list() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::bad_constructor_init_list::get_code() const{
+	return code::bad_constructor_init_list;
+}

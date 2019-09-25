@@ -14,5 +14,11 @@ namespace cminus::node{
 		virtual void traverse_list(const std::function<void(const object &)> &callback) const;
 
 		virtual std::shared_ptr<memory::reference> evaluate() const = 0;
+
+		virtual std::string evaluate_as_name() const;
+
+		virtual std::shared_ptr<type::object> evaluate_as_type() const;
+
+		virtual storage::object *evaluate_as_storage() const;
 	};
 }
