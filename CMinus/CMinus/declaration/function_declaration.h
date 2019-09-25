@@ -27,8 +27,6 @@ namespace cminus::declaration{
 		virtual int get_score(const std::list<std::shared_ptr<memory::reference>> &args) const override;
 
 	protected:
-		friend class function_group;
-
 		virtual std::shared_ptr<memory::reference> call_(const std::list<std::shared_ptr<memory::reference>> &args) const override;
 
 		virtual void init_(std::shared_ptr<type::object> return_type);

@@ -55,3 +55,30 @@ cminus::runtime::exception::bad_constructor_init_list::~bad_constructor_init_lis
 cminus::runtime::exception::code cminus::runtime::exception::bad_constructor_init_list::get_code() const{
 	return code::bad_constructor_init_list;
 }
+
+cminus::runtime::exception::bad_scope_left::bad_scope_left()
+	: base("Name left of scope resolution operator is not a storage"){}
+
+cminus::runtime::exception::bad_scope_left::~bad_scope_left() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::bad_scope_left::get_code() const{
+	return code::bad_scope_left;
+}
+
+cminus::runtime::exception::bad_member_access_left::bad_member_access_left()
+	: base("Object left of member access operator is not a class instance"){}
+
+cminus::runtime::exception::bad_member_access_left::~bad_member_access_left() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::bad_member_access_left::get_code() const{
+	return code::bad_member_access_left;
+}
+
+cminus::runtime::exception::bad_pointer_member_access_left::bad_pointer_member_access_left()
+	: base("Object left of pointer member access operator is not a pointer to a class instance"){}
+
+cminus::runtime::exception::bad_pointer_member_access_left::~bad_pointer_member_access_left() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::bad_pointer_member_access_left::get_code() const{
+	return code::bad_pointer_member_access_left;
+}

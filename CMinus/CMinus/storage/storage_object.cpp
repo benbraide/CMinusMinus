@@ -1,17 +1,18 @@
 #include "../declaration/variable_declaration.h"
 #include "../declaration/function_declaration_group.h"
+#include "../declaration/special_function_declaration.h"
 
 #include "storage_object.h"
 
-cminus::storage::object::~object(){
+cminus::storage::unnamed_object::~unnamed_object(){
 	destroy_entries_();
 }
 
-std::string cminus::storage::object::get_qname() const{
+std::string cminus::storage::unnamed_object::get_qname() const{
 	return ((get_parent() == nullptr) ? get_name() : (get_parent()->get_qname() + "::" + get_name()));
 }
 
-void cminus::storage::object::add(std::shared_ptr<declaration::object> entry, std::size_t address){
+void cminus::storage::unnamed_object::add(std::shared_ptr<declaration::object> entry, std::size_t address){
 	std::lock_guard<std::mutex> guard(lock_);
 	if (auto variable_entry = std::dynamic_pointer_cast<declaration::variable>(entry); variable_entry != nullptr)
 		return add_(variable_entry, address);
@@ -20,7 +21,7 @@ void cminus::storage::object::add(std::shared_ptr<declaration::object> entry, st
 		return add_(function_entry, address);
 }
 
-void cminus::storage::object::add(const std::string &name){
+void cminus::storage::unnamed_object::add(const std::string &name){
 	if (name.empty())
 		throw exception::unnamed_entry();
 
@@ -35,7 +36,7 @@ void cminus::storage::object::add(const std::string &name){
 		named_entries_[name] = entry;
 }
 
-void cminus::storage::object::add_entry(const std::string &name, std::shared_ptr<memory::reference> value, bool check_existing){
+void cminus::storage::unnamed_object::add_entry(const std::string &name, std::shared_ptr<memory::reference> value, bool check_existing){
 	std::lock_guard<std::mutex> guard(lock_);
 	if (check_existing && !name.empty() && exists_(name, entry_type::mem_ref))
 		throw exception::duplicate_entry();
@@ -45,25 +46,22 @@ void cminus::storage::object::add_entry(const std::string &name, std::shared_ptr
 		named_entries_[name] = value;
 }
 
-void cminus::storage::object::del(const std::string &name){
+void cminus::storage::unnamed_object::del(const std::string &name){
 	std::lock_guard<std::mutex> guard(lock_);
 	del_(name);
 }
 
-bool cminus::storage::object::exists(const std::string &name, entry_type type) const{
+bool cminus::storage::unnamed_object::exists(const std::string &name, entry_type type) const{
 	std::lock_guard<std::mutex> guard(lock_);
 	return (!name.empty() && exists_(name, type));
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::storage::object::find(const std::string &name, bool search_tree) const{
+std::shared_ptr<cminus::memory::reference> cminus::storage::unnamed_object::find(const std::string &name, bool search_tree) const{
 	{//Scoped lock
 		std::lock_guard<std::mutex> guard(lock_);
-		if (auto entry = find_(name); entry != nullptr)
+		if (auto entry = find_(name); entry != nullptr || !search_tree)
 			return entry;
 	}
-
-	if (!search_tree)
-		return nullptr;
 
 	if (auto parent = get_parent(); parent != nullptr)
 		return parent->find(name, true);
@@ -71,7 +69,7 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::object::find(const s
 	return nullptr;
 }
 
-std::shared_ptr<cminus::attribute::object> cminus::storage::object::find_attribute(const std::string &name, bool search_tree) const{
+std::shared_ptr<cminus::attribute::object> cminus::storage::unnamed_object::find_attribute(const std::string &name, bool search_tree) const{
 	{//Scoped lock
 		std::lock_guard<std::mutex> guard(lock_);
 		if (auto entry = find_attribute_(name); entry != nullptr)
@@ -87,7 +85,7 @@ std::shared_ptr<cminus::attribute::object> cminus::storage::object::find_attribu
 	return nullptr;
 }
 
-std::shared_ptr<cminus::type::object> cminus::storage::object::find_type(const std::string &name, bool search_tree) const{
+std::shared_ptr<cminus::type::object> cminus::storage::unnamed_object::find_type(const std::string &name, bool search_tree) const{
 	{//Scoped lock
 		std::lock_guard<std::mutex> guard(lock_);
 		if (auto entry = find_type_(name); entry != nullptr)
@@ -103,7 +101,7 @@ std::shared_ptr<cminus::type::object> cminus::storage::object::find_type(const s
 	return nullptr;
 }
 
-cminus::storage::object *cminus::storage::object::find_storage(const std::string &name, bool search_tree) const{
+cminus::storage::object *cminus::storage::unnamed_object::find_storage(const std::string &name, bool search_tree) const{
 	if (name.empty())
 		return nullptr;
 
@@ -122,11 +120,11 @@ cminus::storage::object *cminus::storage::object::find_storage(const std::string
 	return nullptr;
 }
 
-bool cminus::storage::object::is_accessible(unsigned int access) const{
+bool cminus::storage::unnamed_object::is_accessible(unsigned int access) const{
 	return true;
 }
 
-void cminus::storage::object::destroy_entries_(){
+void cminus::storage::unnamed_object::destroy_entries_(){
 	if (entries_.empty())
 		return;
 
@@ -137,7 +135,7 @@ void cminus::storage::object::destroy_entries_(){
 	entries_.clear();
 }
 
-void cminus::storage::object::add_(std::shared_ptr<declaration::variable> entry, std::size_t address){
+void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::variable> entry, std::size_t address){
 	auto &name = entry->get_name();
 	if (!name.empty() && exists_(name, entry_type::mem_ref))
 		throw exception::duplicate_entry();
@@ -162,7 +160,7 @@ void cminus::storage::object::add_(std::shared_ptr<declaration::variable> entry,
 	}
 }
 
-void cminus::storage::object::add_(std::shared_ptr<declaration::function_base> entry, std::size_t address){
+void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::function_base> entry, std::size_t address){
 	auto &name = entry->get_name();
 	if (exists_(name, entry_type::function))
 		throw exception::duplicate_entry();
@@ -177,7 +175,14 @@ void cminus::storage::object::add_(std::shared_ptr<declaration::function_base> e
 		if (block == nullptr || block->get_address() == 0u)
 			throw memory::exception::allocation_failure();
 
-		auto group = std::make_shared<declaration::function_group>(name, this, block->get_address());
+		std::shared_ptr<declaration::function_group_base> group;
+		if (dynamic_cast<declaration::constructor *>(entry.get()) != nullptr)//Constructor entry
+			group = std::make_shared<declaration::constructor_group>(name, this, block->get_address());
+		else if (dynamic_cast<declaration::destructor *>(entry.get()) != nullptr)//Destructor entry
+			group = std::make_shared<declaration::destructor_group>(name, this, block->get_address());
+		else//Normal function entry
+			group = std::make_shared<declaration::function_group>(name, this, block->get_address());
+
 		if (group == nullptr)
 			throw memory::exception::allocation_failure();
 
@@ -188,19 +193,19 @@ void cminus::storage::object::add_(std::shared_ptr<declaration::function_base> e
 		function_it->second->add(entry);
 }
 
-void cminus::storage::object::add_(std::shared_ptr<attribute::object> entry){
+void cminus::storage::unnamed_object::add_(std::shared_ptr<attribute::object> entry){
 	
 }
 
-void cminus::storage::object::add_(std::shared_ptr<type::object> entry){
+void cminus::storage::unnamed_object::add_(std::shared_ptr<type::object> entry){
 
 }
 
-void cminus::storage::object::add_(std::shared_ptr<object> entry){
+void cminus::storage::unnamed_object::add_(std::shared_ptr<object> entry){
 
 }
 
-void cminus::storage::object::del_(const std::string &name){
+void cminus::storage::unnamed_object::del_(const std::string &name){
 	if (name.empty() || named_entries_.empty())
 		throw exception::entry_not_found();
 
@@ -219,7 +224,7 @@ void cminus::storage::object::del_(const std::string &name){
 		throw exception::entry_not_found();
 }
 
-bool cminus::storage::object::exists_(const std::string &name, entry_type type) const{
+bool cminus::storage::unnamed_object::exists_(const std::string &name, entry_type type) const{
 	if (type == entry_type::mem_ref){
 		if (auto it = named_entries_.find(name); it == named_entries_.end())//Exists if defined
 			return (dynamic_cast<memory::undefined_reference *>(it->second.get()) == nullptr);
@@ -234,7 +239,7 @@ bool cminus::storage::object::exists_(const std::string &name, entry_type type) 
 		types_.find(name) != types_.end() || storages_.find(name) != storages_.end());
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::storage::object::find_(const std::string &name) const{
+std::shared_ptr<cminus::memory::reference> cminus::storage::unnamed_object::find_(const std::string &name) const{
 	if (name.empty() || named_entries_.empty())
 		return nullptr;
 
@@ -247,7 +252,7 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::object::find_(const 
 	return nullptr;
 }
 
-std::shared_ptr<cminus::attribute::object> cminus::storage::object::find_attribute_(const std::string &name) const{
+std::shared_ptr<cminus::attribute::object> cminus::storage::unnamed_object::find_attribute_(const std::string &name) const{
 	if (name.empty() || attributes_.empty())
 		return nullptr;
 
@@ -257,7 +262,7 @@ std::shared_ptr<cminus::attribute::object> cminus::storage::object::find_attribu
 	return nullptr;
 }
 
-std::shared_ptr<cminus::type::object> cminus::storage::object::find_type_(const std::string &name) const{
+std::shared_ptr<cminus::type::object> cminus::storage::unnamed_object::find_type_(const std::string &name) const{
 	if (name.empty() || types_.empty())
 		return nullptr;
 
@@ -267,9 +272,9 @@ std::shared_ptr<cminus::type::object> cminus::storage::object::find_type_(const 
 	return nullptr;
 }
 
-cminus::storage::object *cminus::storage::object::find_storage_(const std::string &name) const{
+cminus::storage::object *cminus::storage::unnamed_object::find_storage_(const std::string &name) const{
 	if (name == get_name())
-		return const_cast<object *>(this);
+		return const_cast<unnamed_object *>(this);
 
 	if (!storages_.empty()){
 		if (auto it = storages_.find(name); it != storages_.end())

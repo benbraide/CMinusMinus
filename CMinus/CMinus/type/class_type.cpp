@@ -1,6 +1,4 @@
 #include "../storage/global_storage.h"
-#include "../storage/specialized_storage.h"
-
 #include "../declaration/variable_declaration.h"
 #include "../declaration/special_function_declaration.h"
 
@@ -27,17 +25,17 @@ const std::string &cminus::type::class_::get_name() const{
 	return type_base::get_name();
 }
 
-cminus::type::class_::storage_base *cminus::type::class_::get_parent() const{
+cminus::storage::object *cminus::type::class_::get_parent() const{
 	return type_base::get_parent();
 }
 
 bool cminus::type::class_::is_constructible(std::shared_ptr<memory::reference> target) const{
-	auto constructor = get_constructor_(dummy_context_);
+	auto constructor = get_constructor_();
 	return (constructor != nullptr && constructor->find(std::list<std::shared_ptr<memory::reference>>{ dummy_context_, target }) != nullptr);
 }
 
 void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) const{
-	if (auto destructor = get_destructor_(target); destructor != nullptr)
+	if (auto destructor = get_destructor_(); destructor != nullptr)
 		target = destructor->call(std::list<std::shared_ptr<memory::reference>>{ target });
 	else
 		throw runtime::exception::bad_destructor();
@@ -164,9 +162,17 @@ void cminus::type::class_::add_default_functions(bool add_on_empty){
 	}
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const std::string &name, std::shared_ptr<memory::reference> context) const{
-	std::lock_guard<std::mutex> guard(lock_);
-	return find_(name, context, 0u);
+std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const std::string &name, std::shared_ptr<memory::reference> context, bool search_tree) const{
+	{//Scoped lock
+		std::lock_guard<std::mutex> guard(lock_);
+		if (auto entry = find_(name, ((context->get_type().get() == this) ? context : nullptr), 0u); entry != nullptr || !search_tree)
+			return entry;
+	}
+
+	if (auto parent = get_parent(); parent != nullptr)
+		return parent->find(name, true);
+
+	return nullptr;
 }
 
 const cminus::type::class_::member_variable_info *cminus::type::class_::find_non_static_member(const std::string &name) const{
@@ -213,7 +219,7 @@ const std::list<cminus::type::class_::base_type_info> &cminus::type::class_::get
 }
 
 void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const{
-	auto constructor = get_constructor_(target);
+	auto constructor = get_constructor_();
 	if (constructor == nullptr)
 		throw runtime::exception::bad_constructor();
 
@@ -248,8 +254,7 @@ bool cminus::type::class_::exists_(const std::string &name, entry_type type) con
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std::string &name) const{
-	auto member_storage = runtime::object::current_storage->get_first_of<storage::class_member>();
-	return find_(name, ((member_storage == nullptr) ? nullptr : member_storage->get_context()), 0u);
+	return find_(name, nullptr, 0u);
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std::string &name, std::shared_ptr<memory::reference> context, std::size_t address_offset) const{
@@ -291,7 +296,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std
 	return nullptr;
 }
 
-cminus::type::class_::storage_base *cminus::type::class_::find_storage_(const std::string &name) const{
+cminus::storage::object *cminus::type::class_::find_storage_(const std::string &name) const{
 	if (name == get_name())
 		return const_cast<class_ *>(this);
 
@@ -350,14 +355,19 @@ unsigned int cminus::type::class_::get_base_type_access_(const class_ &target, b
 	return highest_access;
 }
 
-cminus::declaration::function_group_base *cminus::type::class_::get_constructor_(std::shared_ptr<memory::reference> target) const{
-	auto entry = find(get_name(), target);
-	auto function_entry = dynamic_cast<memory::function_reference *>(entry.get());
+cminus::declaration::function_group_base *cminus::type::class_::find_function_(const std::string &name) const{
+	auto it = functions_.find(get_name());
+	if (it == functions_.end())
+		return nullptr;
+
+	auto function_entry = dynamic_cast<memory::function_reference *>(it->second.get());
 	return ((function_entry == nullptr) ? nullptr : function_entry->get_entry());
 }
 
-cminus::declaration::function_group_base *cminus::type::class_::get_destructor_(std::shared_ptr<memory::reference> target) const{
-	auto entry = find(("~" + get_name()), target);
-	auto function_entry = dynamic_cast<memory::function_reference *>(entry.get());
-	return ((function_entry == nullptr) ? nullptr : function_entry->get_entry());
+cminus::declaration::constructor_group_base *cminus::type::class_::get_constructor_() const{
+	return dynamic_cast<declaration::constructor_group_base *>(find_function_(get_name()));
+}
+
+cminus::declaration::destructor_group_base *cminus::type::class_::get_destructor_() const{
+	return dynamic_cast<declaration::destructor_group_base *>(find_function_("~" + get_name()));
 }

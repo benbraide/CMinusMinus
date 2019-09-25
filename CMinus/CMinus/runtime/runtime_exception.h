@@ -14,6 +14,9 @@ namespace cminus::runtime::exception{
 		bad_constructor,
 		bad_destructor,
 		bad_constructor_init_list,
+		bad_scope_left,
+		bad_member_access_left,
+		bad_pointer_member_access_left,
 	};
 
 	class base : public std::exception{
@@ -81,6 +84,33 @@ namespace cminus::runtime::exception{
 		bad_constructor_init_list();
 
 		virtual ~bad_constructor_init_list();
+
+		virtual code get_code() const override;
+	};
+
+	class bad_scope_left : public base{
+	public:
+		bad_scope_left();
+
+		virtual ~bad_scope_left();
+
+		virtual code get_code() const override;
+	};
+
+	class bad_member_access_left : public base{
+	public:
+		bad_member_access_left();
+
+		virtual ~bad_member_access_left();
+
+		virtual code get_code() const override;
+	};
+
+	class bad_pointer_member_access_left : public base{
+	public:
+		bad_pointer_member_access_left();
+
+		virtual ~bad_pointer_member_access_left();
 
 		virtual code get_code() const override;
 	};

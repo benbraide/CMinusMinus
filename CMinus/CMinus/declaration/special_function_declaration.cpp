@@ -20,7 +20,7 @@ void cminus::declaration::constructor::evaluate_body_() const{
 
 	std::string computed_name;
 	for (auto &init_item : init_list_){
-		if (auto name = init_item.key->evaluate_as_name(); !name.empty())
+		if (auto name = init_item.key->evaluate_as_name(false); !name.empty())
 			computed_name = name;
 		else if (auto class_item = dynamic_cast<type::class_ *>(init_item.key->evaluate_as_storage()); class_item != nullptr && class_parent->is_base_type(*class_item, false))
 			computed_name = class_item->get_name();
@@ -51,13 +51,13 @@ void cminus::declaration::constructor::evaluate_body_() const{
 	for (auto &member_variable : reinterpret_cast<type::class_ *>(parent_)->get_member_variables()){
 		if (auto it = init_list.find(member_variable.value->get_name()); it != init_list.end()){
 			member_variable.value->get_type()->construct(
-				class_parent->find(member_variable.value->get_name(), self),
+				class_parent->find(member_variable.value->get_name(), self, false),
 				it->second
 			);
 		}
 		else{//Construct default
 			member_variable.value->get_type()->construct(
-				class_parent->find(member_variable.value->get_name(), self)
+				class_parent->find(member_variable.value->get_name(), self, false)
 			);
 		}
 	}
@@ -117,7 +117,7 @@ void cminus::declaration::default_constructor::evaluate_body_() const{
 
 	for (auto &member_variable : class_parent->get_member_variables()){//Default construct member variables
 		member_variable.value->get_type()->construct(
-			class_parent->find(member_variable.value->get_name(), self)
+			class_parent->find(member_variable.value->get_name(), self, false)
 		);
 	}
 }
@@ -167,8 +167,8 @@ void cminus::declaration::copy_constructor::evaluate_body_() const{
 
 	for (auto &member_variable : class_parent->get_member_variables()){//Copy construct member variables
 		member_variable.value->get_type()->construct(
-			class_parent->find(member_variable.value->get_name(), self),
-			class_parent->find(member_variable.value->get_name(), other)
+			class_parent->find(member_variable.value->get_name(), self, false),
+			class_parent->find(member_variable.value->get_name(), other, false)
 		);
 	}
 }
@@ -191,7 +191,7 @@ void cminus::declaration::destructor::evaluate_body_() const{
 	auto &member_variables = class_parent->get_member_variables();
 	for (auto it = member_variables.rbegin(); it != member_variables.rend(); ++it){
 		it->value->get_type()->destruct(
-			class_parent->find(it->value->get_name(), self)
+			class_parent->find(it->value->get_name(), self, false)
 		);
 	}
 

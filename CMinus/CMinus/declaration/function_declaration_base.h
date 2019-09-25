@@ -18,7 +18,9 @@ namespace cminus::node{
 
 namespace cminus::declaration{
 	class variable;
-	class function_group;
+
+	template <class base_type>
+	class generic_function_group;
 
 	class function_base : public object{
 	public:
@@ -43,7 +45,7 @@ namespace cminus::declaration{
 		virtual std::shared_ptr<memory::reference> call(const std::list<std::shared_ptr<memory::reference>> &args) const;
 
 	protected:
-		friend class function_group;
+		template <class> friend class generic_function_group;
 
 		virtual std::shared_ptr<memory::reference> call_(const std::list<std::shared_ptr<memory::reference>> &args) const = 0;
 	};

@@ -29,33 +29,33 @@ namespace cminus::storage{
 			storage,
 		};
 
-		virtual ~object();
+		virtual ~object() = default;
 
 		virtual const std::string &get_name() const = 0;
 
-		virtual std::string get_qname() const;
+		virtual std::string get_qname() const = 0;
 
 		virtual object *get_parent() const = 0;
 
-		virtual void add(std::shared_ptr<declaration::object> entry, std::size_t address);
+		virtual void add(std::shared_ptr<declaration::object> entry, std::size_t address) = 0;
 
-		virtual void add(const std::string &name);
+		virtual void add(const std::string &name) = 0;
 
-		virtual void add_entry(const std::string &name, std::shared_ptr<memory::reference> value, bool check_existing = true);
+		virtual void add_entry(const std::string &name, std::shared_ptr<memory::reference> value, bool check_existing = true) = 0;
 
-		virtual void del(const std::string &name);
+		virtual void del(const std::string &name) = 0;
 
-		virtual bool exists(const std::string &name, entry_type type = entry_type::nil) const;
+		virtual bool exists(const std::string &name, entry_type type = entry_type::nil) const = 0;
 
-		virtual std::shared_ptr<memory::reference> find(const std::string &name, bool search_tree) const;
+		virtual std::shared_ptr<memory::reference> find(const std::string &name, bool search_tree) const = 0;
 
-		virtual std::shared_ptr<attribute::object> find_attribute(const std::string &name, bool search_tree) const;
+		virtual std::shared_ptr<attribute::object> find_attribute(const std::string &name, bool search_tree) const = 0;
 
-		virtual std::shared_ptr<type::object> find_type(const std::string &name, bool search_tree) const;
+		virtual std::shared_ptr<type::object> find_type(const std::string &name, bool search_tree) const = 0;
 
-		virtual object *find_storage(const std::string &name, bool search_tree) const;
+		virtual object *find_storage(const std::string &name, bool search_tree) const = 0;
 
-		virtual bool is_accessible(unsigned int access) const;
+		virtual bool is_accessible(unsigned int access) const = 0;
 
 		template <typename target_type>
 		target_type *get_first_of() const{
@@ -67,6 +67,33 @@ namespace cminus::storage{
 
 			return nullptr;
 		}
+	};
+
+	class unnamed_object : public object{
+	public:
+		virtual ~unnamed_object();
+
+		virtual std::string get_qname() const override;
+
+		virtual void add(std::shared_ptr<declaration::object> entry, std::size_t address) override;
+
+		virtual void add(const std::string &name) override;
+
+		virtual void add_entry(const std::string &name, std::shared_ptr<memory::reference> value, bool check_existing = true) override;
+
+		virtual void del(const std::string &name) override;
+
+		virtual bool exists(const std::string &name, entry_type type = entry_type::nil) const override;
+
+		virtual std::shared_ptr<memory::reference> find(const std::string &name, bool search_tree) const override;
+
+		virtual std::shared_ptr<attribute::object> find_attribute(const std::string &name, bool search_tree) const override;
+
+		virtual std::shared_ptr<type::object> find_type(const std::string &name, bool search_tree) const override;
+
+		virtual object *find_storage(const std::string &name, bool search_tree) const override;
+
+		virtual bool is_accessible(unsigned int access) const override;
 
 	protected:
 		virtual void destroy_entries_();
@@ -88,7 +115,7 @@ namespace cminus::storage{
 		virtual std::shared_ptr<memory::reference> find_(const std::string &name) const;
 
 		virtual std::shared_ptr<attribute::object> find_attribute_(const std::string &name) const;
-		
+
 		virtual std::shared_ptr<type::object> find_type_(const std::string &name) const;
 
 		virtual object *find_storage_(const std::string &name) const;
@@ -106,7 +133,7 @@ namespace cminus::storage{
 		mutable std::mutex lock_;
 	};
 
-	class named_object : public object{
+	class named_object : public unnamed_object{
 	public:
 		named_object(const std::string &name, object *parent);
 

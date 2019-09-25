@@ -8,6 +8,9 @@ namespace cminus::declaration::exception{
 		initialization_required,
 		function_redefinition,
 		function_redeclaration,
+		function_expected,
+		constructor_expected,
+		destructor_expected,
 		function_not_found,
 		function_not_defined,
 		ambiguous_function_call,
@@ -62,6 +65,33 @@ namespace cminus::declaration::exception{
 		function_redeclaration();
 
 		virtual ~function_redeclaration();
+
+		virtual code get_code() const override;
+	};
+
+	class function_expected : public base{
+	public:
+		function_expected();
+
+		virtual ~function_expected();
+
+		virtual code get_code() const override;
+	};
+
+	class constructor_expected : public base{
+	public:
+		constructor_expected();
+
+		virtual ~constructor_expected();
+
+		virtual code get_code() const override;
+	};
+
+	class destructor_expected : public base{
+	public:
+		destructor_expected();
+
+		virtual ~destructor_expected();
 
 		virtual code get_code() const override;
 	};

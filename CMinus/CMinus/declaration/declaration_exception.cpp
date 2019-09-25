@@ -36,6 +36,33 @@ cminus::declaration::exception::code cminus::declaration::exception::function_re
 	return code::function_redeclaration;
 }
 
+cminus::declaration::exception::function_expected::function_expected()
+	: base("Callable object declaration cannot be a constructor or destructor"){}
+
+cminus::declaration::exception::function_expected::~function_expected() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::function_expected::get_code() const{
+	return code::function_expected;
+}
+
+cminus::declaration::exception::constructor_expected::constructor_expected()
+	: base("Expected a constructor declaration"){}
+
+cminus::declaration::exception::constructor_expected::~constructor_expected() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::constructor_expected::get_code() const{
+	return code::constructor_expected;
+}
+
+cminus::declaration::exception::destructor_expected::destructor_expected()
+	: base("Expected a destructor declaration"){}
+
+cminus::declaration::exception::destructor_expected::~destructor_expected() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::destructor_expected::get_code() const{
+	return code::destructor_expected;
+}
+
 cminus::declaration::exception::function_not_found::function_not_found()
 	: base("No function found taking the specified arguments"){}
 

@@ -4,10 +4,10 @@
 #include "../declaration/declaration_object.h"
 
 namespace cminus::type{
-	class class_ : public type::object, public storage::object{
+	class class_ : public type::object, public storage::unnamed_object{
 	public:
 		using type_base = type::object;
-		using storage_base = storage::object;
+		using storage_base = storage::unnamed_object;
 
 		struct base_type_info{
 			unsigned int access;
@@ -26,7 +26,7 @@ namespace cminus::type{
 
 		virtual const std::string &get_name() const override;
 
-		virtual storage_base *get_parent() const override;
+		virtual storage::object *get_parent() const override;
 
 		virtual bool is_constructible(std::shared_ptr<memory::reference> target) const override;
 
@@ -54,7 +54,7 @@ namespace cminus::type{
 
 		using storage_base::find;
 
-		virtual std::shared_ptr<memory::reference> find(const std::string &name, std::shared_ptr<memory::reference> context) const;
+		virtual std::shared_ptr<memory::reference> find(const std::string &name, std::shared_ptr<memory::reference> context, bool search_tree) const;
 
 		virtual const member_variable_info *find_non_static_member(const std::string &name) const;
 
@@ -79,7 +79,7 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> find_(const std::string &name, std::shared_ptr<memory::reference> context, std::size_t address_offset) const;
 
-		virtual storage_base *find_storage_(const std::string &name) const override;
+		virtual storage::object *find_storage_(const std::string &name) const override;
 
 		virtual class_ *find_base_type_(const std::string &name, bool search_hierarchy) const;
 
@@ -89,9 +89,11 @@ namespace cminus::type{
 
 		virtual unsigned int get_base_type_access_(const class_ &target, bool skip_immediate) const;
 
-		virtual declaration::function_group_base *get_constructor_(std::shared_ptr<memory::reference> target) const;
+		virtual declaration::function_group_base *find_function_(const std::string &name) const;
 
-		virtual declaration::function_group_base *get_destructor_(std::shared_ptr<memory::reference> target) const;
+		virtual declaration::constructor_group_base *get_constructor_() const;
+
+		virtual declaration::destructor_group_base *get_destructor_() const;
 
 		std::list<member_variable_info> member_variables_;
 		std::unordered_map<std::string, member_variable_info *> member_variables_map_;

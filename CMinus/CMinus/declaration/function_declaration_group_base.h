@@ -5,7 +5,7 @@
 namespace cminus::declaration{
 	class function_group_base{
 	public:
-		virtual ~function_group_base() = default;
+		virtual ~function_group_base();
 
 		virtual const std::string &get_name() const = 0;
 
@@ -15,12 +15,29 @@ namespace cminus::declaration{
 
 		virtual std::shared_ptr<type::object> get_type() const = 0;
 
-		virtual void add(std::shared_ptr<function_base> entry) = 0;
+		virtual void add(std::shared_ptr<function_base> entry);
 
 		virtual std::shared_ptr<function_base> find(const type::object &target_type) const = 0;
 
 		virtual std::shared_ptr<function_base> find(const std::list<std::shared_ptr<memory::reference>> &args, std::size_t *count = nullptr) const = 0;
 
 		virtual std::shared_ptr<memory::reference> call(const std::list<std::shared_ptr<memory::reference>> &args) const = 0;
+
+	protected:
+		virtual void add_(std::shared_ptr<function_base> entry) = 0;
+	};
+
+	class constructor_group_base : public function_group_base{
+	public:
+		virtual ~constructor_group_base();
+
+		virtual void add(std::shared_ptr<function_base> entry) override;
+	};
+
+	class destructor_group_base : public function_group_base{
+	public:
+		virtual ~destructor_group_base();
+
+		virtual void add(std::shared_ptr<function_base> entry) override;
 	};
 }

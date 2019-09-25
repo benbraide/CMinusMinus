@@ -11,7 +11,7 @@ std::shared_ptr<cminus::memory::reference> cminus::node::identifier::evaluate() 
 	return get_storage_()->find(value_, should_search_tree_());
 }
 
-std::string cminus::node::identifier::evaluate_as_name() const{
+std::string cminus::node::identifier::evaluate_as_name(bool update_current_storage) const{
 	return value_;
 }
 
@@ -31,17 +31,32 @@ bool cminus::node::identifier::should_search_tree_() const{
 	return true;
 }
 
-cminus::node::scoped_identifier::scoped_identifier(std::shared_ptr<identifier> left, const std::string &value)
+cminus::node::scoped_identifier::scoped_identifier(std::shared_ptr<object> left, const std::string &value)
 	: identifier(value), left_(left){}
 
 cminus::node::scoped_identifier::~scoped_identifier() = default;
 
-std::string cminus::node::scoped_identifier::evaluate_as_name() const{
-	return "";
+std::string cminus::node::scoped_identifier::evaluate_as_name(bool update_current_storage) const{
+	if (!update_current_storage)
+		return "";
+
+	if (auto storage = get_storage_(); storage != nullptr)
+		runtime::object::current_storage = storage;
+	else
+		throw runtime::exception::bad_scope_left();
+
+	return value_;
 }
 
 cminus::storage::object *cminus::node::scoped_identifier::get_storage_() const{
-	return ((left_ == nullptr) ? runtime::object::global_storage : left_->evaluate_as_storage());
+	if (left_ == nullptr)
+		return runtime::object::global_storage;
+
+	auto storage = left_->evaluate_as_storage();
+	if (storage == nullptr)
+		throw runtime::exception::bad_scope_left();
+
+	return storage;
 }
 
 bool cminus::node::scoped_identifier::should_search_tree_() const{
