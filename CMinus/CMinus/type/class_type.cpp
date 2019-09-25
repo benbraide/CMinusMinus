@@ -165,7 +165,7 @@ void cminus::type::class_::add_default_functions(bool add_on_empty){
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const std::string &name, std::shared_ptr<memory::reference> context, bool search_tree) const{
 	{//Scoped lock
 		std::lock_guard<std::mutex> guard(lock_);
-		if (auto entry = find_(name, ((context->get_type().get() == this) ? context : nullptr), 0u); entry != nullptr || !search_tree)
+		if (auto entry = find_(name, ((context->get_type()->get_non_proxy() == this) ? context : nullptr), 0u); entry != nullptr || !search_tree)
 			return entry;
 	}
 
@@ -321,10 +321,10 @@ cminus::type::class_ *cminus::type::class_::find_base_type_(const std::string &n
 }
 
 std::size_t cminus::type::class_::compute_base_offset_(const class_ &base_type, std::size_t offset) const{
-	for (auto &entry : base_types_){
-		if (entry.value.get() == &base_type)
-			return (offset + entry.address_offset);
+	if (&base_type == this)
+		return offset;
 
+	for (auto &entry : base_types_){
 		if (auto value = entry.value->compute_base_offset_(base_type, (offset + entry.address_offset)); value != static_cast<std::size_t>(-1))
 			return value;
 	}

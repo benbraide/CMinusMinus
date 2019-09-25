@@ -60,6 +60,8 @@ namespace cminus::storage{
 
 		virtual bool is_accessible(unsigned int access) const override;
 
+		virtual std::shared_ptr<memory::reference> get_context() const;
+
 	protected:
 		std::shared_ptr<memory::reference> context_;
 	};

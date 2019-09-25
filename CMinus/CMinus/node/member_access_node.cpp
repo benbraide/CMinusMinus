@@ -1,5 +1,6 @@
 #include "../type/class_type.h"
 #include "../storage/global_storage.h"
+#include "../storage/specialized_storage.h"
 
 #include "member_access_node.h"
 
@@ -17,10 +18,10 @@ std::shared_ptr<cminus::memory::reference> cminus::node::member_access::evaluate
 	if (class_type == nullptr)
 		throw runtime::exception::bad_member_access_left();
 
-	runtime::value_guard guard(runtime::object::current_storage, runtime::object::current_storage);
-	auto name = right_->evaluate_as_name(true);
-	if (name.empty())
-		throw runtime::exception::bad_member_access_left();
+	auto wrapper_storage = std::make_shared<storage::class_wrapper>(target);
+	if (wrapper_storage == nullptr)
+		return nullptr;
 
-	return class_type->find(name, target, false);
+	runtime::value_guard<storage::object *> guard(runtime::object::current_storage, wrapper_storage.get());
+	return right_->evaluate();
 }

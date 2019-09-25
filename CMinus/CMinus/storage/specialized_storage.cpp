@@ -103,3 +103,7 @@ bool cminus::storage::class_wrapper::is_accessible(unsigned int access) const{
 		return class_parent->is_accessible(access);
 	return true;
 }
+
+std::shared_ptr<cminus::memory::reference> cminus::storage::class_wrapper::get_context() const{
+	return context_;
+}

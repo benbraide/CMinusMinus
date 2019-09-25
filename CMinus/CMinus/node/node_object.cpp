@@ -10,7 +10,7 @@ void cminus::node::object::traverse_list(const std::function<void(const object &
 	callback(*this);
 }
 
-std::string cminus::node::object::evaluate_as_name(bool update_current_storage) const{
+std::string cminus::node::object::evaluate_as_name() const{
 	return "";
 }
 

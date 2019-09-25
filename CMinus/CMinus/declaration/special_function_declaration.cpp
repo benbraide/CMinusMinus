@@ -20,7 +20,7 @@ void cminus::declaration::constructor::evaluate_body_() const{
 
 	std::string computed_name;
 	for (auto &init_item : init_list_){
-		if (auto name = init_item.key->evaluate_as_name(false); !name.empty())
+		if (auto name = init_item.key->evaluate_as_name(); !name.empty())
 			computed_name = name;
 		else if (auto class_item = dynamic_cast<type::class_ *>(init_item.key->evaluate_as_storage()); class_item != nullptr && class_parent->is_base_type(*class_item, false))
 			computed_name = class_item->get_name();

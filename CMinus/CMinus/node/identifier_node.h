@@ -11,7 +11,7 @@ namespace cminus::node{
 
 		virtual std::shared_ptr<memory::reference> evaluate() const override;
 
-		virtual std::string evaluate_as_name(bool update_current_storage) const override;
+		virtual std::string evaluate_as_name() const override;
 
 		virtual std::shared_ptr<type::object> evaluate_as_type() const override;
 
@@ -31,7 +31,9 @@ namespace cminus::node{
 
 		virtual ~scoped_identifier();
 
-		virtual std::string evaluate_as_name(bool update_current_storage) const override;
+		virtual std::shared_ptr<memory::reference> evaluate() const override;
+
+		virtual std::string evaluate_as_name() const override;
 
 	protected:
 		virtual storage::object *get_storage_() const override;
