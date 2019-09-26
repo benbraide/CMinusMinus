@@ -142,18 +142,30 @@ namespace cminus::type{
 
 		virtual bool is_nan(const memory::reference &data) const;
 
-		static const __int32 integer_nan_value = std::numeric_limits<__int32>::min();
-		static const __int64 long_integer_nan_value = std::numeric_limits<__int64>::min();
-
-		static const unsigned __int32 unsigned_integer_nan_value = std::numeric_limits<unsigned __int32>::max();
-		static const unsigned __int64 unsigned_long_integer_nan_value = std::numeric_limits<unsigned __int64>::max();
-
-		static const float real_nan_value;
-		static const long double long_real_nan_value;
-
-	protected:
 		template <typename target_type>
-		target_type read_value_(std::shared_ptr<memory::reference> data) const{
+		target_type get_nan() const{
+			switch (state_){
+			case state_type::integer:
+				return static_cast<target_type>(integer_nan_value);
+			case state_type::long_integer:
+				return static_cast<target_type>(long_integer_nan_value);
+			case state_type::unsigned_integer:
+				return static_cast<target_type>(unsigned_integer_nan_value);
+			case state_type::unsigned_long_integer:
+				return static_cast<target_type>(unsigned_long_integer_nan_value);
+			case state_type::real:
+				return static_cast<target_type>(real_nan_value);
+			case state_type::long_real:
+				return static_cast<target_type>(long_real_nan_value);
+			default:
+				break;
+			}
+
+			return target_type();
+		}
+
+		template <typename target_type>
+		target_type read_value(std::shared_ptr<memory::reference> data) const{
 			switch (state_){
 			case state_type::integer:
 				return static_cast<target_type>(data->read_scalar<__int32>());
@@ -174,6 +186,20 @@ namespace cminus::type{
 			return target_type();
 		}
 
+		virtual state_type get_state() const;
+
+		virtual bool has_precedence_over(const number_primitive &target) const;
+
+		static const __int32 integer_nan_value = std::numeric_limits<__int32>::min();
+		static const __int64 long_integer_nan_value = std::numeric_limits<__int64>::min();
+
+		static const unsigned __int32 unsigned_integer_nan_value = std::numeric_limits<unsigned __int32>::max();
+		static const unsigned __int64 unsigned_long_integer_nan_value = std::numeric_limits<unsigned __int64>::max();
+
+		static const float real_nan_value;
+		static const long double long_real_nan_value;
+
+	protected:
 		state_type state_;
 		std::size_t size_;
 	};
@@ -210,5 +236,50 @@ namespace cminus::type{
 		virtual std::shared_ptr<object> convert(conversion_type type, std::shared_ptr<object> self_or_other = nullptr) const override;
 
 		virtual bool is(query_type type, const object *arg = nullptr) const override;
+	};
+
+	template <class target_type>
+	struct get_nan;
+
+	template <>
+	struct get_nan<__int32>{
+		static constexpr __int32 value(){
+			return number_primitive::integer_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<__int64>{
+		static constexpr __int64 value(){
+			return number_primitive::long_integer_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<unsigned __int32>{
+		static constexpr unsigned __int32 value(){
+			return number_primitive::unsigned_integer_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<unsigned __int64>{
+		static constexpr unsigned __int64 value(){
+			return number_primitive::unsigned_long_integer_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<float>{
+		static constexpr float value(){
+			return number_primitive::real_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<long double>{
+		static constexpr long double value(){
+			return number_primitive::long_real_nan_value;
+		}
 	};
 }

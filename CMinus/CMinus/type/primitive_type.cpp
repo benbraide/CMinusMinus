@@ -152,10 +152,10 @@ std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::cast(
 				return nullptr;
 
 			if (target_type->is(query_type::pointer) && (state_ == state_type::integer || state_ == state_type::unsigned_integer))
-				return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->convert(conversion_type::remove_ref_const, target_type), read_value_<std::size_t>(data));
+				return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->convert(conversion_type::remove_ref_const, target_type), read_value<std::size_t>(data));
 
 			if (target_type->is(query_type::function) && (state_ == state_type::integer || state_ == state_type::unsigned_integer))
-				return std::make_shared<memory::function_reference>(read_value_<std::size_t>(data), target_type, nullptr);
+				return std::make_shared<memory::function_reference>(read_value<std::size_t>(data), target_type, nullptr);
 
 			return nullptr;
 		}
@@ -183,17 +183,17 @@ std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::cast(
 	auto converted_target_type = target_type->convert(conversion_type::remove_ref_const, target_type);
 	switch (number_target_type->state_){
 	case state_type::integer:
-		return std::make_shared<memory::scalar_reference<__int32>>(converted_target_type, read_value_<__int32>(data));
+		return std::make_shared<memory::scalar_reference<__int32>>(converted_target_type, read_value<__int32>(data));
 	case state_type::long_integer:
-		return std::make_shared<memory::scalar_reference<__int64>>(converted_target_type, read_value_<__int64>(data));
+		return std::make_shared<memory::scalar_reference<__int64>>(converted_target_type, read_value<__int64>(data));
 	case state_type::unsigned_integer:
-		return std::make_shared<memory::scalar_reference<unsigned __int32>>(converted_target_type, read_value_<unsigned __int32>(data));
+		return std::make_shared<memory::scalar_reference<unsigned __int32>>(converted_target_type, read_value<unsigned __int32>(data));
 	case state_type::unsigned_long_integer:
-		return std::make_shared<memory::scalar_reference<unsigned __int64>>(converted_target_type, read_value_<unsigned __int64>(data));
+		return std::make_shared<memory::scalar_reference<unsigned __int64>>(converted_target_type, read_value<unsigned __int64>(data));
 	case state_type::real:
-		return std::make_shared<memory::scalar_reference<float>>(converted_target_type, read_value_<float>(data));
+		return std::make_shared<memory::scalar_reference<float>>(converted_target_type, read_value<float>(data));
 	case state_type::long_real:
-		return std::make_shared<memory::scalar_reference<long double>>(converted_target_type, read_value_<long double>(data));
+		return std::make_shared<memory::scalar_reference<long double>>(converted_target_type, read_value<long double>(data));
 	default:
 		break;
 	}
@@ -252,6 +252,35 @@ bool cminus::type::number_primitive::is_nan(const memory::reference &data) const
 	}
 
 	return false;
+}
+
+cminus::type::number_primitive::state_type cminus::type::number_primitive::get_state() const{
+	return state_;
+}
+
+bool cminus::type::number_primitive::has_precedence_over(const number_primitive &target) const{
+	if (state_ == state_type::long_real)
+		return true;
+
+	if (state_ == state_type::real)
+		return (target.state_ != state_type::long_real);
+
+	if (target.state_ == state_type::long_real && target.state_ == state_type::real)
+		return false;
+
+	if (size_ != target.size_)
+		return (target.size_ < size_);
+
+	if (state_ == state_type::unsigned_long_integer)
+		return true;
+
+	if (state_ == state_type::unsigned_integer)
+		return (target.state_ != state_type::unsigned_long_integer);
+
+	if (state_ == state_type::long_integer)
+		return (target.state_ == state_type::long_integer || target.state_ == state_type::integer);
+
+	return (target.state_ == state_type::integer);
 }
 
 const float cminus::type::number_primitive::real_nan_value = std::numeric_limits<float>::min();

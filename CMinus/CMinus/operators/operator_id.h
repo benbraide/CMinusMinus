@@ -1,7 +1,7 @@
 #pragma once
 
 namespace cminus::operators{
-	enum class operator_id{
+	enum class id{
 		nil,
 		comma,
 		assignment,

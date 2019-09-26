@@ -25,3 +25,19 @@ cminus::attribute::read_guard::read_guard(std::shared_ptr<memory::reference> tar
 }
 
 cminus::attribute::read_guard::~read_guard() = default;
+
+cminus::attribute::write_read_guard::write_read_guard(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> arg){
+	target->get_attributes().query(stage_type::before_write, target, arg);
+	target->get_attributes().query(stage_type::before_read, target, nullptr);
+
+	callback_ = [=]{
+		try{
+			target->get_attributes().query(stage_type::after_read, target, nullptr);
+		}
+		catch (...){}
+
+		target->get_attributes().query(stage_type::after_write, target, arg);
+	};
+}
+
+cminus::attribute::write_read_guard::~write_read_guard() = default;

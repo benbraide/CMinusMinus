@@ -24,4 +24,11 @@ namespace cminus::attribute{
 
 		virtual ~read_guard();
 	};
+
+	class write_read_guard : public guard{
+	public:
+		write_read_guard(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> arg);
+
+		virtual ~write_read_guard();
+	};
 }
