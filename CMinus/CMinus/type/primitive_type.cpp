@@ -254,6 +254,27 @@ bool cminus::type::number_primitive::is_nan(const memory::reference &data) const
 	return false;
 }
 
+std::string cminus::type::number_primitive::get_string_value(std::shared_ptr<memory::reference> data) const{
+	switch (state_){
+	case state_type::integer:
+		return get_string_value_(data->read_scalar<__int32>(), integer_nan_value);
+	case state_type::long_integer:
+		return get_string_value_(data->read_scalar<__int64>(), long_integer_nan_value);
+	case state_type::unsigned_integer:
+		return get_string_value_(data->read_scalar<unsigned __int32>(), unsigned_integer_nan_value);
+	case state_type::unsigned_long_integer:
+		return get_string_value_(data->read_scalar<unsigned __int64>(), unsigned_long_integer_nan_value);
+	case state_type::real:
+		return get_string_value_(data->read_scalar<float>(), real_nan_value);
+	case state_type::long_real:
+		return get_string_value_(data->read_scalar<long double>(), long_real_nan_value);
+	default:
+		break;
+	}
+
+	return "";
+}
+
 cminus::type::number_primitive::state_type cminus::type::number_primitive::get_state() const{
 	return state_;
 }
@@ -265,7 +286,7 @@ bool cminus::type::number_primitive::has_precedence_over(const number_primitive 
 	if (state_ == state_type::real)
 		return (target.state_ != state_type::long_real);
 
-	if (target.state_ == state_type::long_real && target.state_ == state_type::real)
+	if (target.state_ == state_type::long_real || target.state_ == state_type::real)
 		return false;
 
 	if (size_ != target.size_)

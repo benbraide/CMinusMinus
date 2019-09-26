@@ -56,3 +56,15 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_zero_val
 
 	return reference;
 }
+
+std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_string(const std::string_view &value) const{
+	return nullptr;
+}
+
+std::string_view cminus::storage::global::get_string_value(std::shared_ptr<memory::reference> value) const{
+	return std::string_view();
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_constant_value(bool value) const{
+	return nullptr;
+}

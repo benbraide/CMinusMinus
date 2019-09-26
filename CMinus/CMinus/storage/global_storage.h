@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 #include "../type/primitive_type.h"
 #include "../evaluator/evaluator_object.h"
 
@@ -51,6 +53,12 @@ namespace cminus::storage{
 		virtual std::shared_ptr<memory::reference> get_zero_value(const type::object &type) const;
 
 		virtual std::shared_ptr<memory::reference> get_zero_value(std::shared_ptr<type::object> type) const;
+
+		virtual std::shared_ptr<memory::reference> create_string(const std::string_view &value) const;
+
+		virtual std::string_view get_string_value(std::shared_ptr<memory::reference> value) const;
+
+		virtual std::shared_ptr<memory::reference> get_constant_value(bool value) const;
 
 	protected:
 		std::unordered_map<evaluator_type, std::shared_ptr<evaluator::object>> evaluators_;

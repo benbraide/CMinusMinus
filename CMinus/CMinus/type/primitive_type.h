@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../runtime/string_conversions.h"
+
 #include "type_object.h"
 
 namespace cminus::type{
@@ -186,6 +188,8 @@ namespace cminus::type{
 			return target_type();
 		}
 
+		virtual std::string get_string_value(std::shared_ptr<memory::reference> data) const;
+
 		virtual state_type get_state() const;
 
 		virtual bool has_precedence_over(const number_primitive &target) const;
@@ -200,6 +204,11 @@ namespace cminus::type{
 		static const long double long_real_nan_value;
 
 	protected:
+		template <typename value_type>
+		std::string get_string_value_(value_type value, value_type nan_value) const{
+			return ((value == nan_value) ? "NaN" : runtime::to_string<value_type>::template get(value));
+		}
+
 		state_type state_;
 		std::size_t size_;
 	};

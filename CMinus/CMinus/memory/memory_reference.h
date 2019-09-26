@@ -15,13 +15,16 @@ namespace cminus::memory{
 	public:
 		template <typename attributes_type>
 		reference(std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
-			: type_(type), context_(context), attributes_(attributes, type){
+			: context_(context), attributes_(attributes, type){
+			init_type_(type);
 			allocate_memory_();
 		}
 
 		template <typename attributes_type>
 		reference(std::size_t address, std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
-			: type_(type), context_(context), attributes_(attributes, type), address_(address){}
+			: context_(context), attributes_(attributes, type), address_(address){
+			init_type_(type);
+		}
 
 		virtual ~reference();
 
@@ -49,6 +52,8 @@ namespace cminus::memory{
 
 		virtual std::shared_ptr<type::object> get_type() const;
 
+		virtual std::shared_ptr<type::object> get_decl_type() const;
+
 		virtual std::shared_ptr<reference> apply_offset(std::size_t value, std::shared_ptr<type::object> type) const;
 
 		virtual std::shared_ptr<reference> clone() const;
@@ -67,7 +72,11 @@ namespace cminus::memory{
 
 		virtual bool is_const() const;
 
+		virtual bool is_nan() const;
+
 	protected:
+		virtual void init_type_(std::shared_ptr<type::object> type);
+
 		virtual void allocate_memory_();
 
 		virtual std::shared_ptr<block> allocate_block_() const;
@@ -121,6 +130,8 @@ namespace cminus::memory{
 		virtual std::size_t write_address(std::size_t value) override;
 
 		virtual std::size_t write_ownership(std::shared_ptr<reference> target) override;
+
+		virtual std::shared_ptr<type::object> get_decl_type() const override;
 
 		virtual std::size_t get_address() const override;
 

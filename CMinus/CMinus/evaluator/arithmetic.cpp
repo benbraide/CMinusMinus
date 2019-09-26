@@ -1,3 +1,5 @@
+#include "../storage/global_storage.h"
+
 #include "arithmetic.h"
 
 cminus::evaluator::arithmetic::~arithmetic() = default;
@@ -25,12 +27,6 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::evalua
 	if (left_value == nullptr)
 		throw exception::unsupported_op();
 
-	if (!left_value->is_lvalue())
-		throw exception::rval_assignment();
-
-	if (left_value->is_const())
-		throw exception::const_assignment();
-
 	auto right_value = right->evaluate();
 	if (right_value == nullptr)
 		throw exception::unsupported_op();
@@ -39,43 +35,62 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::evalua
 	if (left_type == nullptr || right_type == nullptr)
 		throw exception::invalid_type();
 
-	auto left_number_type = dynamic_cast<type::number_primitive *>(left_type->convert(type::object::conversion_type::remove_ref_const, left_type)->get_non_proxy());
-	auto right_number_type = dynamic_cast<type::number_primitive *>(right_type->convert(type::object::conversion_type::remove_ref_const, right_type)->get_non_proxy());
-
-	if (left_number_type == nullptr || right_number_type == nullptr)
-		throw exception::unsupported_op();
-
-	if (is_integral && (!left_type->is(type::object::query_type::integral) || !right_type->is(type::object::query_type::integral)))
+	auto left_number_type = dynamic_cast<type::number_primitive *>(left_type->get_non_proxy());
+	if (left_number_type == nullptr)
 		throw exception::unsupported_op();
 
 	attribute::read_guard left_read_guard(left_value, nullptr);
 	attribute::read_guard right_read_guard(right_value, nullptr);
 
 	auto compatible_left_value = left_value, compatible_right_value = right_value;
-	if (left_number_type->has_precedence_over(*right_number_type))
+	auto right_number_type = dynamic_cast<type::number_primitive *>(right_type->get_non_proxy());
+
+	if (right_number_type == nullptr){
+		if (right_type->is(type::object::query_type::string)){
+			if (op != operators::id::plus)
+				throw exception::unsupported_op();
+
+			auto left_string_value = left_number_type->get_string_value(left_value);
+			auto right_string_value = runtime::object::global_storage->get_string_value(right_value);
+
+			return runtime::object::global_storage->create_string(left_string_value + right_string_value.data());
+		}
+
+		if ((compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::rval_static)) != nullptr){
+			right_type = left_type;
+			right_number_type = left_number_type;
+		}
+	}
+	else if (left_number_type->has_precedence_over(*right_number_type)){
 		compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::rval_static);
-	else//Convert left
+		right_type = left_type;
+		right_number_type = left_number_type;
+	}
+	else{//Convert left
 		compatible_left_value = left_type->cast(left_value, right_type, type::cast_type::rval_static);
+		left_type = right_type;
+		left_number_type = right_number_type;
+	}
 
 	if (compatible_left_value == nullptr || compatible_right_value == nullptr)
 		throw exception::incompatible_rval();
 
-	optimized_info left_info{ left_number_type, compatible_left_value };
-	optimized_info right_info{ right_number_type, compatible_right_value };
+	if (is_integral && !left_type->is(type::object::query_type::integral))
+		throw exception::unsupported_op();
 
 	switch (left_number_type->get_state()){
 	case type::number_primitive::state_type::integer:
-		return evaluate_integral_<__int32>(op, left_info, right_info);
+		return evaluate_integral_<__int32>(op, compatible_left_value, compatible_right_value);
 	case type::number_primitive::state_type::long_integer:
-		return evaluate_integral_<__int64>(op, left_info, right_info);
+		return evaluate_integral_<__int64>(op, compatible_left_value, compatible_right_value);
 	case type::number_primitive::state_type::unsigned_integer:
-		return evaluate_integral_<unsigned __int32>(op, left_info, right_info);
+		return evaluate_integral_<unsigned __int32>(op, compatible_left_value, compatible_right_value);
 	case type::number_primitive::state_type::unsigned_long_integer:
-		return evaluate_integral_<unsigned __int64>(op, left_info, right_info);
+		return evaluate_integral_<unsigned __int64>(op, compatible_left_value, compatible_right_value);
 	case type::number_primitive::state_type::real:
-		return evaluate_<float>(op, left_info, right_info);
+		return evaluate_<float>(op, compatible_left_value, compatible_right_value);
 	case type::number_primitive::state_type::long_real:
-		return evaluate_<long double>(op, left_info, right_info);
+		return evaluate_<long double>(op, compatible_left_value, compatible_right_value);
 	default:
 		break;
 	}

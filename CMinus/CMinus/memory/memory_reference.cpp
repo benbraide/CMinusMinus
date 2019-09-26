@@ -1,4 +1,6 @@
-#include "../type/type_object.h"
+#include "../type/primitive_type.h"
+#include "../type/modified_type.h"
+
 #include "../storage/global_storage.h"
 #include "../declaration/function_declaration_group_base.h"
 
@@ -59,6 +61,10 @@ std::shared_ptr<cminus::type::object> cminus::memory::reference::get_type() cons
 	return type_;
 }
 
+std::shared_ptr<cminus::type::object> cminus::memory::reference::get_decl_type() const{
+	return type_;
+}
+
 std::shared_ptr<cminus::memory::reference> cminus::memory::reference::apply_offset(std::size_t value, std::shared_ptr<type::object> type) const{
 	auto target_type = ((type == nullptr) ? type_ : type);
 	auto entry = std::make_shared<memory::reference>(
@@ -104,6 +110,15 @@ bool cminus::memory::reference::is_lvalue() const{
 
 bool cminus::memory::reference::is_const() const{
 	return (type_->is(type::object::query_type::const_) || (context_ != nullptr && context_->is_const()));
+}
+
+bool cminus::memory::reference::is_nan() const{
+	auto number_type = dynamic_cast<type::number_primitive *>(type_->convert(type::object::conversion_type::remove_ref_const, type_)->get_non_proxy());
+	return (number_type != nullptr && number_type->is_nan(*this));
+}
+
+void cminus::memory::reference::init_type_(std::shared_ptr<type::object> type){
+	type_ = (type == nullptr) ? nullptr : type->convert(type::object::conversion_type::remove_ref, type);
 }
 
 void cminus::memory::reference::allocate_memory_(){
@@ -169,6 +184,16 @@ std::size_t cminus::memory::indirect_reference::write_ownership(std::shared_ptr<
 	type_ = type_->convert(type::object::conversion_type::remove_ref, type_);
 
 	return type_->get_size();
+}
+
+std::shared_ptr<cminus::type::object> cminus::memory::indirect_reference::get_decl_type() const{
+	if (type_ == nullptr)
+		return type_;
+
+	auto non_const_type = type_->convert(type::object::conversion_type::remove_const, type_);
+	std::shared_ptr<type::object> ref_type = std::make_shared<type::ref>(non_const_type);
+
+	return ((non_const_type == type_) ? ref_type : std::make_shared<type::constant>(ref_type));
 }
 
 std::size_t cminus::memory::indirect_reference::get_address() const{
