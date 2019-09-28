@@ -9,7 +9,7 @@
 #include "../memory/memory_reference.h"
 #include "../runtime/runtime_object.h"
 
-#include "../declaration/function_declaration_group_base.h"
+#include "../declaration/callable_declaration_group.h"
 
 #include "storage_exception.h"
 
@@ -100,7 +100,7 @@ namespace cminus::storage{
 
 		virtual void add_(std::shared_ptr<declaration::variable> entry, std::size_t address);
 
-		virtual void add_(std::shared_ptr<declaration::function_base> entry, std::size_t address);
+		virtual void add_(std::shared_ptr<declaration::callable> entry, std::size_t address);
 
 		virtual void add_(std::shared_ptr<attribute::object> entry);
 
@@ -123,7 +123,7 @@ namespace cminus::storage{
 		std::list<std::shared_ptr<memory::reference>> entries_;
 		std::unordered_map<std::string, std::shared_ptr<memory::reference>> named_entries_;
 
-		std::unordered_map<std::string, std::shared_ptr<declaration::function_group_base>> functions_;
+		std::unordered_map<std::string, std::shared_ptr<declaration::callable_group>> functions_;
 		std::unordered_map<std::string, std::shared_ptr<declaration::object>> declarations_;
 
 		std::unordered_map<std::string, std::shared_ptr<attribute::object>> attributes_;

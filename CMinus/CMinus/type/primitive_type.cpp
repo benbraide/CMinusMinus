@@ -332,7 +332,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::function_primitive::cas
 	if (function_target_type == nullptr)
 		return nullptr;
 
-	auto function_group = data->read_scalar<declaration::function_group_base *>();
+	auto function_group = data->read_scalar<declaration::callable_group *>();
 	if (function_group == nullptr || function_group->find(*function_target_type) == nullptr)
 		return nullptr;
 

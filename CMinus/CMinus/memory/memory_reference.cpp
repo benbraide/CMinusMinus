@@ -2,7 +2,7 @@
 #include "../type/modified_type.h"
 
 #include "../storage/global_storage.h"
-#include "../declaration/function_declaration_group_base.h"
+#include "../declaration/callable_declaration_group.h"
 
 #include "memory_reference.h"
 
@@ -150,17 +150,17 @@ cminus::memory::undefined_reference::undefined_reference(std::shared_ptr<referen
 
 cminus::memory::undefined_reference::~undefined_reference() = default;
 
-cminus::memory::function_reference::function_reference(declaration::function_group_base &entry, std::shared_ptr<reference> context)
+cminus::memory::function_reference::function_reference(declaration::callable_group &entry, std::shared_ptr<reference> context)
 	: reference(entry.get_address(), entry.get_type(), attribute::collection::list_type{}, context){}
 
-cminus::memory::function_reference::function_reference(declaration::function_group_base &entry, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
+cminus::memory::function_reference::function_reference(declaration::callable_group &entry, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
 	: reference(entry.get_address(), ((type == nullptr) ? entry.get_type() : type), attribute::collection::list_type{}, context){}
 
 cminus::memory::function_reference::function_reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
 	: reference(address, type, attribute::collection::list_type{}, context){}
 
-cminus::declaration::function_group_base *cminus::memory::function_reference::get_entry() const{
-	return read_scalar<declaration::function_group_base *>();
+cminus::declaration::callable_group *cminus::memory::function_reference::get_entry() const{
+	return read_scalar<declaration::callable_group *>();
 }
 
 cminus::memory::function_reference::~function_reference() = default;

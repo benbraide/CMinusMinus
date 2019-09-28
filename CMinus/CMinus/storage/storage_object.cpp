@@ -17,7 +17,7 @@ void cminus::storage::unnamed_object::add(std::shared_ptr<declaration::object> e
 	if (auto variable_entry = std::dynamic_pointer_cast<declaration::variable>(entry); variable_entry != nullptr)
 		return add_(variable_entry, address);
 
-	if (auto function_entry = std::dynamic_pointer_cast<declaration::function_base>(entry); function_entry != nullptr)
+	if (auto function_entry = std::dynamic_pointer_cast<declaration::callable>(entry); function_entry != nullptr)
 		return add_(function_entry, address);
 }
 
@@ -160,7 +160,7 @@ void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::variable
 	}
 }
 
-void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::function_base> entry, std::size_t address){
+void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::callable> entry, std::size_t address){
 	auto &name = entry->get_name();
 	if (exists_(name, entry_type::function))
 		throw exception::duplicate_entry();
@@ -175,14 +175,7 @@ void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::function
 		if (block == nullptr || block->get_address() == 0u)
 			throw memory::exception::allocation_failure();
 
-		std::shared_ptr<declaration::function_group_base> group;
-		if (dynamic_cast<declaration::constructor *>(entry.get()) != nullptr)//Constructor entry
-			group = std::make_shared<declaration::constructor_group>(name, this, block->get_address());
-		else if (dynamic_cast<declaration::destructor *>(entry.get()) != nullptr)//Destructor entry
-			group = std::make_shared<declaration::destructor_group>(name, this, block->get_address());
-		else//Normal function entry
-			group = std::make_shared<declaration::function_group>(name, this, block->get_address());
-
+		auto group = std::make_shared<declaration::function_group>(entry->get_id(), name, this, block->get_address());
 		if (group == nullptr)
 			throw memory::exception::allocation_failure();
 

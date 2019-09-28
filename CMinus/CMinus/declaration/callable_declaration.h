@@ -18,15 +18,22 @@ namespace cminus::node{
 
 namespace cminus::declaration{
 	class variable;
+	class callable_group;
 
-	template <class base_type>
-	class generic_function_group;
-
-	class function_base : public object{
+	class callable : public object{
 	public:
 		using object::object;
 
-		virtual ~function_base();
+		enum class id_type{
+			function,
+			operator_,
+			constructor,
+			destructor,
+		};
+
+		virtual ~callable();
+
+		virtual id_type get_id() const = 0;
 
 		virtual storage::object *get_parent() const = 0;
 
@@ -45,7 +52,7 @@ namespace cminus::declaration{
 		virtual std::shared_ptr<memory::reference> call(const std::list<std::shared_ptr<memory::reference>> &args) const;
 
 	protected:
-		template <class> friend class generic_function_group;
+		friend class callable_group;
 
 		virtual std::shared_ptr<memory::reference> call_(const std::list<std::shared_ptr<memory::reference>> &args) const = 0;
 	};

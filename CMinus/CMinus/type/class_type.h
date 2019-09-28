@@ -89,11 +89,7 @@ namespace cminus::type{
 
 		virtual unsigned int get_base_type_access_(const class_ &target, bool skip_immediate) const;
 
-		virtual declaration::function_group_base *find_function_(const std::string &name) const;
-
-		virtual declaration::constructor_group_base *get_constructor_() const;
-
-		virtual declaration::destructor_group_base *get_destructor_() const;
+		virtual declaration::callable_group *find_function_(const std::string &name) const;
 
 		std::list<member_variable_info> member_variables_;
 		std::unordered_map<std::string, member_variable_info *> member_variables_map_;

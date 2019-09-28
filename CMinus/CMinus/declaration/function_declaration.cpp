@@ -12,6 +12,10 @@
 
 cminus::declaration::function::~function() = default;
 
+cminus::declaration::callable::id_type cminus::declaration::function::get_id() const{
+	return id_type::function;
+}
+
 cminus::storage::object *cminus::declaration::function::get_parent() const{
 	return parent_;
 }

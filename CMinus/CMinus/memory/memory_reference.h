@@ -8,8 +8,9 @@
 
 
 namespace cminus::declaration{
-	class function_group_base;
+	class callable_group;
 }
+
 namespace cminus::memory{
 	class reference : public io::binary_writer, public io::binary_reader{
 	public:
@@ -102,15 +103,15 @@ namespace cminus::memory{
 
 	class function_reference : public reference{
 	public:
-		function_reference(declaration::function_group_base &entry, std::shared_ptr<reference> context);
+		function_reference(declaration::callable_group &entry, std::shared_ptr<reference> context);
 
-		function_reference(declaration::function_group_base &entry, std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
+		function_reference(declaration::callable_group &entry, std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
 
 		function_reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
 
 		virtual ~function_reference();
 
-		virtual declaration::function_group_base *get_entry() const;
+		virtual declaration::callable_group *get_entry() const;
 	};
 
 	class indirect_reference : public reference{

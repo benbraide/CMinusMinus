@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../declaration/function_declaration_base.h"
+#include "../declaration/callable_declaration.h"
 
 #include "storage_object.h"
 
 namespace cminus::storage{
 	class class_member : public unnamed_object{
 	public:
-		explicit class_member(const declaration::function_base &owner);
+		explicit class_member(const declaration::callable &owner);
 
 		virtual ~class_member();
 
@@ -19,12 +19,12 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<memory::reference> get_context() const;
 
-		virtual const declaration::function_base &get_owner() const;
+		virtual const declaration::callable &get_owner() const;
 
 	protected:
 		virtual void add_(std::shared_ptr<declaration::variable> entry, std::size_t address) override;
 
-		const declaration::function_base &owner_;
+		const declaration::callable &owner_;
 		std::shared_ptr<memory::reference> context_;
 	};
 

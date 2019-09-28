@@ -30,15 +30,22 @@ cminus::storage::object *cminus::type::class_::get_parent() const{
 }
 
 bool cminus::type::class_::is_constructible(std::shared_ptr<memory::reference> target) const{
-	auto constructor = get_constructor_();
-	return (constructor != nullptr && constructor->find(std::list<std::shared_ptr<memory::reference>>{ dummy_context_, target }) != nullptr);
+	auto constructor = find_function_(get_name());
+	if (constructor == nullptr || constructor->get_id() != declaration::callable::id_type::constructor)
+		return false;
+
+	return (constructor->find(std::list<std::shared_ptr<memory::reference>>{ dummy_context_, target }) != nullptr);
 }
 
 void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) const{
-	if (auto destructor = get_destructor_(); destructor != nullptr)
-		target = destructor->call(std::list<std::shared_ptr<memory::reference>>{ target });
-	else
-		throw runtime::exception::bad_destructor();
+	auto destructor = find_function_(("~" + get_name()));
+	if (destructor == nullptr)
+		throw declaration::exception::function_not_found();
+
+	if (destructor->get_id() == declaration::callable::id_type::destructor)
+		throw runtime::exception::bad_constructor();
+
+	target = destructor->call(std::list<std::shared_ptr<memory::reference>>{ target });
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::get_default_value(std::shared_ptr<type_base> self) const{
@@ -219,8 +226,11 @@ const std::list<cminus::type::class_::base_type_info> &cminus::type::class_::get
 }
 
 void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const{
-	auto constructor = get_constructor_();
+	auto constructor = find_function_(get_name());
 	if (constructor == nullptr)
+		throw declaration::exception::function_not_found();
+
+	if (constructor->get_id() != declaration::callable::id_type::constructor)
 		throw runtime::exception::bad_constructor();
 
 	auto computed_args = args;
@@ -355,19 +365,11 @@ unsigned int cminus::type::class_::get_base_type_access_(const class_ &target, b
 	return highest_access;
 }
 
-cminus::declaration::function_group_base *cminus::type::class_::find_function_(const std::string &name) const{
+cminus::declaration::callable_group *cminus::type::class_::find_function_(const std::string &name) const{
 	auto it = functions_.find(get_name());
 	if (it == functions_.end())
 		return nullptr;
 
 	auto function_entry = dynamic_cast<memory::function_reference *>(it->second.get());
 	return ((function_entry == nullptr) ? nullptr : function_entry->get_entry());
-}
-
-cminus::declaration::constructor_group_base *cminus::type::class_::get_constructor_() const{
-	return dynamic_cast<declaration::constructor_group_base *>(find_function_(get_name()));
-}
-
-cminus::declaration::destructor_group_base *cminus::type::class_::get_destructor_() const{
-	return dynamic_cast<declaration::destructor_group_base *>(find_function_("~" + get_name()));
 }

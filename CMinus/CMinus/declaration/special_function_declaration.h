@@ -16,6 +16,8 @@ namespace cminus::declaration{
 
 		virtual ~constructor();
 
+		virtual id_type get_id() const override;
+
 		virtual void add_init(std::shared_ptr<node::object> key, std::shared_ptr<node::object> initialization);
 
 	protected:
@@ -86,6 +88,8 @@ namespace cminus::declaration{
 		explicit destructor(type::class_ &parent);
 
 		virtual ~destructor();
+
+		virtual id_type get_id() const override;
 
 		virtual void add_parameter(std::shared_ptr<variable> value) override;
 

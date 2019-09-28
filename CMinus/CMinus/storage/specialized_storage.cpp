@@ -3,7 +3,7 @@
 
 #include "specialized_storage.h"
 
-cminus::storage::class_member::class_member(const declaration::function_base &owner)
+cminus::storage::class_member::class_member(const declaration::callable &owner)
 	: owner_(owner){}
 
 cminus::storage::class_member::~class_member(){
@@ -36,7 +36,7 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::class_member::get_co
 	return context_;
 }
 
-const cminus::declaration::function_base &cminus::storage::class_member::get_owner() const{
+const cminus::declaration::callable &cminus::storage::class_member::get_owner() const{
 	return owner_;
 }
 

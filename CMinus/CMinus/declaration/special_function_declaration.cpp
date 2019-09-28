@@ -10,6 +10,10 @@ cminus::declaration::constructor::constructor(type::class_ &parent)
 
 cminus::declaration::constructor::~constructor() = default;
 
+cminus::declaration::callable::id_type cminus::declaration::constructor::get_id() const{
+	return id_type::constructor;
+}
+
 void cminus::declaration::constructor::add_init(std::shared_ptr<node::object> key, std::shared_ptr<node::object> initialization){
 	init_list_.push_back(init_info{ key, initialization });
 }
@@ -177,6 +181,10 @@ cminus::declaration::destructor::destructor(type::class_ &parent)
 	: function(("~" + parent.get_name()), &parent, attribute::collection::list_type{}, flags::nil, nullptr){}
 
 cminus::declaration::destructor::~destructor() = default;
+
+cminus::declaration::callable::id_type cminus::declaration::destructor::get_id() const{
+	return id_type::destructor;
+}
 
 void cminus::declaration::destructor::add_parameter(std::shared_ptr<variable> value){
 	throw exception::bad_parameter_list();

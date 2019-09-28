@@ -3,18 +3,20 @@
 #include "../type/function_type.h"
 #include "../attribute/attribute_collection.h"
 
-#include "function_declaration_base.h"
+#include "callable_declaration.h"
 
 namespace cminus::declaration{
-	class function : public function_base{
+	class function : public callable{
 	public:
 		template <typename attributes_type>
 		function(const std::string &name, storage::object *parent, const attributes_type &attributes, unsigned int flags, std::shared_ptr<type::object> return_type)
-			: function_base(name, nullptr, attributes, flags), parent_(parent){
+			: callable(name, nullptr, attributes, flags), parent_(parent){
 			init_(return_type);
 		}
 
 		virtual ~function();
+
+		virtual id_type get_id() const override;
 
 		virtual storage::object *get_parent() const override;
 
