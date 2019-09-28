@@ -58,7 +58,9 @@ namespace cminus::storage{
 
 		virtual std::string_view get_string_value(std::shared_ptr<memory::reference> value) const;
 
-		virtual std::shared_ptr<memory::reference> get_constant_value(bool value) const;
+		virtual std::shared_ptr<memory::reference> get_boolean_value(bool value) const;
+
+		virtual std::shared_ptr<memory::reference> get_undefined_value() const;
 
 	protected:
 		std::unordered_map<evaluator_type, std::shared_ptr<evaluator::object>> evaluators_;

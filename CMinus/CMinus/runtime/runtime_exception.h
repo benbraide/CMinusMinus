@@ -17,6 +17,7 @@ namespace cminus::runtime::exception{
 		bad_scope_left,
 		bad_member_access_left,
 		bad_pointer_member_access_left,
+		out_of_range,
 	};
 
 	class base : public std::exception{
@@ -111,6 +112,15 @@ namespace cminus::runtime::exception{
 		bad_pointer_member_access_left();
 
 		virtual ~bad_pointer_member_access_left();
+
+		virtual code get_code() const override;
+	};
+
+	class out_of_range : public base{
+	public:
+		out_of_range();
+
+		virtual ~out_of_range();
 
 		virtual code get_code() const override;
 	};

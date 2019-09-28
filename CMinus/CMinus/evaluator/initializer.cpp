@@ -6,7 +6,7 @@ void cminus::evaluator::initializer::initialize(std::shared_ptr<memory::referenc
 	if (!target->is_lvalue())
 		throw exception::rval_assignment();
 
-	auto target_type = target->get_type(), value_type = value->get_type();
+	auto target_type = target->get_decl_type(), value_type = value->get_type();
 	if (target_type == nullptr || value_type == nullptr)
 		throw exception::invalid_type();
 

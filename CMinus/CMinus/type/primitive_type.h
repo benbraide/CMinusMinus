@@ -5,6 +5,12 @@
 #include "type_object.h"
 
 namespace cminus::type{
+	enum class boolean_constant : char{
+		false_,
+		true_,
+		indeterminate,
+	};
+
 	class primitive : public object{
 	public:
 		enum class id_type : char{

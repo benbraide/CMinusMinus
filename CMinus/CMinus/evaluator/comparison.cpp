@@ -122,7 +122,7 @@ bool cminus::evaluator::comparison::evaluate_string_(operators::id op, const std
 }
 
 cminus::evaluator::object::memory_ptr_type cminus::evaluator::comparison::create_value_(bool value) const{
-	return runtime::object::global_storage->get_constant_value(value);
+	return runtime::object::global_storage->get_boolean_value(value);
 }
 
 cminus::evaluator::pointer_comparison::~pointer_comparison() = default;
@@ -139,7 +139,7 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer_comparison
 	if ((compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::rval_static)) == nullptr){//Try casting left value
 		if ((compatible_left_value = left_type->cast(left_value, right_type, type::cast_type::rval_static)) != nullptr)
 			compatible_right_value = right_value;
-		else//Failed to convert both
+		else//Failed both conversions
 			throw exception::unsupported_op();
 	}
 

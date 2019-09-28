@@ -12,7 +12,14 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::expli
 	if (left_value == nullptr)
 		throw exception::unsupported_op();
 
-	auto right_value = right->evaluate();
+	memory_ptr_type right_value;
+	try{
+		right_value = right->evaluate();
+	}
+	catch (const storage::exception::entry_not_found &){
+		right_value = runtime::object::global_storage->get_undefined_value();
+	}
+
 	if (right_value == nullptr)
 		throw exception::unsupported_op();
 
@@ -24,7 +31,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::expli
 	auto non_ref_const_right_type = right_type->convert(type::object::conversion_type::remove_ref_const, right_type);
 
 	if (!non_ref_const_left_type->is_exact(*non_ref_const_right_type))
-		return runtime::object::global_storage->get_constant_value(!is_explicit_equal);
+		return runtime::object::global_storage->get_boolean_value(!is_explicit_equal);
 
 	auto comparison_evaluator = dynamic_cast<const comparison *>(this);
 	if (comparison_evaluator == nullptr)

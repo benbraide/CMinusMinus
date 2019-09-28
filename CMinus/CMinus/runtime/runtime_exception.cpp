@@ -82,3 +82,12 @@ cminus::runtime::exception::bad_pointer_member_access_left::~bad_pointer_member_
 cminus::runtime::exception::code cminus::runtime::exception::bad_pointer_member_access_left::get_code() const{
 	return code::bad_pointer_member_access_left;
 }
+
+cminus::runtime::exception::out_of_range::out_of_range()
+	: base("Specified index is out of range"){}
+
+cminus::runtime::exception::out_of_range::~out_of_range() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::out_of_range::get_code() const{
+	return code::out_of_range;
+}
