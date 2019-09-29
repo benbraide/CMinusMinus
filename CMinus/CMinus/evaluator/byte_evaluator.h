@@ -10,6 +10,8 @@ namespace cminus::evaluator{
 	public:
 		virtual ~byte();
 
+		virtual id_type get_id() const override;
+
 		virtual memory_ptr_type evaluate_unary_left(operators::id op, memory_ptr_type target) const override;
 
 		virtual memory_ptr_type evaluate_unary_right(operators::id op, memory_ptr_type target) const override;

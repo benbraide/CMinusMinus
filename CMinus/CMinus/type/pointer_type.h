@@ -21,6 +21,8 @@ namespace cminus::type{
 
 		virtual bool is(query_type type, const object *arg = nullptr) const override;
 
+		virtual evaluator::object::id_type get_evaluator_id() const override;
+
 	protected:
 		std::shared_ptr<object> base_type_;
 	};

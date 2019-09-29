@@ -53,6 +53,10 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::get_default_val
 }
 
 std::size_t cminus::type::class_::get_size() const{
+	return size_;
+}
+
+std::size_t cminus::type::class_::get_memory_size() const{
 	return ((size_ == 0u) ? 1u : size_);
 }
 

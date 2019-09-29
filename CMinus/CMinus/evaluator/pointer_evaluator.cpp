@@ -2,6 +2,10 @@
 
 cminus::evaluator::pointer::~pointer() = default;
 
+cminus::evaluator::object::id_type cminus::evaluator::pointer::get_id() const{
+	return id_type::pointer;
+}
+
 cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::pointer::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
 	auto is_dereference = (op == operators::id::times);
 	if (!is_dereference && op != operators::id::increment && op != operators::id::decrement)

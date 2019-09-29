@@ -4,6 +4,10 @@
 
 cminus::evaluator::boolean::~boolean() = default;
 
+cminus::evaluator::object::id_type cminus::evaluator::boolean::get_id() const{
+	return id_type::boolean;
+}
+
 cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::boolean::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
 	if (op == operators::id::relational_not){
 		attribute::read_guard guard(target, nullptr);

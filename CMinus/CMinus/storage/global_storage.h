@@ -10,20 +10,6 @@
 namespace cminus::storage{
 	class global : public named_object{
 	public:
-		enum class evaluator_type{
-			nil,
-			undefined,
-			boolean,
-			byte,
-			character,
-			floating_point,
-			integral,
-			nan,
-			pointer,
-			class_,
-			string,
-		};
-
 		enum class cached_type{
 			nil,
 			undefined,
@@ -32,7 +18,15 @@ namespace cminus::storage{
 			byte_,
 			char_,
 			wchar_,
+			number,
+			integer,
+			long_integer,
+			unsigned_integer,
+			unsigned_long_integer,
+			real,
+			long_real,
 			function,
+			nullptr_,
 			string,
 		};
 
@@ -44,7 +38,7 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<type::object> get_cached_type(const type::object &type) const;
 
-		virtual std::shared_ptr<evaluator::object> get_evaluator_for(const type::object &target_type) const;
+		virtual std::shared_ptr<evaluator::object> get_evaluator(evaluator::object::id_type type) const;
 
 		virtual std::shared_ptr<evaluator::initializer> get_default_initializer() const;
 
@@ -58,12 +52,21 @@ namespace cminus::storage{
 
 		virtual std::string_view get_string_value(std::shared_ptr<memory::reference> value) const;
 
+		virtual std::shared_ptr<memory::reference> get_boolean_value(type::boolean_constant value) const;
+
 		virtual std::shared_ptr<memory::reference> get_boolean_value(bool value) const;
+
+		virtual std::shared_ptr<memory::reference> get_nullptr_value() const;
 
 		virtual std::shared_ptr<memory::reference> get_undefined_value() const;
 
 	protected:
-		std::unordered_map<evaluator_type, std::shared_ptr<evaluator::object>> evaluators_;
+		std::unordered_map<cached_type, std::shared_ptr<type::object>> cached_types_;
+		std::unordered_map<evaluator::object::id_type, std::shared_ptr<evaluator::object>> evaluators_;
 		std::shared_ptr<evaluator::initializer> default_initializer_;
+
+		std::unordered_map<type::boolean_constant, std::shared_ptr<memory::reference>> boolean_values_;
+		std::shared_ptr<memory::reference> nullptr_value_;
+		std::shared_ptr<memory::reference> undefined_value_;
 	};
 }

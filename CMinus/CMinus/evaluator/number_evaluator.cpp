@@ -2,6 +2,10 @@
 
 cminus::evaluator::number::~number() = default;
 
+cminus::evaluator::object::id_type cminus::evaluator::number::get_id() const{
+	return id_type::number;
+}
+
 cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::number::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
 	return arithmetic::evaluate(op, target, true);
 }

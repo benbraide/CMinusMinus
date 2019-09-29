@@ -34,6 +34,14 @@ bool cminus::type::primitive::is(query_type type, const object *arg) const{
 	return (type == query_type::primitive || object::is(type, arg));
 }
 
+std::shared_ptr<cminus::evaluator::object> cminus::type::primitive::get_evaluator() const{
+	return runtime::object::global_storage->get_evaluator(get_evaluator_id());
+}
+
+cminus::evaluator::object::id_type cminus::type::primitive::get_evaluator_id() const{
+	return evaluator::object::id_type::nil;
+}
+
 std::string cminus::type::primitive::convert_id_to_string(id_type value){
 	switch (value){
 	case id_type::void_:
@@ -233,6 +241,10 @@ bool cminus::type::number_primitive::is(query_type type, const object *arg) cons
 	return false;
 }
 
+cminus::evaluator::object::id_type cminus::type::number_primitive::get_evaluator_id() const{
+	return evaluator::object::id_type::number;
+}
+
 bool cminus::type::number_primitive::is_nan(const memory::reference &data) const{
 	switch (state_){
 	case state_type::integer:
@@ -341,6 +353,10 @@ std::shared_ptr<cminus::memory::reference> cminus::type::function_primitive::cas
 
 bool cminus::type::function_primitive::is(query_type type, const object *arg) const{
 	return (type == query_type::function || type == query_type::generic_function || primitive::is(type, arg));
+}
+
+cminus::evaluator::object::id_type cminus::type::function_primitive::get_evaluator_id() const{
+	return evaluator::object::id_type::function;
 }
 
 cminus::type::auto_primitive::auto_primitive()

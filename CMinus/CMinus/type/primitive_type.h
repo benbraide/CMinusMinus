@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../runtime/string_conversions.h"
+#include "../evaluator/evaluator_object.h"
 
 #include "type_object.h"
 
@@ -33,6 +34,10 @@ namespace cminus::type{
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 
 		virtual bool is(query_type type, const object *arg = nullptr) const override;
+
+		virtual std::shared_ptr<evaluator::object> get_evaluator() const override;
+
+		virtual evaluator::object::id_type get_evaluator_id() const;
 
 		static std::string convert_id_to_string(id_type value);
 
@@ -90,7 +95,7 @@ namespace cminus::type{
 		virtual bool is(query_type type, const object *arg = nullptr) const override;
 	};
 
-	template <primitive::id_type id, object::query_type query, std::size_t size>
+	template <primitive::id_type id, object::query_type query, std::size_t size, evaluator::object::id_type evaluator_id>
 	class strict_primitive : public primitive{
 	public:
 		strict_primitive()
@@ -109,14 +114,18 @@ namespace cminus::type{
 		virtual bool is(query_type type, const object *arg = nullptr) const override{
 			return (type == query || primitive::is(type, arg));
 		}
+
+		virtual evaluator::object::id_type get_evaluator_id() const override{
+			return evaluator_id;
+		}
 	};
 
-	using void_primitive = strict_primitive<primitive::id_type::void_, object::query_type::void_, 0u>;
-	using bool_primitive = strict_primitive<primitive::id_type::bool_, object::query_type::boolean, 1u>;
-	using byte_primitive = strict_primitive<primitive::id_type::byte_, object::query_type::byte, 1u>;
+	using void_primitive = strict_primitive<primitive::id_type::void_, object::query_type::void_, 0u, evaluator::object::id_type::nil>;
+	using bool_primitive = strict_primitive<primitive::id_type::bool_, object::query_type::boolean, sizeof(boolean_constant), evaluator::object::id_type::boolean>;
+	using byte_primitive = strict_primitive<primitive::id_type::byte_, object::query_type::byte, 1u, evaluator::object::id_type::byte>;
 
-	using char_primitive = strict_primitive<primitive::id_type::char_, object::query_type::character, sizeof(char)>;
-	using wchar_primitive = strict_primitive<primitive::id_type::wchar_, object::query_type::character, sizeof(wchar_t)>;
+	using char_primitive = strict_primitive<primitive::id_type::char_, object::query_type::character, sizeof(char), evaluator::object::id_type::byte>;
+	using wchar_primitive = strict_primitive<primitive::id_type::wchar_, object::query_type::character, sizeof(wchar_t), evaluator::object::id_type::byte>;
 
 	class number_primitive : public primitive{
 	public:
@@ -147,6 +156,8 @@ namespace cminus::type{
 		virtual std::shared_ptr<object> convert(conversion_type type, std::shared_ptr<object> self_or_other = nullptr) const override;
 
 		virtual bool is(query_type type, const object *arg = nullptr) const override;
+
+		virtual evaluator::object::id_type get_evaluator_id() const override;
 
 		virtual bool is_nan(const memory::reference &data) const;
 
@@ -232,6 +243,8 @@ namespace cminus::type{
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 
 		virtual bool is(query_type type, const object *arg = nullptr) const override;
+
+		virtual evaluator::object::id_type get_evaluator_id() const override;
 	};
 
 	class auto_primitive : public primitive{
@@ -295,6 +308,96 @@ namespace cminus::type{
 	struct get_nan<long double>{
 		static constexpr long double value(){
 			return number_primitive::long_real_nan_value;
+		}
+	};
+
+	template <class target_type>
+	struct get_max_non_nan;
+
+	template <>
+	struct get_max_non_nan<__int32>{
+		static constexpr __int32 value(){
+			return std::numeric_limits<__int32>::max();
+		}
+	};
+
+	template <>
+	struct get_max_non_nan<__int64>{
+		static constexpr __int64 value(){
+			return std::numeric_limits<__int64>::max();
+		}
+	};
+
+	template <>
+	struct get_max_non_nan<unsigned __int32>{
+		static constexpr unsigned __int32 value(){
+			return (number_primitive::unsigned_integer_nan_value - 1ui32);
+		}
+	};
+
+	template <>
+	struct get_max_non_nan<unsigned __int64>{
+		static constexpr unsigned __int64 value(){
+			return (number_primitive::unsigned_long_integer_nan_value - 1ui64);
+		}
+	};
+
+	template <>
+	struct get_max_non_nan<float>{
+		static constexpr float value(){
+			return std::numeric_limits<float>::max();
+		}
+	};
+
+	template <>
+	struct get_max_non_nan<long double>{
+		static constexpr long double value(){
+			return std::numeric_limits<long double>::max();
+		}
+	};
+
+	template <class target_type>
+	struct get_min_non_nan;
+
+	template <>
+	struct get_min_non_nan<__int32>{
+		static constexpr __int32 value(){
+			return (number_primitive::integer_nan_value + 1i32);
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<__int64>{
+		static constexpr __int64 value(){
+			return (number_primitive::long_integer_nan_value + 1i64);
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<unsigned __int32>{
+		static constexpr unsigned __int32 value(){
+			return std::numeric_limits<unsigned __int32>::min();
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<unsigned __int64>{
+		static constexpr unsigned __int64 value(){
+			return std::numeric_limits<unsigned __int64>::min();
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<float>{
+		static constexpr float value(){
+			return (number_primitive::real_nan_value + 1.0f);
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<long double>{
+		static constexpr long double value(){
+			return (number_primitive::long_real_nan_value + 1.0l);
 		}
 	};
 }

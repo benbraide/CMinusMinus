@@ -130,3 +130,7 @@ bool cminus::type::pointer_primitive::is(query_type type, const object *arg) con
 
 	return primitive::is(type, arg);
 }
+
+cminus::evaluator::object::id_type cminus::type::pointer_primitive::get_evaluator_id() const{
+	return evaluator::object::id_type::pointer;
+}

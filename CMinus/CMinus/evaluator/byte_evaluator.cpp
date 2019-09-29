@@ -4,6 +4,10 @@
 
 cminus::evaluator::byte::~byte() = default;
 
+cminus::evaluator::object::id_type cminus::evaluator::byte::get_id() const{
+	return id_type::byte;
+}
+
 cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::byte::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
 	if (op == operators::id::bitwise_inverse && target->get_type()->is(type::object::query_type::byte)){
 		attribute::read_guard guard(target, nullptr);

@@ -89,7 +89,7 @@ std::size_t cminus::type::object::compute_base_offset(const object &base_type) c
 }
 
 std::shared_ptr<cminus::evaluator::object> cminus::type::object::get_evaluator() const{
-	return runtime::object::global_storage->get_evaluator_for(*this);
+	return nullptr;
 }
 
 std::shared_ptr<cminus::evaluator::initializer> cminus::type::object::get_initializer() const{

@@ -36,6 +36,8 @@ namespace cminus::type{
 
 		virtual std::size_t get_size() const override;
 
+		virtual std::size_t get_memory_size() const override;
+
 		virtual bool is_exact(const type_base &target) const override;
 
 		virtual int get_score(const type_base &target) const override;

@@ -5,7 +5,21 @@
 namespace cminus::evaluator{
 	class object : public explicit_comparison{
 	public:
+		enum class id_type{
+			nil,
+			undefined,
+			boolean,
+			byte,
+			number,
+			function,
+			pointer,
+			class_,
+			string,
+		};
+
 		virtual ~object();
+
+		virtual id_type get_id() const = 0;
 
 		virtual memory_ptr_type evaluate_unary_left(operators::id op, memory_ptr_type target) const = 0;
 
