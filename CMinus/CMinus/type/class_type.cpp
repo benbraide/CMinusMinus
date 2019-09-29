@@ -186,6 +186,10 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const std:
 	return nullptr;
 }
 
+cminus::declaration::callable_group *cminus::type::class_::find_operator(const type::object &target) const{
+	return find_operator(target.get_qname(), false);
+}
+
 const cminus::type::class_::member_variable_info *cminus::type::class_::find_non_static_member(const std::string &name) const{
 	std::lock_guard<std::mutex> guard(lock_);
 

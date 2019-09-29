@@ -19,13 +19,19 @@ bool cminus::type::modified::is(query_type type, const object *arg) const{
 
 cminus::type::constant::constant(std::shared_ptr<object> base_type)
 	: modified("", base_type){
-	if (base_type->is(query_type::pointer))
+	if (base_type_->is(query_type::pointer) && !base_type_->is(query_type::ref))
 		name_ = (base_type_->get_name() + "Const");
 	else
-		name_ = ("Const " + base_type->get_name());
+		name_ = ("Const " + base_type_->get_name());
 }
 
 cminus::type::constant::~constant() = default;
+
+std::string cminus::type::constant::get_qname() const{
+	if (base_type_->is(query_type::pointer) && !base_type_->is(query_type::ref))
+		return (base_type_->get_qname() + "Const");
+	return ("Const " + base_type_->get_qname());
+}
 
 bool cminus::type::constant::is_constructible(std::shared_ptr<memory::reference> target) const{
 	return base_type_->is_constructible(target);
@@ -65,13 +71,14 @@ bool cminus::type::constant::is(query_type type, const object *arg) const{
 
 cminus::type::ref::ref(std::shared_ptr<object> base_type)
 	: modified("", base_type){
-	if (base_type->is(query_type::pointer))
-		name_ = (base_type_->get_name() + "&");
-	else
-		name_ = (base_type_->get_name() + " &");
+	name_ = (base_type_->get_name() + "&");
 }
 
 cminus::type::ref::~ref() = default;
+
+std::string cminus::type::ref::get_qname() const{
+	return (base_type_->get_qname() + "&");
+}
 
 bool cminus::type::ref::is_exact(const object &target) const{
 	auto constant_target = dynamic_cast<ref *>(target.get_non_proxy());

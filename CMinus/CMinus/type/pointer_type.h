@@ -9,6 +9,8 @@ namespace cminus::type{
 
 		virtual ~pointer_primitive();
 
+		virtual std::string get_qname() const override;
+
 		virtual std::size_t get_size() const override;
 
 		virtual bool is_exact(const object &target) const override;

@@ -52,6 +52,10 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<memory::reference> find(const std::string &name, bool search_tree) const override;
 
+		virtual declaration::callable_group *find_operator(const std::string &name, bool search_tree) const override;
+
+		virtual declaration::callable_group *find_operator(operators::id id, bool search_tree) const override;
+
 		virtual std::shared_ptr<attribute::object> find_attribute(const std::string &name, bool search_tree) const override;
 
 		virtual std::shared_ptr<type::object> find_type(const std::string &name, bool search_tree) const override;

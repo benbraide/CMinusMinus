@@ -9,6 +9,7 @@
 #include "../memory/memory_reference.h"
 #include "../runtime/runtime_object.h"
 
+#include "../operators/operator_conversions.h"
 #include "../declaration/callable_declaration_group.h"
 
 #include "storage_exception.h"
@@ -49,6 +50,10 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<memory::reference> find(const std::string &name, bool search_tree) const = 0;
 
+		virtual declaration::callable_group *find_operator(const std::string &name, bool search_tree) const = 0;
+
+		virtual declaration::callable_group *find_operator(operators::id id, bool search_tree) const = 0;
+
 		virtual std::shared_ptr<attribute::object> find_attribute(const std::string &name, bool search_tree) const = 0;
 
 		virtual std::shared_ptr<type::object> find_type(const std::string &name, bool search_tree) const = 0;
@@ -87,6 +92,10 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<memory::reference> find(const std::string &name, bool search_tree) const override;
 
+		virtual declaration::callable_group *find_operator(const std::string &name, bool search_tree) const override;
+
+		virtual declaration::callable_group *find_operator(operators::id id, bool search_tree) const override;
+
 		virtual std::shared_ptr<attribute::object> find_attribute(const std::string &name, bool search_tree) const override;
 
 		virtual std::shared_ptr<type::object> find_type(const std::string &name, bool search_tree) const override;
@@ -114,6 +123,8 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<memory::reference> find_(const std::string &name) const;
 
+		virtual declaration::callable_group *find_operator_(const std::string &name) const;
+
 		virtual std::shared_ptr<attribute::object> find_attribute_(const std::string &name) const;
 
 		virtual std::shared_ptr<type::object> find_type_(const std::string &name) const;
@@ -125,8 +136,8 @@ namespace cminus::storage{
 
 		std::unordered_map<std::string, std::shared_ptr<declaration::callable_group>> functions_;
 		std::unordered_map<std::string, std::shared_ptr<declaration::object>> declarations_;
-
 		std::unordered_map<std::string, std::shared_ptr<attribute::object>> attributes_;
+
 		std::unordered_map<std::string, std::shared_ptr<type::object>> types_;
 		std::unordered_map<std::string, std::shared_ptr<object>> storages_;
 

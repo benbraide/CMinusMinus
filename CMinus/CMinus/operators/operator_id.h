@@ -40,6 +40,7 @@ namespace cminus::operators{
 		less_or_equal,
 		greater_or_equal,
 		greater,
+		spaceship,
 		new_,
 		delete_,
 		sizeof_,

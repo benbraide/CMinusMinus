@@ -81,6 +81,18 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::class_wrapper::find(
 	return nullptr;
 }
 
+cminus::declaration::callable_group *cminus::storage::class_wrapper::find_operator(const std::string &name, bool search_tree) const{
+	if (auto class_parent = dynamic_cast<type::class_ *>(context_->get_type().get()); class_parent != nullptr)
+		return class_parent->find_operator(name, false);
+	return nullptr;
+}
+
+cminus::declaration::callable_group *cminus::storage::class_wrapper::find_operator(operators::id id, bool search_tree) const{
+	if (auto class_parent = dynamic_cast<type::class_ *>(context_->get_type().get()); class_parent != nullptr)
+		return class_parent->find_operator(id, false);
+	return nullptr;
+}
+
 std::shared_ptr<cminus::attribute::object> cminus::storage::class_wrapper::find_attribute(const std::string &name, bool search_tree) const{
 	return nullptr;
 }

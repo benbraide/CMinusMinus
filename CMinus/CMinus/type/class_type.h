@@ -55,8 +55,11 @@ namespace cminus::type{
 		virtual void add_default_functions(bool add_on_empty);
 
 		using storage_base::find;
+		using storage_base::find_operator;
 
 		virtual std::shared_ptr<memory::reference> find(const std::string &name, std::shared_ptr<memory::reference> context, bool search_tree) const;
+
+		virtual declaration::callable_group *find_operator(const type::object &target) const;
 
 		virtual const member_variable_info *find_non_static_member(const std::string &name) const;
 

@@ -130,4 +130,40 @@ namespace cminus::declaration{
 
 		virtual bool is_defined() const override;
 	};
+
+	class operator_ : public function{
+	public:
+		explicit operator_(type::class_ &parent);
+
+		virtual ~operator_();
+
+		virtual id_type get_id() const override;
+
+		virtual void add_parameter(std::shared_ptr<variable> value) override;
+	};
+
+	class defined_operator : public operator_{
+	public:
+		using operator_::operator_;
+
+		virtual ~defined_operator();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+
+	protected:
+		std::shared_ptr<node::object> definition_;
+	};
+
+	class external_operator : public operator_{
+	public:
+		using operator_::operator_;
+
+		virtual ~external_operator();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+	};
 }

@@ -19,6 +19,10 @@ cminus::type::function::function(std::shared_ptr<object> return_type, std::list<
 
 cminus::type::function::~function() = default;
 
+std::string cminus::type::function::get_qname() const{
+	return qname_;
+}
+
 std::size_t cminus::type::function::get_size() const{
 	return 0u;
 }
@@ -65,21 +69,30 @@ bool cminus::type::function::is(query_type type, const object *arg) const{
 
 void cminus::type::function::add_parameter_type(std::shared_ptr<object> value){
 	parameter_types_.push_back(value);
+
 	name_.pop_back();//Erase ')'
+	qname_.pop_back();//Erase ')'
+
 	name_ += (", " + value->get_name() + ")");
+	qname_ += ("," + value->get_qname() + ")");
 }
 
 void cminus::type::function::compute_name_(){
-	std::string parameters_name;
+	std::string parameters_name, parameters_qname;
 
 	auto it = parameter_types_.begin();
-	if (it != parameter_types_.end())
+	if (it != parameter_types_.end()){
 		parameters_name = (*it)->get_name();
+		parameters_qname = (*it)->get_qname();
 
-	for (++it; it != parameter_types_.end(); ++it)
-		parameters_name += (", " + (*it)->get_name());
+		for (++it; it != parameter_types_.end(); ++it){
+			parameters_name += (", " + (*it)->get_name());
+			parameters_qname += ("," + (*it)->get_qname());
+		}
+	}
 
 	name_ = (((return_type_ == nullptr) ? "UndefinedType" : return_type_->get_name()) + "(" + parameters_name + ")");
+	qname_ = (((return_type_ == nullptr) ? "UndefinedType" : return_type_->get_qname()) + "(" + parameters_qname + ")");
 }
 
 bool cminus::type::function::is_exact_return_type_(const function &function_target) const{

@@ -239,3 +239,39 @@ cminus::declaration::default_destructor::~default_destructor() = default;
 bool cminus::declaration::default_destructor::is_defined() const{
 	return true;
 }
+
+cminus::declaration::operator_::operator_(type::class_ &parent)
+	: function(("~" + parent.get_name()), &parent, attribute::collection::list_type{}, flags::nil, nullptr){}
+
+cminus::declaration::operator_::~operator_() = default;
+
+cminus::declaration::callable::id_type cminus::declaration::operator_::get_id() const{
+	return id_type::operator_;
+}
+
+void cminus::declaration::operator_::add_parameter(std::shared_ptr<variable> value){
+	throw exception::bad_parameter_list();
+}
+
+cminus::declaration::defined_operator::~defined_operator() = default;
+
+void cminus::declaration::defined_operator::define(std::shared_ptr<node::object> definition){
+	if (definition_ == nullptr)
+		definition_ = definition;
+	else
+		throw exception::function_redefinition();
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::defined_operator::get_definition() const{
+	return definition_;
+}
+
+cminus::declaration::external_operator::~external_operator() = default;
+
+void cminus::declaration::external_operator::define(std::shared_ptr<node::object> definition){
+	throw exception::function_redefinition();
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::external_operator::get_definition() const{
+	return nullptr;
+}

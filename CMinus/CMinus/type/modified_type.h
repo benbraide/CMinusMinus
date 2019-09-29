@@ -25,6 +25,8 @@ namespace cminus::type{
 
 		virtual ~constant();
 
+		virtual std::string get_qname() const override;
+
 		virtual bool is_constructible(std::shared_ptr<memory::reference> target) const override;
 
 		virtual bool is_exact(const object &target) const override;
@@ -41,6 +43,8 @@ namespace cminus::type{
 		explicit ref(std::shared_ptr<object> base_type);
 
 		virtual ~ref();
+
+		virtual std::string get_qname() const override;
 
 		virtual bool is_exact(const object &target) const override;
 

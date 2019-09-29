@@ -69,6 +69,23 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::unnamed_object::find
 	return nullptr;
 }
 
+cminus::declaration::callable_group *cminus::storage::unnamed_object::find_operator(const std::string &name, bool search_tree) const{
+	{//Scoped lock
+		std::lock_guard<std::mutex> guard(lock_);
+		if (auto entry = find_operator_(name); entry != nullptr || !search_tree)
+			return entry;
+	}
+
+	if (auto parent = get_parent(); parent != nullptr)
+		return parent->find_operator(name, true);
+
+	return nullptr;
+}
+
+cminus::declaration::callable_group *cminus::storage::unnamed_object::find_operator(operators::id id, bool search_tree) const{
+	return find_operator(operators::convert_id_to_string(id), search_tree);
+}
+
 std::shared_ptr<cminus::attribute::object> cminus::storage::unnamed_object::find_attribute(const std::string &name, bool search_tree) const{
 	{//Scoped lock
 		std::lock_guard<std::mutex> guard(lock_);
@@ -242,6 +259,12 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::unnamed_object::find
 	if (auto function_it = functions_.find(name); function_it != functions_.end())
 		return std::make_shared<memory::function_reference>(*function_it->second, nullptr);
 
+	return nullptr;
+}
+
+cminus::declaration::callable_group *cminus::storage::unnamed_object::find_operator_(const std::string &name) const{
+	if (auto function_it = functions_.find(name); function_it != functions_.end())
+		return function_it->second.get();
 	return nullptr;
 }
 

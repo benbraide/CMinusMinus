@@ -3,15 +3,17 @@
 
 cminus::type::pointer_primitive::pointer_primitive(std::shared_ptr<object> base_type)
 	: primitive(""), base_type_(base_type){
-	if (base_type == nullptr)
+	if (base_type_ == nullptr)
 		name_ = "NullptrType";
-	else if (base_type->is(query_type::pointer))
-		name_ = (base_type_->get_name() + "*");
 	else
-		name_ = (base_type_->get_name() + " *");
+		name_ = (base_type_->get_name() + "*");
 }
 
 cminus::type::pointer_primitive::~pointer_primitive() = default;
+
+std::string cminus::type::pointer_primitive::get_qname() const{
+	return ((base_type_ == nullptr) ? "NullptrType" : (base_type_->get_qname() + "*"));
+}
 
 std::size_t cminus::type::pointer_primitive::get_size() const{
 	return sizeof(void *);

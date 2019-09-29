@@ -13,6 +13,8 @@ namespace cminus::type{
 
 		virtual ~function();
 
+		virtual std::string get_qname() const override;
+
 		virtual std::size_t get_size() const override;
 
 		virtual bool is_exact(const object &target) const override;
@@ -34,5 +36,6 @@ namespace cminus::type{
 
 		std::shared_ptr<object> return_type_;
 		std::list<std::shared_ptr<object>> parameter_types_;
+		std::string qname_;
 	};
 }
