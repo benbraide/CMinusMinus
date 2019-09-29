@@ -67,6 +67,8 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> find_static_member(const std::string &name) const;
 
+		virtual bool is_assignable_to(std::shared_ptr<type_base> target_type) const;
+
 		virtual bool is_base_type(const class_ &target, bool search_hierarchy) const;
 
 		virtual const std::list<member_variable_info> &get_member_variables() const;

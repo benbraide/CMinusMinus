@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../type/type_object.h"
-#include "../node/node_object.h"
+#include "../node/memory_reference_node.h"
 #include "../memory/memory_reference.h"
 
 #include "declaration_object.h"
@@ -9,6 +9,10 @@
 namespace cminus::declaration{
 	class variable : public object{
 	public:
+		template <typename attributes_type>
+		variable(const std::string &name, std::shared_ptr<type::object> type, const attributes_type &attributes, unsigned int flags, std::shared_ptr<memory::reference> initialization)
+			: variable(name, type, attributes, flags, std::make_shared<node::memory_reference>(initialization)){}
+
 		template <typename attributes_type>
 		variable(const std::string &name, std::shared_ptr<type::object> type, const attributes_type &attributes, unsigned int flags, std::shared_ptr<node::object> initialization)
 			: object(name, type, attributes, flags), initialization_(initialization){

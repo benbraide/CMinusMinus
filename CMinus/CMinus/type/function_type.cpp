@@ -64,7 +64,7 @@ bool cminus::type::function::is(query_type type, const object *arg) const{
 		return false;
 	}
 
-	return (type == query_type::function || object::is(type, arg));
+	return (type == query_type::function || type == query_type::primitive || object::is(type, arg));
 }
 
 void cminus::type::function::add_parameter_type(std::shared_ptr<object> value){

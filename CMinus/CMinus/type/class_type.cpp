@@ -88,6 +88,21 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::cast(std::share
 	if (type != cast_type::static_ && type != cast_type::rval_static)
 		return nullptr;
 
+	auto callable = find_operator(*target_type);
+	if (callable == nullptr){//Try other variants
+		auto non_const_target_type = target_type->convert(conversion_type::remove_const, target_type);
+		if (non_const_target_type != target_type)//Non-constant variant
+			callable = find_operator(*non_const_target_type);
+
+		if (callable == nullptr && !target_type->is(query_type::ref)){//Reference variant
+			auto ref_target_type = std::make_shared<ref>(target_type);
+			callable = find_operator(*ref_target_type);
+		}
+	}
+
+	if (callable != nullptr)
+		return callable->call(std::list<std::shared_ptr<memory::reference>>{ data });
+
 	auto is_ref = target_type->is(query_type::ref);
 	if (is_ref && !target_type->is(query_type::const_) && !data->is_lvalue())
 		return nullptr;
@@ -219,6 +234,22 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_static_mem
 		return it->second;
 
 	return nullptr;
+}
+
+bool cminus::type::class_::is_assignable_to(std::shared_ptr<type_base> target_type) const{
+	if (find_operator(*target_type) != nullptr)
+		return true;
+
+	auto non_const_target_type = target_type->convert(conversion_type::remove_const, target_type);
+	if (non_const_target_type != target_type && find_operator(*non_const_target_type) != nullptr)//Non-constant variant
+		return true;
+
+	if (!target_type->is(query_type::ref)){//Reference variant
+		auto ref_target_type = std::make_shared<ref>(target_type);
+		return (find_operator(*ref_target_type) != nullptr);
+	}
+
+	return false;
 }
 
 bool cminus::type::class_::is_base_type(const class_ &target, bool search_hierarchy) const{

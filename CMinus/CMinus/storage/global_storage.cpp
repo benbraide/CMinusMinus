@@ -1,6 +1,6 @@
-#include "../type/primitive_type.h"
 #include "../type/function_type.h"
 #include "../type/pointer_type.h"
+#include "../type/string_type.h"
 
 #include "../evaluator/initializer.h"
 #include "../evaluator/byte_evaluator.h"
@@ -62,6 +62,8 @@ cminus::storage::global::global()
 
 	nullptr_value_ = std::make_shared<memory::rval_reference>(0u, cached_types_[cached_type::nullptr_]);
 	undefined_value_ = std::make_shared<memory::rval_reference>(0u, cached_types_[cached_type::undefined]);
+
+	cached_types_[cached_type::string] = std::make_shared<type::string>();
 }
 
 cminus::storage::global::~global(){

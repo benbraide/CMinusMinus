@@ -133,12 +133,13 @@ cminus::declaration::copy_constructor::copy_constructor(type::class_ &parent)
 	other_type = std::make_shared<type::ref>(other_type);
 	other_type = std::make_shared<type::constant>(other_type);
 
+	std::shared_ptr<memory::reference> empty_initialization;
 	add_parameter(std::make_shared<variable>(
 		"other",								//Name
 		other_type,								//Type
 		attribute::collection::list_type{},		//Attributes
 		flags::nil,								//Flags
-		nullptr									//Initialization
+		empty_initialization					//Initialization
 	));
 }
 

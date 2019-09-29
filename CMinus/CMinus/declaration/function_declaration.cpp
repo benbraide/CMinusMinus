@@ -70,7 +70,9 @@ int cminus::declaration::function::get_score(const std::list<std::shared_ptr<mem
 	int lowest_rank_score = type::object::get_score_value(type::object::score_result_type::exact), current_rank_score;
 	auto param_is_const = false, param_is_ref = false, arg_is_lval = false, arg_is_const = false;
 
-	std::shared_ptr<type::object> variadic_base_type, param_type, non_ref_param_type, non_ref_const_param_type;
+	type::class_ *arg_class_type = nullptr;
+	std::shared_ptr<type::object> variadic_base_type, param_type, non_ref_param_type, non_ref_const_param_type, arg_type = (*arg_it)->get_type();
+
 	for (; arg_it != args.end(); ++arg_it){
 		if (variadic_base_type == nullptr){
 			if (param_it == parameter_list_.end())
@@ -88,6 +90,12 @@ int cminus::declaration::function::get_score(const std::list<std::shared_ptr<mem
 			param_is_ref = param_type->is(type::object::query_type::ref);
 		}
 
+		if ((arg_class_type = dynamic_cast<type::class_ *>(arg_type.get())) != nullptr && arg_class_type->is_assignable_to(param_type)){
+			if ((current_rank_score = type::object::get_score_value(type::object::score_result_type::class_compatible)) < lowest_rank_score)
+				lowest_rank_score = (current_rank_score - ((param_is_const == arg_is_const && param_is_ref == arg_is_lval) ? 0 : 1));
+			continue;
+		}
+
 		arg_is_lval = (*arg_it)->is_lvalue();
 		arg_is_const = (*arg_it)->is_const();
 
@@ -95,14 +103,15 @@ int cminus::declaration::function::get_score(const std::list<std::shared_ptr<mem
 			if (!param_is_const && (!arg_is_lval || arg_is_const))
 				current_rank_score = type::object::get_score_value(type::object::score_result_type::nil);
 			else
-				current_rank_score = (*arg_it)->get_type()->get_score(*non_ref_const_param_type);
+				current_rank_score = arg_type->get_score(*non_ref_const_param_type);
 		}
 		else
-			current_rank_score = (*arg_it)->get_type()->get_score(*non_ref_const_param_type);
+			current_rank_score = arg_type->get_score(*non_ref_const_param_type);
 
 		if (current_rank_score == type::object::get_score_value(type::object::score_result_type::nil)){
 			if ((param_is_ref && !param_is_const) || !non_ref_param_type->is_constructible(*arg_it))
 				return current_rank_score;
+
 			current_rank_score = type::object::get_score_value(type::object::score_result_type::class_compatible);
 		}
 
@@ -143,13 +152,14 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::function::call_(
 }
 
 void cminus::declaration::function::init_(std::shared_ptr<type::object> return_type){
+	std::shared_ptr<memory::reference> empty_initialization;
 	if (return_type != nullptr && !return_type->is(type::object::query_type::undefined)){
 		return_declaration_ = std::make_shared<variable>(
 			"",											//Name
 			return_type,								//Type
 			attribute::collection::list_type{},			//Attributes
 			flags::nil,									//Flags
-			nullptr										//Initialization
+			empty_initialization						//Initialization
 		);
 	}
 
@@ -167,7 +177,7 @@ void cminus::declaration::function::init_(std::shared_ptr<type::object> return_t
 			implicit_type,							//Type
 			attribute::collection::list_type{},		//Attributes
 			flags::nil,								//Flags
-			nullptr									//Initialization
+			empty_initialization					//Initialization
 		));
 	}
 }
@@ -245,12 +255,14 @@ void cminus::declaration::function::copy_args_(const std::list<std::shared_ptr<m
 	);
 
 	param_name = &variadic_declaration->get_name();
+	std::shared_ptr<memory::reference> empty_initialization;
+
 	auto computed_variadic_declaration = std::make_shared<variable>(
 		*param_name,
 		variadic_type,
 		variadic_declaration->get_attributes().get_list(),
 		flags::nil,
-		nullptr
+		empty_initialization
 	);
 
 	if (runtime::object::current_storage->exists(*param_name, storage::object::entry_type::mem_ref))
