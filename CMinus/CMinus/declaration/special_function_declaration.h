@@ -49,6 +49,8 @@ namespace cminus::declaration{
 		virtual void define(std::shared_ptr<node::object> definition) override;
 
 		virtual std::shared_ptr<node::object> get_definition() const override;
+
+		virtual bool is_defined() const override;
 	};
 
 	class default_constructor : public external_constructor{
@@ -56,12 +58,6 @@ namespace cminus::declaration{
 		explicit default_constructor(type::class_ &parent);
 
 		virtual ~default_constructor();
-
-		virtual void add_parameter(std::shared_ptr<variable> value) override;
-
-		virtual bool is_defined() const override;
-
-		virtual void add_init(std::shared_ptr<node::object> key, std::shared_ptr<node::object> initialization);
 
 	protected:
 		virtual void evaluate_body_() const override;
@@ -72,12 +68,6 @@ namespace cminus::declaration{
 		explicit copy_constructor(type::class_ &parent);
 
 		virtual ~copy_constructor();
-
-		virtual void add_parameter(std::shared_ptr<variable> value) override;
-
-		virtual bool is_defined() const override;
-
-		virtual void add_init(std::shared_ptr<node::object> key, std::shared_ptr<node::object> initialization);
 
 	protected:
 		virtual void evaluate_body_() const override;
@@ -90,8 +80,6 @@ namespace cminus::declaration{
 		virtual ~destructor();
 
 		virtual id_type get_id() const override;
-
-		virtual void add_parameter(std::shared_ptr<variable> value) override;
 
 	protected:
 		virtual void evaluate_body_() const override;
@@ -120,6 +108,8 @@ namespace cminus::declaration{
 		virtual void define(std::shared_ptr<node::object> definition) override;
 
 		virtual std::shared_ptr<node::object> get_definition() const override;
+
+		virtual bool is_defined() const override;
 	};
 
 	class default_destructor : public external_destructor{
@@ -127,8 +117,6 @@ namespace cminus::declaration{
 		explicit default_destructor(type::class_ &parent);
 
 		virtual ~default_destructor();
-
-		virtual bool is_defined() const override;
 	};
 
 	class operator_ : public function{
@@ -165,5 +153,7 @@ namespace cminus::declaration{
 		virtual void define(std::shared_ptr<node::object> definition) override;
 
 		virtual std::shared_ptr<node::object> get_definition() const override;
+
+		virtual bool is_defined() const override;
 	};
 }

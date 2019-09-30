@@ -72,5 +72,7 @@ namespace cminus::declaration{
 		virtual void define(std::shared_ptr<node::object> definition) override;
 
 		virtual std::shared_ptr<node::object> get_definition() const override;
+
+		virtual bool is_defined() const override;
 	};
 }

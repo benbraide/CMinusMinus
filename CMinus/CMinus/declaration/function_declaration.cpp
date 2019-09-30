@@ -314,3 +314,7 @@ void cminus::declaration::external_function::define(std::shared_ptr<node::object
 std::shared_ptr<cminus::node::object> cminus::declaration::external_function::get_definition() const{
 	return nullptr;
 }
+
+bool cminus::declaration::external_function::is_defined() const{
+	return true;
+}

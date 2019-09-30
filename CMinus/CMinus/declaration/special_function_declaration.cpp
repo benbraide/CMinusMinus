@@ -92,22 +92,14 @@ std::shared_ptr<cminus::node::object> cminus::declaration::external_constructor:
 	return nullptr;
 }
 
+bool cminus::declaration::external_constructor::is_defined() const{
+	return true;
+}
+
 cminus::declaration::default_constructor::default_constructor(type::class_ &parent)
 	: external_constructor(parent){}
 
 cminus::declaration::default_constructor::~default_constructor() = default;
-
-void cminus::declaration::default_constructor::add_parameter(std::shared_ptr<variable> value){
-	throw exception::bad_parameter_list();
-}
-
-bool cminus::declaration::default_constructor::is_defined() const{
-	return true;
-}
-
-void cminus::declaration::default_constructor::add_init(std::shared_ptr<node::object> key, std::shared_ptr<node::object> initialization){
-	throw exception::bad_init_list();
-}
 
 void cminus::declaration::default_constructor::evaluate_body_() const{
 	auto self = runtime::object::current_storage->find("self", false);
@@ -145,19 +137,6 @@ cminus::declaration::copy_constructor::copy_constructor(type::class_ &parent)
 
 cminus::declaration::copy_constructor::~copy_constructor() = default;
 
-void cminus::declaration::copy_constructor::add_parameter(std::shared_ptr<variable> value){
-	if (2u <= parameter_list_.size())
-		throw exception::bad_parameter_list();
-}
-
-bool cminus::declaration::copy_constructor::is_defined() const{
-	return true;
-}
-
-void cminus::declaration::copy_constructor::add_init(std::shared_ptr<node::object> key, std::shared_ptr<node::object> initialization){
-	throw exception::bad_init_list();
-}
-
 void cminus::declaration::copy_constructor::evaluate_body_() const{
 	auto self = runtime::object::current_storage->find("self", false);
 	auto other = runtime::object::current_storage->find("other", false);
@@ -185,10 +164,6 @@ cminus::declaration::destructor::~destructor() = default;
 
 cminus::declaration::callable::id_type cminus::declaration::destructor::get_id() const{
 	return id_type::destructor;
-}
-
-void cminus::declaration::destructor::add_parameter(std::shared_ptr<variable> value){
-	throw exception::bad_parameter_list();
 }
 
 void cminus::declaration::destructor::evaluate_body_() const{
@@ -232,14 +207,14 @@ std::shared_ptr<cminus::node::object> cminus::declaration::external_destructor::
 	return nullptr;
 }
 
+bool cminus::declaration::external_destructor::is_defined() const{
+	return true;
+}
+
 cminus::declaration::default_destructor::default_destructor(type::class_ &parent)
 	: external_destructor(parent){}
 
 cminus::declaration::default_destructor::~default_destructor() = default;
-
-bool cminus::declaration::default_destructor::is_defined() const{
-	return true;
-}
 
 cminus::declaration::operator_::operator_(type::class_ &parent)
 	: function(("~" + parent.get_name()), &parent, attribute::collection::list_type{}, flags::nil, nullptr){}
@@ -275,4 +250,8 @@ void cminus::declaration::external_operator::define(std::shared_ptr<node::object
 
 std::shared_ptr<cminus::node::object> cminus::declaration::external_operator::get_definition() const{
 	return nullptr;
+}
+
+bool cminus::declaration::external_operator::is_defined() const{
+	return true;
 }
