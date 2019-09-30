@@ -9,6 +9,15 @@ cminus::declaration::exception::code cminus::declaration::exception::unnamed::ge
 	return code_;
 }
 
+cminus::declaration::exception::bad_declaration::bad_declaration()
+	: base("Declaration is ill-formed"){}
+
+cminus::declaration::exception::bad_declaration::~bad_declaration() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::bad_declaration::get_code() const{
+	return code::bad_declaration;
+}
+
 cminus::declaration::exception::initialization_required::initialization_required()
 	: base("Declaration must be initialized"){}
 

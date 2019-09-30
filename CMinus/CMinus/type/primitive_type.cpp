@@ -214,8 +214,8 @@ std::shared_ptr<cminus::type::object> cminus::type::number_primitive::convert(co
 		return primitive::convert(type, self_or_other);
 
 	auto number_other = dynamic_cast<number_primitive *>(self_or_other->get_non_proxy());
-	if (number_other == nullptr)
-		return nullptr;//Incompatible types
+	if (number_other == nullptr || number_other->state_ == state_type::nil)
+		return std::make_shared<number_primitive>(state_type::integer);
 
 	return std::make_shared<number_primitive>(number_other->state_);
 }

@@ -5,6 +5,7 @@
 namespace cminus::declaration::exception{
 	enum class code{
 		nil,
+		bad_declaration,
 		initialization_required,
 		function_redefinition,
 		function_redeclaration,
@@ -40,6 +41,15 @@ namespace cminus::declaration::exception{
 
 	protected:
 		code code_;
+	};
+
+	class bad_declaration : public base{
+	public:
+		bad_declaration();
+
+		virtual ~bad_declaration();
+
+		virtual code get_code() const override;
 	};
 
 	class initialization_required : public base{

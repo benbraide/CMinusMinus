@@ -11,7 +11,7 @@ cminus::type::class_::class_(const std::string &name, storage_base *parent)
 	class_context_ = std::make_shared<memory::rval_reference>(0u, std::make_shared<type::proxy>(*this));
 	dummy_context_ = std::make_shared<memory::reference>(
 		0u,
-		std::make_shared<type::proxy>(*this),
+		class_context_->get_type(),
 		attribute::collection::list_type{},
 		nullptr
 	);
