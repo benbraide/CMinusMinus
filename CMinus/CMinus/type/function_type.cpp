@@ -2,8 +2,8 @@
 
 #include "function_type.h"
 
-cminus::type::function::function(std::shared_ptr<object> return_type)
-	: object("", nullptr), return_type_(return_type){
+cminus::type::function::function(bool is_constant, std::shared_ptr<object> return_type)
+	: object("", nullptr), is_constant_(is_constant), return_type_(return_type){
 	compute_name_();
 }
 
@@ -69,12 +69,8 @@ bool cminus::type::function::is(query_type type, const object *arg) const{
 
 void cminus::type::function::add_parameter_type(std::shared_ptr<object> value){
 	parameter_types_.push_back(value);
-
-	name_.pop_back();//Erase ')'
-	qname_.pop_back();//Erase ')'
-
-	name_ += (", " + value->get_name() + ")");
-	qname_ += ("," + value->get_qname() + ")");
+	name_.insert(name_.find_last_of(')'), ("," + value->get_name()));
+	qname_.insert(qname_.find_last_of(')'), ("," + value->get_name()));
 }
 
 void cminus::type::function::compute_name_(){
@@ -86,13 +82,13 @@ void cminus::type::function::compute_name_(){
 		parameters_qname = (*it)->get_qname();
 
 		for (++it; it != parameter_types_.end(); ++it){
-			parameters_name += (", " + (*it)->get_name());
+			parameters_name += ("," + (*it)->get_name());
 			parameters_qname += ("," + (*it)->get_qname());
 		}
 	}
 
-	name_ = (((return_type_ == nullptr) ? "UndefinedType" : return_type_->get_name()) + "(" + parameters_name + ")");
-	qname_ = (((return_type_ == nullptr) ? "UndefinedType" : return_type_->get_qname()) + "(" + parameters_qname + ")");
+	name_ = (((return_type_ == nullptr) ? "UndefinedType" : return_type_->get_name()) + "(" + parameters_name + (is_constant_ ? ")Const" : ")"));
+	qname_ = (((return_type_ == nullptr) ? "UndefinedType" : return_type_->get_qname()) + "(" + parameters_qname + (is_constant_ ? ")Const" : ")"));
 }
 
 bool cminus::type::function::is_exact_return_type_(const function &function_target) const{
@@ -106,7 +102,7 @@ bool cminus::type::function::is_exact_return_type_(const function &function_targ
 }
 
 bool cminus::type::function::is_exact_parameter_types_(const function &function_target) const{
-	if (parameter_types_.size() != function_target.parameter_types_.size())
+	if (is_constant_ != function_target.is_constant_ || parameter_types_.size() != function_target.parameter_types_.size())
 		return false;
 
 	for (auto it = parameter_types_.begin(), target_it = function_target.parameter_types_.begin(); it != parameter_types_.end(); ++it, ++target_it){

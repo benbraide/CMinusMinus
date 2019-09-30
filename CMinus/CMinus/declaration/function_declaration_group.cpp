@@ -43,14 +43,14 @@ std::shared_ptr<cminus::declaration::callable> cminus::declaration::function_gro
 	return nullptr;
 }
 
-std::shared_ptr<cminus::declaration::callable> cminus::declaration::function_group::find(const std::list<std::shared_ptr<memory::reference>> &args, std::size_t *count) const{
+std::shared_ptr<cminus::declaration::callable> cminus::declaration::function_group::find(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{
 	auto highest_rank_score = type::object::get_score_value(type::object::score_result_type::nil), current_rank_score = highest_rank_score;
 
 	std::size_t match_count = 0u;
 	std::shared_ptr<callable> highest_ranked;
 
 	for (auto entry : entries_){
-		if (highest_rank_score < (current_rank_score = entry->get_score(args))){
+		if (highest_rank_score < (current_rank_score = entry->get_score(context, args))){
 			highest_rank_score = current_rank_score;
 			highest_ranked = entry;
 			match_count = 1u;
@@ -59,8 +59,8 @@ std::shared_ptr<cminus::declaration::callable> cminus::declaration::function_gro
 			++match_count;
 	}
 
-	if (count != nullptr)//Update count
-		*count = ((highest_ranked == nullptr) ? 0u : match_count);
+	if (1u < match_count)
+		throw exception::ambiguous_function_call();
 
 	return highest_ranked;
 }

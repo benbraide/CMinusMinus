@@ -34,7 +34,7 @@ bool cminus::type::class_::is_constructible(std::shared_ptr<memory::reference> t
 	if (constructor == nullptr || constructor->get_id() != declaration::callable::id_type::constructor)
 		return false;
 
-	return (constructor->find(std::list<std::shared_ptr<memory::reference>>{ dummy_context_, target }) != nullptr);
+	return (constructor->find(dummy_context_, std::list<std::shared_ptr<memory::reference>>{ target }) != nullptr);
 }
 
 void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) const{
@@ -45,7 +45,7 @@ void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) c
 	if (destructor->get_id() == declaration::callable::id_type::destructor)
 		throw runtime::exception::bad_constructor();
 
-	target = destructor->call(std::list<std::shared_ptr<memory::reference>>{ target });
+	target = destructor->call(target, std::list<std::shared_ptr<memory::reference>>{});
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::get_default_value(std::shared_ptr<type_base> self) const{
@@ -101,7 +101,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::cast(std::share
 	}
 
 	if (callable != nullptr)
-		return callable->call(std::list<std::shared_ptr<memory::reference>>{ data });
+		return callable->call(data, std::list<std::shared_ptr<memory::reference>>{});
 
 	auto is_ref = target_type->is(query_type::ref);
 	if (is_ref && !target_type->is(query_type::const_) && !data->is_lvalue())
@@ -170,19 +170,19 @@ void cminus::type::class_::add_base(unsigned int access, std::shared_ptr<class_>
 void cminus::type::class_::add_default_functions(bool add_on_empty){
 	if (!add_on_empty || storage_base::find(get_name(), false) == nullptr){//No constructor defined
 		try{
-			add(std::make_shared<declaration::default_constructor>(*this), 0u);
+			add(std::make_shared<declaration::default_constructor>(*this, attribute::collection::list_type{}, declaration::flags::nil), 0u);
 		}
 		catch (const declaration::exception::base &){}
 
 		try{
-			add(std::make_shared<declaration::copy_constructor>(*this), 0u);
+			add(std::make_shared<declaration::copy_constructor>(*this, attribute::collection::list_type{}, declaration::flags::nil), 0u);
 		}
 		catch (const declaration::exception::base &){}
 	}
 
 	if (storage_base::find(("~" + get_name()), false) == nullptr){//No destructor defined
 		try{
-			add(std::make_shared<declaration::default_destructor>(*this), 0u);
+			add(std::make_shared<declaration::default_destructor>(*this, attribute::collection::list_type{}, declaration::flags::nil), 0u);
 		}
 		catch (const declaration::exception::base &){}
 	}
@@ -272,9 +272,7 @@ void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target,
 	if (constructor->get_id() != declaration::callable::id_type::constructor)
 		throw runtime::exception::bad_constructor();
 
-	auto computed_args = args;
-	computed_args.insert(computed_args.begin(), target);
-	target = constructor->call(computed_args);
+	target = constructor->call(target, args);
 }
 
 void cminus::type::class_::add_(std::shared_ptr<declaration::variable> entry, std::size_t address){

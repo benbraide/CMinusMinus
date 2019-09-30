@@ -1,18 +1,74 @@
 #pragma once
 
 #include "../type/class_type.h"
+#include "../type/proxy_type.h"
+#include "../type/modified_type.h"
 
+#include "variable_declaration.h"
 #include "function_declaration.h"
 
 namespace cminus::declaration{
-	class constructor : public function{
+	class member_function : public function{
+	public:
+		template <typename attributes_type>
+		member_function(const std::string &name, type::class_ &parent, const attributes_type &attributes, unsigned int flags, std::shared_ptr<type::object> return_type)
+			: function(name, &parent, attributes, flags, return_type){
+			init_context_(parent);
+		}
+
+		virtual ~member_function();
+
+		virtual id_type get_id() const override;
+
+	protected:
+		virtual int get_context_score_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const override;
+
+		virtual void copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const override;
+
+		virtual std::size_t get_args_count_(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const override;
+
+		virtual void init_context_(type::class_ &parent);
+
+		std::shared_ptr<type::object> context_type_;
+	};
+
+	class defined_member_function : public member_function{
+	public:
+		using member_function::member_function;
+
+		virtual ~defined_member_function();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+
+	protected:
+		std::shared_ptr<node::object> definition_;
+	};
+
+	class external_member_function : public member_function{
+	public:
+		using member_function::member_function;
+
+		virtual ~external_member_function();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+
+		virtual bool is_defined() const override;
+	};
+
+	class constructor : public member_function{
 	public:
 		struct init_info{
 			std::shared_ptr<node::object> key;
 			std::shared_ptr<node::object> initialization;
 		};
 
-		explicit constructor(type::class_ &parent);
+		template <typename attributes_type>
+		constructor(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
+			: member_function(parent.get_name(), parent, attributes, (flags & ~(declaration::flags::const_ | declaration::flags::static_)), nullptr){}
 
 		virtual ~constructor();
 
@@ -55,7 +111,7 @@ namespace cminus::declaration{
 
 	class default_constructor : public external_constructor{
 	public:
-		explicit default_constructor(type::class_ &parent);
+		using external_constructor::external_constructor;
 
 		virtual ~default_constructor();
 
@@ -65,7 +121,23 @@ namespace cminus::declaration{
 
 	class copy_constructor : public external_constructor{
 	public:
-		explicit copy_constructor(type::class_ &parent);
+		template <typename attributes_type>
+		explicit copy_constructor(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
+			: external_constructor(parent, attributes, flags){
+			std::shared_ptr<type::object> other_type = std::make_shared<type::proxy>(parent);
+
+			other_type = std::make_shared<type::ref>(other_type);
+			other_type = std::make_shared<type::constant>(other_type);
+
+			std::shared_ptr<memory::reference> empty_initialization;
+			add_parameter(std::make_shared<variable>(
+				"other",								//Name
+				other_type,								//Type
+				attribute::collection::list_type{},		//Attributes
+				flags::nil,								//Flags
+				empty_initialization					//Initialization
+			));
+		}
 
 		virtual ~copy_constructor();
 
@@ -73,9 +145,11 @@ namespace cminus::declaration{
 		virtual void evaluate_body_() const override;
 	};
 
-	class destructor : public function{
+	class destructor : public member_function{
 	public:
-		explicit destructor(type::class_ &parent);
+		template <typename attributes_type>
+		explicit destructor(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
+			: member_function(("~" + parent.get_name()), parent, attributes, (flags & ~(declaration::flags::const_ | declaration::flags::static_)), nullptr){}
 
 		virtual ~destructor();
 
@@ -114,14 +188,14 @@ namespace cminus::declaration{
 
 	class default_destructor : public external_destructor{
 	public:
-		explicit default_destructor(type::class_ &parent);
+		using external_destructor::external_destructor;
 
 		virtual ~default_destructor();
 	};
 
-	class operator_ : public function{
+	class operator_ : public member_function{
 	public:
-		explicit operator_(type::class_ &parent);
+		using member_function::member_function;
 
 		virtual ~operator_();
 

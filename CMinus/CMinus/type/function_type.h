@@ -5,7 +5,7 @@
 namespace cminus::type{
 	class function : public object{
 	public:
-		explicit function(std::shared_ptr<object> return_type);
+		function(bool is_constant, std::shared_ptr<object> return_type);
 
 		function(std::shared_ptr<object> return_type, const std::list<std::shared_ptr<object>> &parameter_types);
 
@@ -34,6 +34,7 @@ namespace cminus::type{
 
 		virtual bool is_exact_parameter_types_(const function &function_target) const;
 
+		bool is_constant_;
 		std::shared_ptr<object> return_type_;
 		std::list<std::shared_ptr<object>> parameter_types_;
 		std::string qname_;

@@ -1,12 +1,82 @@
-#include "../type/proxy_type.h"
-#include "../type/class_type.h"
-#include "../type/modified_type.h"
-
-#include "variable_declaration.h"
 #include "special_function_declaration.h"
 
-cminus::declaration::constructor::constructor(type::class_ &parent)
-	: function(parent.get_name(), &parent, attribute::collection::list_type{}, flags::nil, nullptr){}
+cminus::declaration::member_function::~member_function() = default;
+
+cminus::declaration::callable::id_type cminus::declaration::member_function::get_id() const{
+	return id_type::member;
+}
+
+int cminus::declaration::member_function::get_context_score_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const{
+	if (context == nullptr)
+		return type::object::get_score_value(is(flags::static_) ? type::object::score_result_type::exact : type::object::score_result_type::nil);
+
+	auto context_type = context->get_type();
+	auto context_class_type = dynamic_cast<type::class_ *>(context_type.get());
+
+	if (context_class_type == nullptr || context_class_type->compute_base_offset(*context_type_))
+		return type::object::get_score_value(type::object::score_result_type::nil);
+
+	if (context->is_const())
+		return type::object::get_score_value(context_type_->is(type::object::query_type::const_) ? type::object::score_result_type::exact : type::object::score_result_type::nil);
+
+	if (context_type_->is(type::object::query_type::const_))//Gains constant state
+		return (type::object::get_score_value(type::object::score_result_type::exact) - 1);
+
+	return type::object::get_score_value(type::object::score_result_type::exact);
+}
+
+void cminus::declaration::member_function::copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const{
+	auto entry = std::make_shared<memory::indirect_reference>(context_type_, attribute::collection::list_type{}, nullptr);
+	if (entry == nullptr)
+		throw memory::exception::allocation_failure();
+
+	entry->write_address(context->get_address());
+	runtime::object::current_storage->add_entry("self", entry);
+}
+
+std::size_t cminus::declaration::member_function::get_args_count_(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{
+	return args.size();
+}
+
+void cminus::declaration::member_function::init_context_(type::class_ &parent){
+	if (is(flags::static_))//Context not required
+		return;
+
+	context_type_ = std::make_shared<type::proxy>(parent);
+	context_type_ = std::make_shared<type::ref>(context_type_);
+
+	if (is(flags::const_))//Constant function -- Make context type constant
+		context_type_ = std::make_shared<type::constant>(context_type_);
+
+	type_->add_parameter_type(context_type_);
+}
+
+cminus::declaration::defined_member_function::~defined_member_function() = default;
+
+void cminus::declaration::defined_member_function::define(std::shared_ptr<node::object> definition){
+	if (definition_ == nullptr)
+		definition_ = definition;
+	else
+		throw exception::function_redefinition();
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::defined_member_function::get_definition() const{
+	return definition_;
+}
+
+cminus::declaration::external_member_function::~external_member_function() = default;
+
+void cminus::declaration::external_member_function::define(std::shared_ptr<node::object> definition){
+	throw exception::function_redefinition();
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::external_member_function::get_definition() const{
+	return nullptr;
+}
+
+bool cminus::declaration::external_member_function::is_defined() const{
+	return true;
+}
 
 cminus::declaration::constructor::~constructor() = default;
 
@@ -96,9 +166,6 @@ bool cminus::declaration::external_constructor::is_defined() const{
 	return true;
 }
 
-cminus::declaration::default_constructor::default_constructor(type::class_ &parent)
-	: external_constructor(parent){}
-
 cminus::declaration::default_constructor::~default_constructor() = default;
 
 void cminus::declaration::default_constructor::evaluate_body_() const{
@@ -116,23 +183,6 @@ void cminus::declaration::default_constructor::evaluate_body_() const{
 			class_parent->find(member_variable.value->get_name(), self, false)
 		);
 	}
-}
-
-cminus::declaration::copy_constructor::copy_constructor(type::class_ &parent)
-	: external_constructor(parent){
-	std::shared_ptr<type::object> other_type = std::make_shared<type::proxy>(parent);
-
-	other_type = std::make_shared<type::ref>(other_type);
-	other_type = std::make_shared<type::constant>(other_type);
-
-	std::shared_ptr<memory::reference> empty_initialization;
-	add_parameter(std::make_shared<variable>(
-		"other",								//Name
-		other_type,								//Type
-		attribute::collection::list_type{},		//Attributes
-		flags::nil,								//Flags
-		empty_initialization					//Initialization
-	));
 }
 
 cminus::declaration::copy_constructor::~copy_constructor() = default;
@@ -156,9 +206,6 @@ void cminus::declaration::copy_constructor::evaluate_body_() const{
 		);
 	}
 }
-
-cminus::declaration::destructor::destructor(type::class_ &parent)
-	: function(("~" + parent.get_name()), &parent, attribute::collection::list_type{}, flags::nil, nullptr){}
 
 cminus::declaration::destructor::~destructor() = default;
 
@@ -211,13 +258,7 @@ bool cminus::declaration::external_destructor::is_defined() const{
 	return true;
 }
 
-cminus::declaration::default_destructor::default_destructor(type::class_ &parent)
-	: external_destructor(parent){}
-
 cminus::declaration::default_destructor::~default_destructor() = default;
-
-cminus::declaration::operator_::operator_(type::class_ &parent)
-	: function(("~" + parent.get_name()), &parent, attribute::collection::list_type{}, flags::nil, nullptr){}
 
 cminus::declaration::operator_::~operator_() = default;
 

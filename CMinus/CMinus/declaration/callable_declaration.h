@@ -26,6 +26,7 @@ namespace cminus::declaration{
 
 		enum class id_type{
 			function,
+			member,
 			operator_,
 			constructor,
 			destructor,
@@ -47,13 +48,13 @@ namespace cminus::declaration{
 
 		virtual bool is_defined() const = 0;
 
-		virtual int get_score(const std::list<std::shared_ptr<memory::reference>> &args) const = 0;
+		virtual int get_score(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const = 0;
 
-		virtual std::shared_ptr<memory::reference> call(const std::list<std::shared_ptr<memory::reference>> &args) const;
+		virtual std::shared_ptr<memory::reference> call(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const;
 
 	protected:
 		friend class callable_group;
 
-		virtual std::shared_ptr<memory::reference> call_(const std::list<std::shared_ptr<memory::reference>> &args) const = 0;
+		virtual std::shared_ptr<memory::reference> call_(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const = 0;
 	};
 }

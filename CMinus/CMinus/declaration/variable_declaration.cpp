@@ -112,4 +112,5 @@ void cminus::declaration::variable::initialize_memory_(std::shared_ptr<memory::r
 		arg->get_type()->extend_argument_list(arg, args);
 
 	target->get_type()->construct(target, args);
+	target->set_constructed_state();
 }

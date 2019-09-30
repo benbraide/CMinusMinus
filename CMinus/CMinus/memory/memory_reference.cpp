@@ -57,6 +57,14 @@ std::size_t cminus::memory::reference::read(std::size_t destination_address, std
 	return runtime::object::memory_object->read(get_address(), destination_address, std::min(type_->get_size(), size));
 }
 
+void cminus::memory::reference::set_constructed_state(){
+	is_constructed_ = true;
+}
+
+bool cminus::memory::reference::is_constructed() const{
+	return is_constructed_;
+}
+
 std::shared_ptr<cminus::type::object> cminus::memory::reference::get_type() const{
 	return type_;
 }
@@ -127,7 +135,7 @@ void cminus::memory::reference::allocate_memory_(){
 		throw memory::exception::allocation_failure();
 
 	deallocator_ = [this](){
-		if (type_ != nullptr)
+		if (is_constructed_ && type_ != nullptr)
 			type_->destruct(clone());
 
 		if (address_ != 0u){

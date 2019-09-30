@@ -11,7 +11,7 @@ cminus::declaration::string::default_constructor::~default_constructor() = defau
 cminus::declaration::string::copy_constructor::~copy_constructor() = default;
 
 cminus::declaration::string::sub_copy_constructor::sub_copy_constructor(type::class_ &parent)
-	: copy_constructor(parent){
+	: copy_constructor(parent, attribute::collection::list_type{}, flags::nil){
 	auto unsigned_long_integral_type = runtime::object::global_storage->get_cached_type(storage::global::cached_type::unsigned_long_integer);
 
 	std::shared_ptr<memory::reference> empty_initialization;
@@ -40,7 +40,7 @@ cminus::declaration::string::sub_copy_constructor::sub_copy_constructor(type::cl
 cminus::declaration::string::sub_copy_constructor::~sub_copy_constructor() = default;
 
 cminus::declaration::string::buffer_constructor::buffer_constructor(type::class_ &parent)
-	: external_constructor(parent){
+	: external_constructor(parent, attribute::collection::list_type{}, flags::nil){
 	auto char_type = runtime::object::global_storage->get_cached_type(storage::global::cached_type::char_);
 	auto unsigned_long_integral_type = runtime::object::global_storage->get_cached_type(storage::global::cached_type::unsigned_long_integer);
 
@@ -73,7 +73,7 @@ cminus::declaration::string::buffer_constructor::buffer_constructor(type::class_
 cminus::declaration::string::buffer_constructor::~buffer_constructor() = default;
 
 cminus::declaration::string::fill_constructor::fill_constructor(type::class_ &parent)
-	: external_constructor(parent){
+	: external_constructor(parent, attribute::collection::list_type{}, flags::nil){
 	auto char_type = runtime::object::global_storage->get_cached_type(storage::global::cached_type::char_);
 	auto unsigned_long_integral_type = runtime::object::global_storage->get_cached_type(storage::global::cached_type::unsigned_long_integer);
 
@@ -98,11 +98,11 @@ cminus::declaration::string::fill_constructor::fill_constructor(type::class_ &pa
 cminus::declaration::string::fill_constructor::~fill_constructor() = default;
 
 cminus::declaration::string::empty::empty(type::class_ &parent)
-	: external_function("Empty", &parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_cached_type(storage::global::cached_type::bool_)){}
+	: external_member_function("Empty", parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_cached_type(storage::global::cached_type::bool_)){}
 
 cminus::declaration::string::empty::~empty() = default;
 
 cminus::declaration::string::size::size(type::class_ &parent)
-	: external_function("Size", &parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_cached_type(storage::global::cached_type::unsigned_long_integer)){}
+	: external_member_function("Size", parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_cached_type(storage::global::cached_type::unsigned_long_integer)){}
 
 cminus::declaration::string::size::~size() = default;

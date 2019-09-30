@@ -23,7 +23,7 @@ namespace cminus::declaration{
 
 		virtual std::shared_ptr<callable> find(const type::object &target_type) const override;
 
-		virtual std::shared_ptr<callable> find(const std::list<std::shared_ptr<memory::reference>> &args, std::size_t *count = nullptr) const override;
+		virtual std::shared_ptr<callable> find(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const override;
 
 	protected:
 		virtual void add_(std::shared_ptr<callable> entry) override;

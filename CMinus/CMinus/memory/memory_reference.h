@@ -51,6 +51,10 @@ namespace cminus::memory{
 
 		virtual std::size_t read(std::size_t destination_address, std::size_t size) const;
 
+		virtual void set_constructed_state();
+		
+		virtual bool is_constructed() const;
+
 		virtual std::shared_ptr<type::object> get_type() const;
 
 		virtual std::shared_ptr<type::object> get_decl_type() const;
@@ -91,6 +95,7 @@ namespace cminus::memory{
 		std::size_t address_ = 0u;
 
 		bool is_lvalue_ = true;
+		bool is_constructed_ = false;
 		std::function<void()> deallocator_;
 	};
 

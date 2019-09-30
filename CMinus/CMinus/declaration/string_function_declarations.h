@@ -45,14 +45,14 @@ namespace cminus::declaration::string{
 		virtual ~destructor() = default;
 	};
 
-	class empty : public external_function{
+	class empty : public external_member_function{
 	public:
 		explicit empty(type::class_ &parent);
 
 		virtual ~empty();
 	};
 
-	class size : public external_function{
+	class size : public external_member_function{
 	public:
 		explicit size(type::class_ &parent);
 
