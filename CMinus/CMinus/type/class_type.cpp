@@ -1,5 +1,6 @@
 #include "../storage/global_storage.h"
 #include "../declaration/variable_declaration.h"
+#include "../declaration/function_declaration_group.h"
 #include "../declaration/special_function_declaration.h"
 
 #include "proxy_type.h"
@@ -34,7 +35,12 @@ bool cminus::type::class_::is_constructible(std::shared_ptr<memory::reference> t
 	if (constructor == nullptr || constructor->get_id() != declaration::callable::id_type::constructor)
 		return false;
 
-	return (constructor->find(dummy_context_, std::list<std::shared_ptr<memory::reference>>{ target }) != nullptr);
+	try{
+		return (constructor->find(dummy_context_, std::list<std::shared_ptr<memory::reference>>{ target }) != nullptr);
+	}
+	catch (const declaration::exception::ambiguous_function_call &){}
+
+	return false;
 }
 
 void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) const{
@@ -88,19 +94,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::cast(std::share
 	if (type != cast_type::static_ && type != cast_type::rval_static)
 		return nullptr;
 
-	auto callable = find_operator(*target_type);
-	if (callable == nullptr){//Try other variants
-		auto non_const_target_type = target_type->convert(conversion_type::remove_const, target_type);
-		if (non_const_target_type != target_type)//Non-constant variant
-			callable = find_operator(*non_const_target_type);
-
-		if (callable == nullptr && !target_type->is(query_type::ref)){//Reference variant
-			auto ref_target_type = std::make_shared<ref>(target_type);
-			callable = find_operator(*ref_target_type);
-		}
-	}
-
-	if (callable != nullptr)
+	if (auto callable = find_operator(*target_type); callable != nullptr)
 		return callable->call(data, std::list<std::shared_ptr<memory::reference>>{});
 
 	auto is_ref = target_type->is(query_type::ref);
@@ -188,6 +182,11 @@ void cminus::type::class_::add_default_functions(bool add_on_empty){
 	}
 }
 
+bool cminus::type::class_::exists(const type::object &target_type) const{
+	std::lock_guard<std::mutex> guard(lock_);
+	return exists_(target_type);
+}
+
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const std::string &name, std::shared_ptr<memory::reference> context, bool search_tree) const{
 	{//Scoped lock
 		std::lock_guard<std::mutex> guard(lock_);
@@ -201,8 +200,14 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const std:
 	return nullptr;
 }
 
-cminus::declaration::callable_group *cminus::type::class_::find_operator(const type::object &target) const{
-	return find_operator(target.get_qname(), false);
+std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const type::object &target_type, std::shared_ptr<memory::reference> context, bool exact) const{
+	std::lock_guard<std::mutex> guard(lock_);
+	return find_(target_type, context, exact);
+}
+
+cminus::declaration::callable_group *cminus::type::class_::find_operator(const type::object &target_type, bool exact) const{
+	std::lock_guard<std::mutex> guard(lock_);
+	return find_operator_(target_type, exact);
 }
 
 const cminus::type::class_::member_variable_info *cminus::type::class_::find_non_static_member(const std::string &name) const{
@@ -237,19 +242,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_static_mem
 }
 
 bool cminus::type::class_::is_assignable_to(std::shared_ptr<type_base> target_type) const{
-	if (find_operator(*target_type) != nullptr)
-		return true;
-
-	auto non_const_target_type = target_type->convert(conversion_type::remove_const, target_type);
-	if (non_const_target_type != target_type && find_operator(*non_const_target_type) != nullptr)//Non-constant variant
-		return true;
-
-	if (!target_type->is(query_type::ref)){//Reference variant
-		auto ref_target_type = std::make_shared<ref>(target_type);
-		return (find_operator(*ref_target_type) != nullptr);
-	}
-
-	return false;
+	return (find_operator(*target_type, false) != nullptr);
 }
 
 bool cminus::type::class_::is_base_type(const class_ &target, bool search_hierarchy) const{
@@ -275,11 +268,42 @@ void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target,
 	target = constructor->call(target, args);
 }
 
+bool cminus::type::class_::add_(std::shared_ptr<declaration::object> entry, std::size_t address){
+	auto function_entry = std::dynamic_pointer_cast<declaration::type_operator>(entry);
+	if (function_entry == nullptr)
+		return false;
+
+	auto target_type = function_entry->get_target_type();
+	if (auto existing_entry = find_operator_(*target_type, true); existing_entry == nullptr){//New entry
+		std::shared_ptr<memory::block> block;
+		if (address == 0u)
+			block = runtime::object::memory_object->allocate_block(sizeof(void *));
+		else
+			block = runtime::object::memory_object->find_block(address);
+
+		if (block == nullptr || block->get_address() == 0u)
+			throw memory::exception::allocation_failure();
+
+		auto group = std::make_shared<declaration::function_group>(function_entry->get_id(), entry->get_name(), this, block->get_address());
+		if (group == nullptr)
+			throw memory::exception::allocation_failure();
+
+		group->add(function_entry);
+		type_operators_.push_back(type_operator_info{ target_type, group });
+	}
+	else//Add to existing
+		existing_entry->add(function_entry);
+
+	return true;
+}
+
 void cminus::type::class_::add_(std::shared_ptr<declaration::variable> entry, std::size_t address){
 	if (!entry->is(declaration::flags::static_)){
-		auto &name = entry->get_name();
 		auto entry_memory_size = entry->get_type()->get_memory_size();
+		if (entry_memory_size == 0u)
+			throw declaration::exception::bad_declaration();
 
+		auto &name = entry->get_name();
 		if (name.empty())
 			throw storage::exception::unnamed_entry();
 
@@ -298,6 +322,10 @@ void cminus::type::class_::add_(std::shared_ptr<declaration::variable> entry, st
 
 bool cminus::type::class_::exists_(const std::string &name, entry_type type) const{
 	return (member_variables_map_.find(name) != member_variables_map_.end() || base_types_map_.find(name) != base_types_map_.end() || storage_base::exists_(name, type));
+}
+
+bool cminus::type::class_::exists_(const type::object &target_type) const{
+	return (find_operator_(target_type, true) != nullptr);
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std::string &name) const{
@@ -338,6 +366,30 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std
 	for (auto &base_type : base_types_){
 		if (auto entry = base_type.value->find_(name, context, (address_offset + base_type.address_offset)); entry != nullptr)
 			return entry;
+	}
+
+	return nullptr;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const type::object &target_type, std::shared_ptr<memory::reference> context, bool exact) const{
+	if (auto entry = find_operator_(target_type, exact); entry != nullptr){
+		return std::make_shared<memory::function_reference>(
+			*entry,
+			entry->get_type(),
+			((context == nullptr) ? class_context_ : context)
+		);
+	}
+
+	return nullptr;
+}
+
+cminus::declaration::callable_group *cminus::type::class_::find_operator_(const type::object &target_type, bool exact) const{
+	for (auto &entry : type_operators_){
+		if (exact && entry.key->is_exact(target_type))
+			return entry.group.get();
+
+		if (!exact && entry.key->get_score(target_type) != get_score_value(score_result_type::nil))
+			return entry.group.get();
 	}
 
 	return nullptr;

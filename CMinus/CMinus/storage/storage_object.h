@@ -16,6 +16,7 @@
 
 namespace cminus::declaration{
 	class variable;
+	class operator_;
 }
 
 namespace cminus::storage{
@@ -48,9 +49,11 @@ namespace cminus::storage{
 
 		virtual bool exists(const std::string &name, entry_type type = entry_type::nil) const = 0;
 
+		virtual bool exists(operators::id id) const = 0;
+
 		virtual std::shared_ptr<memory::reference> find(const std::string &name, bool search_tree) const = 0;
 
-		virtual declaration::callable_group *find_operator(const std::string &name, bool search_tree) const = 0;
+		virtual std::shared_ptr<memory::reference> find(operators::id id, bool search_tree) const = 0;
 
 		virtual declaration::callable_group *find_operator(operators::id id, bool search_tree) const = 0;
 
@@ -90,9 +93,11 @@ namespace cminus::storage{
 
 		virtual bool exists(const std::string &name, entry_type type = entry_type::nil) const override;
 
+		virtual bool exists(operators::id id) const override;
+
 		virtual std::shared_ptr<memory::reference> find(const std::string &name, bool search_tree) const override;
 
-		virtual declaration::callable_group *find_operator(const std::string &name, bool search_tree) const override;
+		virtual std::shared_ptr<memory::reference> find(operators::id id, bool search_tree) const override;
 
 		virtual declaration::callable_group *find_operator(operators::id id, bool search_tree) const override;
 
@@ -107,9 +112,13 @@ namespace cminus::storage{
 	protected:
 		virtual void destroy_entries_();
 
+		virtual bool add_(std::shared_ptr<declaration::object> entry, std::size_t address);
+
 		virtual void add_(std::shared_ptr<declaration::variable> entry, std::size_t address);
 
 		virtual void add_(std::shared_ptr<declaration::callable> entry, std::size_t address);
+
+		virtual void add_(std::shared_ptr<declaration::operator_> entry, std::size_t address);
 
 		virtual void add_(std::shared_ptr<attribute::object> entry);
 
@@ -121,9 +130,13 @@ namespace cminus::storage{
 
 		virtual bool exists_(const std::string &name, entry_type type) const;
 
+		virtual bool exists_(operators::id id) const;
+
 		virtual std::shared_ptr<memory::reference> find_(const std::string &name) const;
 
-		virtual declaration::callable_group *find_operator_(const std::string &name) const;
+		virtual std::shared_ptr<memory::reference> find_(operators::id id) const;
+
+		virtual declaration::callable_group *find_operator_(operators::id id) const;
 
 		virtual std::shared_ptr<attribute::object> find_attribute_(const std::string &name) const;
 
@@ -135,6 +148,8 @@ namespace cminus::storage{
 		std::unordered_map<std::string, std::shared_ptr<memory::reference>> named_entries_;
 
 		std::unordered_map<std::string, std::shared_ptr<declaration::callable_group>> functions_;
+		std::unordered_map<operators::id, std::shared_ptr<declaration::callable_group>> operators_;
+
 		std::unordered_map<std::string, std::shared_ptr<declaration::object>> declarations_;
 		std::unordered_map<std::string, std::shared_ptr<attribute::object>> attributes_;
 

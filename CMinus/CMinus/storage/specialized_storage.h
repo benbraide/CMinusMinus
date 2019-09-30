@@ -50,9 +50,11 @@ namespace cminus::storage{
 
 		virtual bool exists(const std::string &name, entry_type type = entry_type::nil) const override;
 
+		virtual bool exists(operators::id id) const override;
+
 		virtual std::shared_ptr<memory::reference> find(const std::string &name, bool search_tree) const override;
 
-		virtual declaration::callable_group *find_operator(const std::string &name, bool search_tree) const override;
+		virtual std::shared_ptr<memory::reference> find(operators::id id, bool search_tree) const override;
 
 		virtual declaration::callable_group *find_operator(operators::id id, bool search_tree) const override;
 

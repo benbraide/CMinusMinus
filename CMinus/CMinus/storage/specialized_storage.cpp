@@ -75,15 +75,19 @@ bool cminus::storage::class_wrapper::exists(const std::string &name, entry_type 
 	return false;
 }
 
+bool cminus::storage::class_wrapper::exists(operators::id id) const{
+	return false;
+}
+
 std::shared_ptr<cminus::memory::reference> cminus::storage::class_wrapper::find(const std::string &name, bool search_tree) const{
 	if (auto class_parent = dynamic_cast<type::class_ *>(context_->get_type().get()); class_parent != nullptr)
 		return class_parent->find(name, context_, false);
 	return nullptr;
 }
 
-cminus::declaration::callable_group *cminus::storage::class_wrapper::find_operator(const std::string &name, bool search_tree) const{
+std::shared_ptr<cminus::memory::reference> cminus::storage::class_wrapper::find(operators::id id, bool search_tree) const{
 	if (auto class_parent = dynamic_cast<type::class_ *>(context_->get_type().get()); class_parent != nullptr)
-		return class_parent->find_operator(name, false);
+		return class_parent->find(id, false);
 	return nullptr;
 }
 

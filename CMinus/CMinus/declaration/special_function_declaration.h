@@ -193,15 +193,20 @@ namespace cminus::declaration{
 		virtual ~default_destructor();
 	};
 
-	class operator_ : public member_function{
+	class operator_ : public function{
 	public:
-		using member_function::member_function;
+		template <typename attributes_type>
+		operator_(operators::id id, type::class_ &parent, const attributes_type &attributes, unsigned int flags, std::shared_ptr<type::object> return_type)
+			: function(operators::convert_id_to_string(id), &parent, attributes, flags, return_type), id_(id){}
 
 		virtual ~operator_();
 
 		virtual id_type get_id() const override;
 
-		virtual void add_parameter(std::shared_ptr<variable> value) override;
+		virtual operators::id get_op() const;
+
+	protected:
+		operators::id id_;
 	};
 
 	class defined_operator : public operator_{
@@ -223,6 +228,92 @@ namespace cminus::declaration{
 		using operator_::operator_;
 
 		virtual ~external_operator();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+
+		virtual bool is_defined() const override;
+	};
+
+	class member_operator : public member_function{
+	public:
+		template <typename attributes_type>
+		member_operator(operators::id id, type::class_ &parent, const attributes_type &attributes, unsigned int flags, std::shared_ptr<type::object> return_type)
+			: member_function(operators::convert_id_to_string(id), parent, attributes, flags, return_type), id_(id){}
+
+		virtual ~member_operator();
+
+		virtual id_type get_id() const override;
+
+		virtual operators::id get_op() const;
+
+	protected:
+		operators::id id_;
+	};
+
+	class defined_member_operator : public member_operator{
+	public:
+		using member_operator::member_operator;
+
+		virtual ~defined_member_operator();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+
+	protected:
+		std::shared_ptr<node::object> definition_;
+	};
+
+	class external_member_operator : public member_operator{
+	public:
+		using member_operator::member_operator;
+
+		virtual ~external_member_operator();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+
+		virtual bool is_defined() const override;
+	};
+
+	class type_operator : public member_function{
+	public:
+		template <typename attributes_type>
+		type_operator(std::shared_ptr<type::object> target_type, type::class_ &parent, const attributes_type &attributes, unsigned int flags)
+			: member_function(target_type_->get_qname(), parent, attributes, flags, target_type_), target_type_(target_type){}
+
+		virtual ~type_operator();
+
+		virtual id_type get_id() const override;
+
+		virtual std::shared_ptr<type::object> get_target_type() const;
+
+	protected:
+		std::shared_ptr<type::object> target_type_;
+	};
+
+	class defined_type_operator : public type_operator{
+	public:
+		using type_operator::type_operator;
+
+		virtual ~defined_type_operator();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+
+	protected:
+		std::shared_ptr<node::object> definition_;
+	};
+
+	class external_type_operator : public type_operator{
+	public:
+		using type_operator::type_operator;
+
+		virtual ~external_type_operator();
 
 		virtual void define(std::shared_ptr<node::object> definition) override;
 

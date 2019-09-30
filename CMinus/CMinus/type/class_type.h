@@ -9,6 +9,11 @@ namespace cminus::type{
 		using type_base = type::object;
 		using storage_base = storage::unnamed_object;
 
+		struct type_operator_info{
+			std::shared_ptr<type_base> key;
+			std::shared_ptr<declaration::callable_group> group;
+		};
+
 		struct base_type_info{
 			unsigned int access;
 			std::size_t address_offset;
@@ -54,12 +59,17 @@ namespace cminus::type{
 
 		virtual void add_default_functions(bool add_on_empty);
 
+		using storage_base::exists;
 		using storage_base::find;
 		using storage_base::find_operator;
 
+		virtual bool exists(const type::object &target_type) const;
+
 		virtual std::shared_ptr<memory::reference> find(const std::string &name, std::shared_ptr<memory::reference> context, bool search_tree) const;
 
-		virtual declaration::callable_group *find_operator(const type::object &target) const;
+		virtual std::shared_ptr<memory::reference> find(const type::object &target_type, std::shared_ptr<memory::reference> context, bool exact = false) const;
+
+		virtual declaration::callable_group *find_operator(const type::object &target_type, bool exact = false) const;
 
 		virtual const member_variable_info *find_non_static_member(const std::string &name) const;
 
@@ -78,13 +88,21 @@ namespace cminus::type{
 	protected:
 		virtual void construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const override;
 
+		virtual bool add_(std::shared_ptr<declaration::object> entry, std::size_t address) override;
+
 		virtual void add_(std::shared_ptr<declaration::variable> entry, std::size_t address) override;
 
 		virtual bool exists_(const std::string &name, entry_type type) const override;
 
+		virtual bool exists_(const type::object &target_type) const;
+
 		virtual std::shared_ptr<memory::reference> find_(const std::string &name) const override;
 
 		virtual std::shared_ptr<memory::reference> find_(const std::string &name, std::shared_ptr<memory::reference> context, std::size_t address_offset) const;
+
+		virtual std::shared_ptr<memory::reference> find_(const type::object &target_type, std::shared_ptr<memory::reference> context, bool exact) const;
+
+		virtual declaration::callable_group *find_operator_(const type::object &target_type, bool exact) const;
 
 		virtual storage::object *find_storage_(const std::string &name) const override;
 
@@ -98,6 +116,7 @@ namespace cminus::type{
 
 		virtual declaration::callable_group *find_function_(const std::string &name) const;
 
+		std::list<type_operator_info> type_operators_;
 		std::list<member_variable_info> member_variables_;
 		std::unordered_map<std::string, member_variable_info *> member_variables_map_;
 

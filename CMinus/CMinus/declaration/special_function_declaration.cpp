@@ -266,8 +266,8 @@ cminus::declaration::callable::id_type cminus::declaration::operator_::get_id() 
 	return id_type::operator_;
 }
 
-void cminus::declaration::operator_::add_parameter(std::shared_ptr<variable> value){
-	throw exception::bad_parameter_list();
+cminus::operators::id cminus::declaration::operator_::get_op() const{
+	return id_;
 }
 
 cminus::declaration::defined_operator::~defined_operator() = default;
@@ -294,5 +294,79 @@ std::shared_ptr<cminus::node::object> cminus::declaration::external_operator::ge
 }
 
 bool cminus::declaration::external_operator::is_defined() const{
+	return true;
+}
+
+cminus::declaration::member_operator::~member_operator() = default;
+
+cminus::declaration::callable::id_type cminus::declaration::member_operator::get_id() const{
+	return id_type::operator_;
+}
+
+cminus::operators::id cminus::declaration::member_operator::get_op() const{
+	return id_;
+}
+
+cminus::declaration::defined_member_operator::~defined_member_operator() = default;
+
+void cminus::declaration::defined_member_operator::define(std::shared_ptr<node::object> definition){
+	if (definition_ == nullptr)
+		definition_ = definition;
+	else
+		throw exception::function_redefinition();
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::defined_member_operator::get_definition() const{
+	return definition_;
+}
+
+cminus::declaration::external_member_operator::~external_member_operator() = default;
+
+void cminus::declaration::external_member_operator::define(std::shared_ptr<node::object> definition){
+	throw exception::function_redefinition();
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::external_member_operator::get_definition() const{
+	return nullptr;
+}
+
+bool cminus::declaration::external_member_operator::is_defined() const{
+	return true;
+}
+
+cminus::declaration::type_operator::~type_operator() = default;
+
+cminus::declaration::callable::id_type cminus::declaration::type_operator::get_id() const{
+	return id_type::operator_;
+}
+
+std::shared_ptr<cminus::type::object> cminus::declaration::type_operator::get_target_type() const{
+	return target_type_;
+}
+
+cminus::declaration::defined_type_operator::~defined_type_operator() = default;
+
+void cminus::declaration::defined_type_operator::define(std::shared_ptr<node::object> definition){
+	if (definition_ == nullptr)
+		definition_ = definition;
+	else
+		throw exception::function_redefinition();
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::defined_type_operator::get_definition() const{
+	return definition_;
+}
+
+cminus::declaration::external_type_operator::~external_type_operator() = default;
+
+void cminus::declaration::external_type_operator::define(std::shared_ptr<node::object> definition){
+	throw exception::function_redefinition();
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::external_type_operator::get_definition() const{
+	return nullptr;
+}
+
+bool cminus::declaration::external_type_operator::is_defined() const{
 	return true;
 }
