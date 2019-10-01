@@ -13,10 +13,7 @@ cminus::memory::reference::reference(std::size_t address, std::shared_ptr<type::
 	: reference(address, type, attribute::collection::list_type{}, nullptr){}
 
 cminus::memory::reference::~reference(){
-	if (deallocator_ != nullptr){
-		deallocator_();
-		deallocator_ = nullptr;
-	}
+	destruct_();
 }
 
 std::size_t cminus::memory::reference::get_position() const{
@@ -145,9 +142,6 @@ void cminus::memory::reference::allocate_memory_(){
 		throw memory::exception::allocation_failure();
 
 	deallocator_ = [this](){
-		if (is_constructed_ && type_ != nullptr)
-			type_->destruct(clone());
-
 		if (address_ != 0u){
 			runtime::object::memory_object->deallocate_block(address_);
 			address_ = 0u;
@@ -161,6 +155,18 @@ std::shared_ptr<cminus::memory::block> cminus::memory::reference::allocate_block
 
 std::size_t cminus::memory::reference::get_memory_size_() const{
 	return ((type_ == nullptr) ? 0u : type_->get_memory_size());
+}
+
+void cminus::memory::reference::destruct_(){
+	if (is_constructed_ && type_ != nullptr){
+		is_constructed_ = false;
+		type_->destruct(clone());
+	}
+
+	if (deallocator_ != nullptr){
+		deallocator_();
+		deallocator_ = nullptr;
+	}
 }
 
 cminus::memory::undefined_reference::undefined_reference(std::shared_ptr<reference> context)
@@ -190,10 +196,7 @@ cminus::memory::indirect_reference::indirect_reference(std::size_t address, std:
 	: indirect_reference(address, type, attribute::collection::list_type{}, nullptr){}
 
 cminus::memory::indirect_reference::~indirect_reference(){
-	if (deallocator_ != nullptr){
-		deallocator_();
-		deallocator_ = nullptr;
-	}
+	destruct_();
 }
 
 std::size_t cminus::memory::indirect_reference::write_address(std::size_t value){
@@ -239,3 +242,14 @@ cminus::memory::rval_reference::rval_reference(std::size_t address, std::shared_
 }
 
 cminus::memory::rval_reference::~rval_reference() = default;
+
+cminus::memory::write_protected_rval_reference::write_protected_rval_reference(std::shared_ptr<type::object> type)
+	: rval_reference(0u, type){
+	allocate_memory_();
+}
+
+std::shared_ptr<cminus::memory::block> cminus::memory::write_protected_rval_reference::allocate_block_() const{
+	return runtime::object::memory_object->allocate_write_protected_block(get_memory_size_());
+}
+
+cminus::memory::write_protected_rval_reference::~write_protected_rval_reference() = default;

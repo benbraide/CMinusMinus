@@ -99,4 +99,91 @@ namespace cminus::storage{
 		std::shared_ptr<memory::reference> nullptr_value_;
 		std::shared_ptr<memory::reference> undefined_value_;
 	};
+
+	template <class target_type>
+	struct get_cached_type;
+
+	template <>
+	struct get_cached_type<void>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::void_);
+		}
+	};
+
+	template <>
+	struct get_cached_type<std::byte>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::byte_);
+		}
+	};
+
+	template <>
+	struct get_cached_type<char>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::char_);
+		}
+	};
+
+	template <>
+	struct get_cached_type<wchar_t>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::wchar_);
+		}
+	};
+
+	template <>
+	struct get_cached_type<bool>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::bool_);
+		}
+	};
+
+	template <>
+	struct get_cached_type<type::boolean_constant>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::bool_);
+		}
+	};
+
+	template <>
+	struct get_cached_type<__int32>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::integer);
+		}
+	};
+
+	template <>
+	struct get_cached_type<__int64>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::long_integer);
+		}
+	};
+
+	template <>
+	struct get_cached_type<unsigned __int32>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::unsigned_integer);
+		}
+	};
+
+	template <>
+	struct get_cached_type<unsigned __int64>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::unsigned_long_integer);
+		}
+	};
+
+	template <>
+	struct get_cached_type<float>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::real);
+		}
+	};
+
+	template <>
+	struct get_cached_type<long double>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::long_real);
+		}
+	};
 }

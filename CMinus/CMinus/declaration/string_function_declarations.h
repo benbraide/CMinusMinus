@@ -7,13 +7,13 @@ namespace cminus::declaration::string{
 	public:
 		static std::shared_ptr<type::object> get_string_ref_type(type::class_ &base, bool is_const);
 
-		static std::shared_ptr<memory::reference> get_zero_or_nan_size_arg(bool is_zero);
+		static std::shared_ptr<node::object> get_zero_or_nan_size_arg(bool is_zero);
 
-		static std::shared_ptr<memory::reference> get_zero_size_arg();
+		static std::shared_ptr<node::object> get_zero_size_arg();
 
-		static std::shared_ptr<memory::reference> get_nan_size_arg();
+		static std::shared_ptr<node::object> get_nan_size_arg();
 
-		static std::shared_ptr<memory::reference> get_null_char_arg();
+		static std::shared_ptr<node::object> get_null_char_arg();
 	};
 
 	class default_constructor : public declaration::default_constructor{

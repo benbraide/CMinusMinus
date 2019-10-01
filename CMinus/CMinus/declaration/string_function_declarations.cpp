@@ -1,6 +1,8 @@
 #include "../type/string_type.h"
 #include "../type/primitive_type.h"
 #include "../type/modified_type.h"
+
+#include "../node/literal_node.h"
 #include "../storage/global_storage.h"
 
 #include "variable_declaration.h"
@@ -16,29 +18,20 @@ std::shared_ptr<cminus::type::object> cminus::declaration::string::misc_helper::
 	return value;
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::declaration::string::misc_helper::get_zero_or_nan_size_arg(bool is_zero){
+std::shared_ptr<cminus::node::object> cminus::declaration::string::misc_helper::get_zero_or_nan_size_arg(bool is_zero){
 	return (is_zero ? get_zero_size_arg() : get_nan_size_arg());
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::declaration::string::misc_helper::get_zero_size_arg(){
-	return std::make_shared<memory::scalar_reference<unsigned __int64>>(
-		runtime::object::global_storage->get_size_type(),
-		0u
-	);
+std::shared_ptr<cminus::node::object> cminus::declaration::string::misc_helper::get_zero_size_arg(){
+	return std::make_shared<node::literal_<unsigned __int64>>(0u);
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::declaration::string::misc_helper::get_nan_size_arg(){
-	return std::make_shared<memory::scalar_reference<unsigned __int64>>(
-		runtime::object::global_storage->get_size_type(),
-		type::get_nan<unsigned __int64>::value()
-	);
+std::shared_ptr<cminus::node::object> cminus::declaration::string::misc_helper::get_nan_size_arg(){
+	return std::make_shared<node::literal_<unsigned __int64>>(type::get_nan<unsigned __int64>::value());
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::declaration::string::misc_helper::get_null_char_arg(){
-	return std::make_shared<memory::scalar_reference<char>>(
-		runtime::object::global_storage->get_char_type(),
-		'\0'
-	);
+std::shared_ptr<cminus::node::object> cminus::declaration::string::misc_helper::get_null_char_arg(){
+	return std::make_shared<node::literal_<char>>('\0');
 }
 
 cminus::declaration::string::default_constructor::default_constructor(type::class_ &parent)

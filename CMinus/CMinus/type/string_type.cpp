@@ -22,6 +22,8 @@ cminus::type::string::string()
 		std::shared_ptr<memory::reference>()									//Initialization
 	), 0u);
 
+	cminus::runtime::object::memory_object;
+
 	add_callable_(std::make_shared<declaration::string::destructor_def>(*this), 0u);
 	add_callable_(std::make_shared<declaration::string::default_constructor_def>(*this), 0u);
 
@@ -61,6 +63,8 @@ cminus::type::string::string()
 	add_callable_(std::make_shared<declaration::string::find_single_def>(*this, false), 0u);
 
 	add_callable_(std::make_shared<declaration::string::get_sub_def>(*this), 0u);
+
+	compile_();
 }
 
 cminus::type::string::~string(){

@@ -17,6 +17,7 @@ namespace cminus::declaration{
 		static const unsigned int public_					= (1u << 0x0004u);
 		static const unsigned int const_					= (1u << 0x0005u);//Applicable to functions
 		static const unsigned int rval						= (1u << 0x0006u);//Applicable to function return types
+		static const unsigned int immediate					= (1u << 0x0007u);
 	};
 
 	class object{

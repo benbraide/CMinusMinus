@@ -25,6 +25,8 @@ namespace cminus::declaration{
 
 		virtual std::shared_ptr<memory::reference> call(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const;
 
+		virtual void traverse_list(const std::function<void(std::shared_ptr<callable>)> &callback) = 0;
+
 	protected:
 		virtual void add_(std::shared_ptr<callable> entry) = 0;
 	};

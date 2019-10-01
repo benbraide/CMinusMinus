@@ -25,6 +25,8 @@ namespace cminus::declaration{
 
 		virtual std::shared_ptr<callable> find(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const override;
 
+		virtual void traverse_list(const std::function<void(std::shared_ptr<callable>)> &callback) override;
+
 	protected:
 		virtual void add_(std::shared_ptr<callable> entry) override;
 

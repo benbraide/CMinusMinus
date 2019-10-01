@@ -20,6 +20,13 @@ cminus::type::class_::class_(const std::string &name, storage_base *parent)
 
 cminus::type::class_::~class_(){
 	destroy_entries_();
+	if (static_address_ != 0u){
+		try{
+			runtime::object::memory_object->deallocate_block(static_address_);
+		}
+		catch (...){}
+		static_address_ = 0u;
+	}
 }
 
 const std::string &cminus::type::class_::get_name() const{
@@ -265,6 +272,11 @@ const std::list<cminus::type::class_::base_type_info> &cminus::type::class_::get
 	return base_types_;
 }
 
+void cminus::type::class_::compile(){
+	std::lock_guard<std::mutex> guard(lock_);
+	compile_();
+}
+
 void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const{
 	auto constructor = find_function_(get_name());
 	if (constructor == nullptr)
@@ -280,6 +292,11 @@ bool cminus::type::class_::add_(std::shared_ptr<declaration::object> entry, std:
 	auto function_entry = std::dynamic_pointer_cast<declaration::type_operator>(entry);
 	if (function_entry == nullptr)
 		return false;
+
+	if (!is_compiling_ && ((entry->get_flags() & declaration::flags::immediate) == 0u)){
+		add_callable_(function_entry, address);
+		return true;
+	}
 
 	auto target_type = function_entry->get_target_type();
 	if (auto existing_entry = find_operator_(*target_type, true); existing_entry == nullptr){//New entry
@@ -324,12 +341,51 @@ void cminus::type::class_::add_variable_(std::shared_ptr<declaration::variable> 
 		for (auto &base_type : base_types_)//Adjust base offsets
 			base_type.address_offset += entry_memory_size;
 	}
+	else if (!is_compiling_ && ((entry->get_flags() & declaration::flags::immediate) == 0u)){
+		static_size_ += entry->get_type()->get_memory_size();
+		static_declarations_.push_back(entry);
+		static_declarations_map_[entry->get_name()] = entry;
+	}
 	else//Static declaration
 		storage_base::add_variable_(entry, address);
 }
 
+void cminus::type::class_::add_callable_(std::shared_ptr<declaration::callable> entry, std::size_t address){
+	if (!is_compiling_ && ((entry->get_flags() & declaration::flags::immediate) == 0u)){
+		auto &name = entry->get_name();
+		if (auto it = deferred_callables_map_.find(name); it == deferred_callables_map_.end()){//New entry
+			auto group = std::make_shared<declaration::function_group>(entry->get_id(), entry->get_name(), this, 0u);
+			if (group == nullptr)
+				throw memory::exception::allocation_failure();
+
+			group->add(entry);
+			static_size_ += sizeof(void *);
+
+			deferred_callables_.push_back(group);
+			deferred_callables_map_[name] = group;
+		}
+		else
+			it->second->add(entry);
+	}
+	else
+		storage_base::add_callable_(entry, address);
+}
+
+void cminus::type::class_::add_operator_(std::shared_ptr<declaration::operator_> entry, std::size_t address){
+	if (!is_compiling_ && ((entry->get_flags() & declaration::flags::immediate) == 0u))
+		add_callable_(entry, address);
+	else
+		storage_base::add_callable_(entry, address);
+}
+
 bool cminus::type::class_::exists_(const std::string &name, entry_type type) const{
-	return (member_variables_map_.find(name) != member_variables_map_.end() || base_types_map_.find(name) != base_types_map_.end() || storage_base::exists_(name, type));
+	return (member_variables_map_.find(name) != member_variables_map_.end() || base_types_map_.find(name) != base_types_map_.end() ||
+		static_declarations_map_.find(name) != static_declarations_map_.end() || storage_base::exists_(name, type));
+
+	if (type == entry_type::function)
+		return false;
+
+	return (deferred_callables_map_.find(name) != deferred_callables_map_.end());
 }
 
 bool cminus::type::class_::exists_(const type::object &target_type) const{
@@ -465,4 +521,47 @@ unsigned int cminus::type::class_::get_base_type_access_(const class_ &target, b
 cminus::declaration::callable_group *cminus::type::class_::find_function_(const std::string &name) const{
 	auto it = functions_.find(name);
 	return ((it == functions_.end()) ? nullptr : it->second.get());
+}
+
+void cminus::type::class_::compile_(){
+	if (static_size_ == 0u)
+		return;
+
+	auto block = runtime::object::memory_object->allocate_block(static_size_);
+	if (block == nullptr || (static_address_ = block->get_address()) == 0u)
+		throw memory::exception::allocation_failure();
+
+	is_compiling_ = true;
+	auto current_address = static_address_;
+
+	for (auto entry : static_declarations_){
+		add_variable_(entry, current_address);
+		current_address += entry->get_type()->get_memory_size();
+	}
+
+	for (auto entry : deferred_callables_){
+		entry->traverse_list([&](std::shared_ptr<declaration::callable> entry){
+			if (add_(entry, current_address))
+				return;//Handled
+
+			if (auto function_entry = std::dynamic_pointer_cast<declaration::operator_>(entry); function_entry != nullptr)
+				return add_operator_(function_entry, current_address);
+
+			if (auto function_entry = std::dynamic_pointer_cast<declaration::callable>(entry); function_entry != nullptr)
+				return add_callable_(function_entry, current_address);
+
+			throw declaration::exception::bad_declaration();
+		});
+
+		current_address += sizeof(void *);
+	}
+
+	static_declarations_.clear();
+	static_declarations_map_.clear();
+
+	deferred_callables_.clear();
+	deferred_callables_map_.clear();
+
+	static_size_ = 0;
+	is_compiling_ = false;
 }

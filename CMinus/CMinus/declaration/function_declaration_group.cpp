@@ -65,6 +65,11 @@ std::shared_ptr<cminus::declaration::callable> cminus::declaration::function_gro
 	return highest_ranked;
 }
 
+void cminus::declaration::function_group::traverse_list(const std::function<void(std::shared_ptr<callable>)> &callback){
+	for (auto entry : entries_)
+		callback(entry);
+}
+
 void cminus::declaration::function_group::add_(std::shared_ptr<callable> entry){
 	auto entry_type = entry->get_type();
 	if (entry_type == nullptr)//Type required

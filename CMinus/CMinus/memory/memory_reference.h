@@ -94,6 +94,8 @@ namespace cminus::memory{
 
 		virtual std::size_t get_memory_size_() const;
 
+		virtual void destruct_();
+
 		std::shared_ptr<type::object> type_;
 		std::shared_ptr<reference> context_;
 
@@ -166,21 +168,25 @@ namespace cminus::memory{
 		virtual ~rval_reference();
 	};
 
+	class write_protected_rval_reference : public rval_reference{
+	public:
+		explicit write_protected_rval_reference(std::shared_ptr<type::object> type);
+
+		virtual ~write_protected_rval_reference();
+
+	protected:
+		virtual std::shared_ptr<block> allocate_block_() const override;
+	};
+
 	template <class value_type>
-	class scalar_reference : public rval_reference{
+	class scalar_reference : public write_protected_rval_reference{
 	public:
 		scalar_reference(std::shared_ptr<type::object> type, value_type value)
-			: rval_reference(0u, type){
-			allocate_memory_();
+			: write_protected_rval_reference(type){
 			runtime::value_guard guard(runtime::object::is_system, true);
 			runtime::object::memory_object->write_scalar(address_, value);
 		}
 
 		virtual ~scalar_reference() = default;
-
-	protected:
-		virtual std::shared_ptr<block> allocate_block_() const override{
-			return runtime::object::memory_object->allocate_write_protected_block(get_memory_size_());
-		}
 	};
 }

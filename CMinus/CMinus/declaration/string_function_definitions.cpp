@@ -221,7 +221,9 @@ void cminus::declaration::string::destructor_def::evaluate_body_() const{
 	helper::member_info info{};
 	helper::retrieve_info(info, nullptr);
 
+	runtime::value_guard guard(runtime::object::is_system, true);
 	info.size->write_scalar(static_cast<std::size_t>(0));
+
 	if (auto data_address = info.data->read_scalar<std::size_t>(); data_address != 0u){//Free memory
 		runtime::object::memory_object->deallocate_block(data_address);
 		info.data->write_scalar(static_cast<std::size_t>(0));
