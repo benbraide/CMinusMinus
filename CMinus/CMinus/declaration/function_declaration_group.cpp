@@ -59,7 +59,7 @@ std::shared_ptr<cminus::declaration::callable> cminus::declaration::function_gro
 			++match_count;
 	}
 
-	if (1u < match_count)
+	if (1u < match_count && highest_ranked != nullptr)
 		throw exception::ambiguous_function_call();
 
 	return highest_ranked;

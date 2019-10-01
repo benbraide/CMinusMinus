@@ -6,37 +6,20 @@
 
 cminus::type::string::string()
 	: class_("String", nullptr){
-	auto char_type = runtime::object::global_storage->get_cached_type(storage::global::cached_type::char_);
-	auto unsigned_long_integral_type = runtime::object::global_storage->get_cached_type(storage::global::cached_type::unsigned_long_integer);
-
-	std::shared_ptr<memory::reference> empty_initialization;
-	auto max_non_nan = std::make_shared<memory::scalar_reference<unsigned __int64>>(
-		unsigned_long_integral_type,
-		get_max_non_nan<unsigned __int64>::value()
-	);
-
-	add_variable_(std::make_shared<declaration::variable>(
-		"NPOS",																	//Name
-		std::make_shared<constant>(unsigned_long_integral_type),				//Type
-		attribute::collection::list_type{},										//Attributes
-		(declaration::flags::static_ | declaration::flags::public_),			//Flags
-		max_non_nan																//Initialization
-	), 0u);
-
 	add_variable_(std::make_shared<declaration::variable>(
 		"size_",																//Name
-		unsigned_long_integral_type,											//Type
+		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::private_,											//Flags
-		empty_initialization													//Initialization
+		std::shared_ptr<memory::reference>()									//Initialization
 	), 0u);
 
 	add_variable_(std::make_shared<declaration::variable>(
 		"data_",																//Name
-		std::make_shared<pointer_primitive>(char_type),							//Type
+		runtime::object::global_storage->get_char_pointer_type(false),			//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::private_,											//Flags
-		empty_initialization													//Initialization
+		std::shared_ptr<memory::reference>()									//Initialization
 	), 0u);
 
 	add_callable_(std::make_shared<declaration::string::destructor_def>(*this), 0u);
@@ -61,6 +44,23 @@ cminus::type::string::string()
 
 	add_callable_(std::make_shared<declaration::string::at_def>(*this, true), 0u);
 	add_callable_(std::make_shared<declaration::string::at_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::find_copy_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::find_copy_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::find_sub_copy_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::find_sub_copy_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::find_buffer_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::find_buffer_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::find_sized_buffer_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::find_sized_buffer_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::find_single_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::find_single_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::get_sub_def>(*this), 0u);
 }
 
 cminus::type::string::~string(){

@@ -70,7 +70,7 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::string::helper::
 	return runtime::object::global_storage->get_raw_string_type()->find("size_", context, false);
 }
 
-std::size_t cminus::declaration::string::helper::allocate_block(std::size_t buffer_size, allocation_type how, std::size_t split_index, std::shared_ptr<memory::reference> context){
+std::size_t cminus::declaration::string::helper::allocate_block(std::size_t buffer_size, allocation_type how, std::size_t split_index, std::shared_ptr<memory::reference> context, bool write_protected){
 	essential_info info{};
 	retrieve_info(info, context);
 
@@ -145,14 +145,28 @@ void cminus::declaration::string::helper::erase(std::size_t buffer_size, std::si
 	allocate_block(buffer_size, allocation_type::shrink, offset, context);
 }
 
-std::size_t cminus::declaration::string::helper::find_buffer(const char *buffer, std::size_t buffer_size, std::size_t offset, std::shared_ptr<memory::reference> context){
+std::size_t cminus::declaration::string::helper::find(const char *buffer, std::size_t buffer_size, std::size_t offset, std::shared_ptr<memory::reference> context, bool is_last){
 	value_info info{};
 	retrieve_info(info, context);
 
-	if (auto result = std::string_view(info.data, info.size).find(buffer, offset, buffer_size); result != std::string_view::npos)
+	if (is_last){//Find last
+		if (auto result = std::string_view(info.data, info.size).rfind(buffer, offset, buffer_size); result != std::string_view::npos)
+			return result;
+	}
+	else if (auto result = std::string_view(info.data, info.size).find(buffer, offset, buffer_size); result != std::string_view::npos)
 		return result;
 
-	return type::get_max_non_nan<unsigned __int64>::value();
+	return type::get_nan<unsigned __int64>::value();
+}
+
+std::size_t cminus::declaration::string::helper::find(std::shared_ptr<memory::reference> other, std::size_t pos, std::size_t size, std::size_t offset, std::shared_ptr<memory::reference> context, bool is_last){
+	helper::value_info info{};
+	helper::retrieve_info(info, other);
+
+	if (info.size <= pos)
+		throw runtime::exception::out_of_range();
+
+	return find((info.data + pos), std::min((info.size - pos), size), offset, context, is_last);
 }
 
 char *cminus::declaration::string::helper::read_data(const std::string &name, std::shared_ptr<memory::reference> context){
@@ -190,7 +204,8 @@ cminus::declaration::string::buffer_constructor_def::~buffer_constructor_def() =
 
 void cminus::declaration::string::buffer_constructor_def::evaluate_body_() const{
 	auto data = helper::read_data("data", nullptr);
-	helper::assign(data, ((data == nullptr) ? 0u : std::min(helper::read_value<std::size_t>("size", nullptr), std::strlen(data))), false, nullptr);
+	auto size = helper::read_value<std::size_t>("size", nullptr);
+	helper::assign(data, ((data == nullptr) ? 0u : ((size == type::get_nan<unsigned __int64>::value()) ? std::strlen(data) : size)), false, nullptr);
 }
 
 cminus::declaration::string::fill_constructor_def::~fill_constructor_def() = default;
@@ -265,4 +280,84 @@ void cminus::declaration::string::at_def::evaluate_body_() const{
 		(info.data + position_value),//Address data is pointing to plus offset
 		runtime::object::global_storage->get_char_type()
 	));
+}
+
+cminus::declaration::string::find_copy_def::~find_copy_def() = default;
+
+void cminus::declaration::string::find_copy_def::evaluate_body_() const{
+	throw runtime::exception::return_interrupt(helper::get_found(
+		runtime::object::current_storage->find("other", true),				//Other
+		0u,																	//Position
+		std::numeric_limits<std::size_t>::max(),							//Size
+		helper::read_value<std::size_t>("offset", nullptr),					//Offset
+		nullptr,															//Context
+		(name_.size() != 4u)												//Is last
+	));
+}
+
+cminus::declaration::string::find_sub_copy_def::~find_sub_copy_def() = default;
+
+void cminus::declaration::string::find_sub_copy_def::evaluate_body_() const{
+	throw runtime::exception::return_interrupt(helper::get_found(
+		runtime::object::current_storage->find("other", true),				//Other
+		helper::read_value<std::size_t>("position", nullptr),				//Position
+		helper::read_value<std::size_t>("size", nullptr),					//Size
+		helper::read_value<std::size_t>("offset", nullptr),					//Offset
+		nullptr,															//Context
+		(name_.size() != 4u)												//Is last
+	));
+}
+
+cminus::declaration::string::find_buffer_def::~find_buffer_def() = default;
+
+void cminus::declaration::string::find_buffer_def::evaluate_body_() const{
+	auto data = helper::read_data("data", nullptr);
+	throw runtime::exception::return_interrupt(helper::get_found(
+		data,																//Data
+		std::strlen(data),													//Size
+		helper::read_value<std::size_t>("offset", nullptr),					//Offset
+		nullptr,															//Context
+		(name_.size() != 4u)												//Is last
+	));
+}
+
+cminus::declaration::string::find_sized_buffer_def::~find_sized_buffer_def() = default;
+
+void cminus::declaration::string::find_sized_buffer_def::evaluate_body_() const{
+	throw runtime::exception::return_interrupt(helper::get_found(
+		helper::read_data("data", nullptr),									//Data
+		helper::read_value<std::size_t>("size", nullptr),					//Size
+		helper::read_value<std::size_t>("offset", nullptr),					//Offset
+		nullptr,															//Context
+		(name_.size() != 4u)												//Is last
+	));
+}
+
+cminus::declaration::string::find_single_def::~find_single_def() = default;
+
+void cminus::declaration::string::find_single_def::evaluate_body_() const{
+	auto target = helper::read_value<char>("target", nullptr);
+	throw runtime::exception::return_interrupt(helper::get_found(
+		&target,															//Data
+		1u,																	//Size
+		helper::read_value<std::size_t>("offset", nullptr),					//Offset
+		nullptr,															//Context
+		(name_.size() != 4u)												//Is last
+	));
+}
+
+cminus::declaration::string::get_sub_def::~get_sub_def() = default;
+
+void cminus::declaration::string::get_sub_def::evaluate_body_() const{
+	helper::value_info info{};
+	helper::retrieve_info(info, nullptr);
+
+	auto position_value = helper::read_value<std::size_t>("position", nullptr);
+	if (info.size <= position_value)
+		throw runtime::exception::out_of_range();
+
+	throw runtime::exception::return_interrupt(runtime::object::global_storage->create_string(std::string_view(
+		(info.data + position_value),
+		std::min((info.size - position_value), helper::read_value<std::size_t>("size", nullptr))
+	)));
 }

@@ -209,8 +209,6 @@ void cminus::declaration::function::copy_args_(std::shared_ptr<memory::reference
 			}
 			else//Variadic declaration
 				variadic_declaration = *param_it;
-
-			++param_it;
 		}
 		else
 			throw exception::bad_parameter_list();

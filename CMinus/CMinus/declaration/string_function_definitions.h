@@ -57,7 +57,7 @@ namespace cminus::declaration::string{
 
 		static std::shared_ptr<memory::reference> retrieve_size(std::shared_ptr<memory::reference> context);
 
-		static std::size_t allocate_block(std::size_t buffer_size, allocation_type how, std::size_t split_index, std::shared_ptr<memory::reference> context);
+		static std::size_t allocate_block(std::size_t buffer_size, allocation_type how, std::size_t split_index, std::shared_ptr<memory::reference> context, bool write_protected = false);
 
 		static void assign(const char *buffer, std::size_t buffer_size, bool fill, std::shared_ptr<memory::reference> context);
 
@@ -65,7 +65,17 @@ namespace cminus::declaration::string{
 
 		static void erase(std::size_t buffer_size, std::size_t offset, std::shared_ptr<memory::reference> context);
 
-		static std::size_t find_buffer(const char *buffer, std::size_t buffer_size, std::size_t offset, std::shared_ptr<memory::reference> context);
+		static std::size_t find(const char *buffer, std::size_t buffer_size, std::size_t offset, std::shared_ptr<memory::reference> context, bool is_last);
+
+		static std::size_t find(std::shared_ptr<memory::reference> other, std::size_t pos, std::size_t size, std::size_t offset, std::shared_ptr<memory::reference> context, bool is_last);
+
+		template <typename... args_types>
+		static std::shared_ptr<memory::reference> get_found(args_types &&... args){
+			return std::make_shared<memory::scalar_reference<std::size_t>>(
+				runtime::object::global_storage->get_size_type(),
+				find(std::forward<args_types>(args)...)
+			);
+		}
 
 		static char *read_data(const std::string &name, std::shared_ptr<memory::reference> context);
 
@@ -195,6 +205,66 @@ namespace cminus::declaration::string{
 		using at::at;
 
 		virtual ~at_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class find_copy_def : public find_copy{
+	public:
+		using find_copy::find_copy;
+
+		virtual ~find_copy_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class find_sub_copy_def : public find_sub_copy{
+	public:
+		using find_sub_copy::find_sub_copy;
+
+		virtual ~find_sub_copy_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class find_buffer_def : public find_buffer{
+	public:
+		using find_buffer::find_buffer;
+
+		virtual ~find_buffer_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class find_sized_buffer_def : public find_sized_buffer{
+	public:
+		using find_sized_buffer::find_sized_buffer;
+
+		virtual ~find_sized_buffer_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class find_single_def : public find_single{
+	public:
+		using find_single::find_single;
+
+		virtual ~find_single_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class get_sub_def : public get_sub{
+	public:
+		using get_sub::get_sub;
+
+		virtual ~get_sub_def();
 
 	protected:
 		virtual void evaluate_body_() const override;

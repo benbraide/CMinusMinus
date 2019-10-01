@@ -79,7 +79,7 @@ namespace cminus::memory{
 
 			auto free_it = blocks_.begin();
 			for (; free_it != blocks_.end(); ++free_it){
-				if (auto free_block = dynamic_cast<memory::free_block *>(free_it->get()); free_block != nullptr && free_block->size_ <= size)
+				if (auto free_block = dynamic_cast<memory::free_block *>(free_it->get()); free_block != nullptr && size <= free_block->size_)
 					break;
 			}
 

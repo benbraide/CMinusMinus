@@ -107,6 +107,10 @@ std::shared_ptr<cminus::type::object> cminus::storage::global::get_char_ref_type
 	return get_ref_type(get_cached_type(cached_type::char_), is_const);
 }
 
+std::shared_ptr<cminus::type::object> cminus::storage::global::get_string_ref_type(bool is_const) const{
+	return get_ref_type(get_cached_type(cached_type::string), is_const);
+}
+
 std::shared_ptr<cminus::type::object> cminus::storage::global::get_boolean_type() const{
 	return get_cached_type(cached_type::bool_);
 }
@@ -167,29 +171,43 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_zero_val
 	return reference;
 }
 
+std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_string(const char *value, bool lval) const{
+	return create_string(std::string_view(value), lval);
+}
+
 std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_string(const std::string &value, bool lval) const{
-	std::shared_ptr<memory::reference> ref;
-	if (lval)
-		ref = std::make_shared<memory::reference>(get_string_type(), attribute::collection::list_type{}, nullptr);
-	else//R-val
-		ref = std::make_shared<memory::rval_reference>(get_string_type());
-
-	declaration::string::helper::assign(value.data(), value.size(), false, ref);
-	ref->set_constructed_state();
-
-	return ref;
+	return create_string(std::string_view(value.data(), value.size()), lval);
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_string(const std::string_view &value, bool lval) const{
 	std::shared_ptr<memory::reference> ref;
-	if (lval)
+	if (!lval){//Allocate write protected memory
+		auto type = get_string_type();
+		auto block = runtime::object::memory_object->allocate_write_protected_block(type->get_memory_size());
+
+		if (block != nullptr && block->get_address() != 0u)
+			ref = std::make_shared<memory::rval_reference>(block->get_address(), std::make_shared<type::constant>(type));
+		else
+			throw memory::exception::allocation_failure();
+	}
+	else
 		ref = std::make_shared<memory::reference>(get_string_type(), attribute::collection::list_type{}, nullptr);
-	else//R-val
-		ref = std::make_shared<memory::rval_reference>(get_string_type());
 
-	declaration::string::helper::assign(value.data(), value.size(), false, ref);
+	if (ref == nullptr)
+		throw memory::exception::allocation_failure();
+
+	if (!lval){//Allocate write protected data
+		runtime::value_guard guard(runtime::object::is_system, true);
+
+		auto buffer_size = value.size();
+		auto data_address = declaration::string::helper::allocate_block(buffer_size, declaration::string::helper::allocation_type::nil, 0u, ref, !lval);
+
+		runtime::object::memory_object->write_buffer(data_address, value.data(), buffer_size);
+	}
+	else
+		declaration::string::helper::assign(value.data(), value.size(), false, ref);
+
 	ref->set_constructed_state();
-
 	return ref;
 }
 
