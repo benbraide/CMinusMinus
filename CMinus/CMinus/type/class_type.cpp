@@ -49,9 +49,9 @@ void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) c
 		throw declaration::exception::function_not_found();
 
 	if (destructor->get_id() == declaration::callable::id_type::destructor)
-		throw runtime::exception::bad_constructor();
-
-	target = destructor->call(target, std::list<std::shared_ptr<memory::reference>>{});
+		target = destructor->call(target, std::list<std::shared_ptr<memory::reference>>{});
+	else
+		throw runtime::exception::bad_destructor();
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::get_default_value(std::shared_ptr<type_base> self) const{
@@ -59,11 +59,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::get_default_val
 }
 
 std::size_t cminus::type::class_::get_size() const{
-	return size_;
-}
-
-std::size_t cminus::type::class_::get_memory_size() const{
-	return ((size_ == 0u) ? 1u : size_);
+	return std::max(size_, static_cast<std::size_t>(1));
 }
 
 bool cminus::type::class_::is_exact(const type_base &target) const{
@@ -85,7 +81,7 @@ int cminus::type::class_::get_score(const type_base &target) const{
 }
 
 std::size_t cminus::type::class_::compute_base_offset(const type_base &base_type) const{
-	if (auto class_base_type = dynamic_cast<const class_ *>(&base_type); class_base_type != nullptr)
+	if (auto class_base_type = dynamic_cast<const class_ *>(base_type.get_non_proxy()); class_base_type != nullptr)
 		return compute_base_offset_(*class_base_type, 0u);
 	return static_cast<std::size_t>(-1);
 }
@@ -125,6 +121,9 @@ bool cminus::type::class_::is(query_type type, const type_base *arg) const{
 }
 
 bool cminus::type::class_::is_accessible(unsigned int access) const{
+	if (runtime::object::allow_access)
+		return true;
+
 	auto class_storage = runtime::object::current_storage->get_first_of<class_>();
 	if (class_storage == this)//Private access
 		return true;
@@ -190,7 +189,11 @@ bool cminus::type::class_::exists(const type::object &target_type) const{
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const std::string &name, std::shared_ptr<memory::reference> context, bool search_tree) const{
 	{//Scoped lock
 		std::lock_guard<std::mutex> guard(lock_);
-		if (auto entry = find_(name, ((context->get_type()->get_non_proxy() == this) ? context : nullptr), 0u); entry != nullptr || !search_tree)
+
+		auto context_type = context->get_type();
+		auto non_const_ref_context_type = context_type->convert(conversion_type::remove_ref_const, context_type);
+
+		if (auto entry = find_(name, ((non_const_ref_context_type->get_non_proxy() == this) ? context : nullptr), 0u); entry != nullptr || !search_tree)
 			return entry;
 	}
 
@@ -239,6 +242,11 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_static_mem
 		return it->second;
 
 	return nullptr;
+}
+
+cminus::declaration::callable_group *cminus::type::class_::find_function(const std::string &name) const{
+	std::lock_guard<std::mutex> guard(lock_);
+	return find_function_(name);
 }
 
 bool cminus::type::class_::is_assignable_to(std::shared_ptr<type_base> target_type) const{
@@ -297,7 +305,7 @@ bool cminus::type::class_::add_(std::shared_ptr<declaration::object> entry, std:
 	return true;
 }
 
-void cminus::type::class_::add_(std::shared_ptr<declaration::variable> entry, std::size_t address){
+void cminus::type::class_::add_variable_(std::shared_ptr<declaration::variable> entry, std::size_t address){
 	if (!entry->is(declaration::flags::static_)){
 		auto entry_memory_size = entry->get_type()->get_memory_size();
 		if (entry_memory_size == 0u)
@@ -317,7 +325,7 @@ void cminus::type::class_::add_(std::shared_ptr<declaration::variable> entry, st
 			base_type.address_offset += entry_memory_size;
 	}
 	else//Static declaration
-		storage_base::add_(entry, address);
+		storage_base::add_variable_(entry, address);
 }
 
 bool cminus::type::class_::exists_(const std::string &name, entry_type type) const{
@@ -455,10 +463,6 @@ unsigned int cminus::type::class_::get_base_type_access_(const class_ &target, b
 }
 
 cminus::declaration::callable_group *cminus::type::class_::find_function_(const std::string &name) const{
-	auto it = functions_.find(get_name());
-	if (it == functions_.end())
-		return nullptr;
-
-	auto function_entry = dynamic_cast<memory::function_reference *>(it->second.get());
-	return ((function_entry == nullptr) ? nullptr : function_entry->get_entry());
+	auto it = functions_.find(name);
+	return ((it == functions_.end()) ? nullptr : it->second.get());
 }

@@ -1,5 +1,6 @@
 #include "../storage/global_storage.h"
 #include "../declaration/variable_declaration.h"
+#include "../declaration/string_function_definitions.h"
 
 #include "string_type.h"
 
@@ -14,7 +15,7 @@ cminus::type::string::string()
 		get_max_non_nan<unsigned __int64>::value()
 	);
 
-	add_(std::make_shared<declaration::variable>(
+	add_variable_(std::make_shared<declaration::variable>(
 		"NPOS",																	//Name
 		std::make_shared<constant>(unsigned_long_integral_type),				//Type
 		attribute::collection::list_type{},										//Attributes
@@ -22,7 +23,7 @@ cminus::type::string::string()
 		max_non_nan																//Initialization
 	), 0u);
 
-	add_(std::make_shared<declaration::variable>(
+	add_variable_(std::make_shared<declaration::variable>(
 		"size_",																//Name
 		unsigned_long_integral_type,											//Type
 		attribute::collection::list_type{},										//Attributes
@@ -30,13 +31,36 @@ cminus::type::string::string()
 		empty_initialization													//Initialization
 	), 0u);
 
-	add_(std::make_shared<declaration::variable>(
+	add_variable_(std::make_shared<declaration::variable>(
 		"data_",																//Name
 		std::make_shared<pointer_primitive>(char_type),							//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::private_,											//Flags
 		empty_initialization													//Initialization
 	), 0u);
+
+	add_callable_(std::make_shared<declaration::string::destructor_def>(*this), 0u);
+	add_callable_(std::make_shared<declaration::string::default_constructor_def>(*this), 0u);
+
+	add_callable_(std::make_shared<declaration::string::copy_constructor_def>(*this), 0u);
+	add_callable_(std::make_shared<declaration::string::sub_copy_constructor_def>(*this), 0u);
+
+	add_callable_(std::make_shared<declaration::string::buffer_constructor_def>(*this), 0u);
+	add_callable_(std::make_shared<declaration::string::fill_constructor_def>(*this), 0u);
+
+	add_callable_(std::make_shared<declaration::string::size_def>(*this), 0u);
+
+	add_callable_(std::make_shared<declaration::string::data_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::data_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::begin_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::begin_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::end_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::end_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::at_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::at_def>(*this, false), 0u);
 }
 
 cminus::type::string::~string(){

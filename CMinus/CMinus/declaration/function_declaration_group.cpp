@@ -71,7 +71,7 @@ void cminus::declaration::function_group::add_(std::shared_ptr<callable> entry){
 		return;
 
 	auto it = find_(*entry_type);
-	if (it != entries_.end()){//New entry
+	if (it == entries_.end()){//New entry
 		entries_.push_back(entry);
 		return;
 	}

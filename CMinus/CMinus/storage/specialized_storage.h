@@ -17,13 +17,13 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<memory::reference> find(const std::string &name, bool search_tree) const override;
 
+		virtual void set_context(std::shared_ptr<memory::reference> value);
+
 		virtual std::shared_ptr<memory::reference> get_context() const;
 
 		virtual const declaration::callable &get_owner() const;
 
 	protected:
-		virtual void add_(std::shared_ptr<declaration::variable> entry, std::size_t address) override;
-
 		const declaration::callable &owner_;
 		std::shared_ptr<memory::reference> context_;
 	};

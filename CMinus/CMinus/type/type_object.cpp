@@ -122,13 +122,7 @@ cminus::type::object *cminus::type::object::get_non_proxy() const{
 }
 
 std::shared_ptr<cminus::type::object> cminus::type::object::convert(conversion_type type, std::shared_ptr<object> self_or_other) const{
-	if (self_or_other.get() == this)
-		return self_or_other;
-
-	if (auto cached = runtime::object::global_storage->get_cached_type(*this); cached != nullptr)
-		return cached;
-
-	return std::make_shared<proxy>(*const_cast<object *>(this));
+	return ((self_or_other.get() == this) ? self_or_other : std::make_shared<proxy>(*const_cast<object *>(this)));
 }
 
 bool cminus::type::object::is(query_type type, const object *arg) const{

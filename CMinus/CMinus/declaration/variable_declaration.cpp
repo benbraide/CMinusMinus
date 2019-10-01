@@ -48,12 +48,18 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::alloca
 		else//Use address
 			reference = std::make_shared<memory::indirect_reference>(address, computed_type, attributes_.get_list(), nullptr);
 	}
-	else if (address == 0u)//Allocate memory
-		reference = std::make_shared<memory::reference>(computed_type, attributes_.get_list(), nullptr);
-	else//Use address
+	else if (address == 0u){//Allocate memory
+		if (is(flags::rval))
+			reference = std::make_shared<memory::rval_reference>(computed_type);
+		else
+			reference = std::make_shared<memory::reference>(computed_type, attributes_.get_list(), nullptr);
+	}
+	else if (is(flags::rval))
+		reference = std::make_shared<memory::rval_reference>(address, computed_type);
+	else
 		reference = std::make_shared<memory::reference>(address, computed_type, attributes_.get_list(), nullptr);
 
-	if (reference == nullptr || reference->get_address() == 0u)
+	if (reference == nullptr || reference->get_indirect_address() == 0u)
 		throw memory::exception::allocation_failure();
 
 	if (is(flags::static_))//Update static value
@@ -111,6 +117,6 @@ void cminus::declaration::variable::initialize_memory_(std::shared_ptr<memory::r
 	for (auto arg : value)//Extend arguments
 		arg->get_type()->extend_argument_list(arg, args);
 
-	target->get_type()->construct(target, args);
+	target->get_decl_type()->construct(target, args);
 	target->set_constructed_state();
 }

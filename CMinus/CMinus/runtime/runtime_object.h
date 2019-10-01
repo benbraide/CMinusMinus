@@ -12,7 +12,9 @@ namespace cminus::storage{
 namespace cminus::runtime{
 	struct object{
 		static memory::object *memory_object;
+
 		static thread_local bool is_system;
+		static thread_local bool allow_access;
 
 		static storage::global *global_storage;
 		static thread_local storage::object *current_storage;

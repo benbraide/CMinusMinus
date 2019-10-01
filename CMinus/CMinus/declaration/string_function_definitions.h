@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <string_view>
 
+#include "../storage/global_storage.h"
+
 #include "string_function_declarations.h"
 
 namespace cminus::declaration::string{
@@ -12,6 +14,13 @@ namespace cminus::declaration::string{
 			nil,
 			extend,
 			shrink,
+		};
+
+		struct essential_info{
+			std::shared_ptr<memory::reference> data;
+			std::shared_ptr<memory::reference> size;
+			std::size_t data_address;
+			std::size_t size_value;
 		};
 
 		struct member_info{
@@ -24,7 +33,7 @@ namespace cminus::declaration::string{
 			std::size_t size;
 		};
 
-		struct data_address_siz_value_info{
+		struct data_address_size_value_info{
 			std::size_t data;
 			std::size_t size;
 		};
@@ -34,26 +43,39 @@ namespace cminus::declaration::string{
 			std::size_t size;
 		};
 
+		static void retrieve_info(essential_info &info, std::shared_ptr<memory::reference> context);
+
 		static void retrieve_info(member_info &info, std::shared_ptr<memory::reference> context);
 
 		static void retrieve_info(address_info &info, std::shared_ptr<memory::reference> context);
 
-		static void retrieve_info(data_address_siz_value_info &info, std::shared_ptr<memory::reference> context);
+		static void retrieve_info(data_address_size_value_info &info, std::shared_ptr<memory::reference> context);
 
 		static void retrieve_info(value_info &info, std::shared_ptr<memory::reference> context);
 
-		static std::size_t allocate_block(std::size_t buffer_size, allocation_type how, std::size_t split_index);
+		static std::shared_ptr<memory::reference> retrieve_data(std::shared_ptr<memory::reference> context);
 
-		static void assign(const char *buffer, std::size_t buffer_size, bool fill);
+		static std::shared_ptr<memory::reference> retrieve_size(std::shared_ptr<memory::reference> context);
 
-		static void insert(const char *buffer, std::size_t buffer_size, std::size_t offset, bool fill);
+		static std::size_t allocate_block(std::size_t buffer_size, allocation_type how, std::size_t split_index, std::shared_ptr<memory::reference> context);
 
-		static void erase(std::size_t buffer_size, std::size_t offset);
+		static void assign(const char *buffer, std::size_t buffer_size, bool fill, std::shared_ptr<memory::reference> context);
 
-		static std::size_t find_buffer(const char *buffer, std::size_t buffer_size, std::size_t offset);
+		static void insert(const char *buffer, std::size_t buffer_size, std::size_t offset, bool fill, std::shared_ptr<memory::reference> context);
+
+		static void erase(std::size_t buffer_size, std::size_t offset, std::shared_ptr<memory::reference> context);
+
+		static std::size_t find_buffer(const char *buffer, std::size_t buffer_size, std::size_t offset, std::shared_ptr<memory::reference> context);
+
+		static char *read_data(const std::string &name, std::shared_ptr<memory::reference> context);
 
 		template <typename target_type>
-		static target_type read_value(const std::string &name){
+		static target_type read_value(const std::string &name, std::shared_ptr<memory::reference> context){
+			if (context != nullptr){
+				runtime::value_guard guard(runtime::object::allow_access, true);
+				return runtime::object::global_storage->get_raw_string_type()->find(name, context, false)->read_scalar<target_type>();
+			}
+			
 			return runtime::object::current_storage->find(name, true)->read_scalar<target_type>();
 		}
 	};
@@ -133,6 +155,46 @@ namespace cminus::declaration::string{
 		using size::size;
 
 		virtual ~size_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class data_def : public data{
+	public:
+		using data::data;
+
+		virtual ~data_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class begin_def : public begin{
+	public:
+		using begin::begin;
+
+		virtual ~begin_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class end_def : public end{
+	public:
+		using end::end;
+
+		virtual ~end_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class at_def : public at{
+	public:
+		using at::at;
+
+		virtual ~at_def();
 
 	protected:
 		virtual void evaluate_body_() const override;

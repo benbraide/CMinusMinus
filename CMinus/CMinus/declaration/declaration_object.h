@@ -10,12 +10,13 @@
 namespace cminus::declaration{
 	struct flags{
 		static const unsigned int nil						= (0u << 0x0000u);
-		static const unsigned int static_					= (1u << 0x0001u);
-		static const unsigned int tls						= (1u << 0x0002u);//Thread-local storage
-		static const unsigned int private_					= (1u << 0x0003u);
-		static const unsigned int protected_				= (1u << 0x0004u);
-		static const unsigned int public_					= (1u << 0x0005u);
-		static const unsigned int const_					= (1u << 0x0006u);//Applicable to functions
+		static const unsigned int static_					= (1u << 0x0000u);
+		static const unsigned int tls						= (1u << 0x0001u);//Thread-local storage
+		static const unsigned int private_					= (1u << 0x0002u);
+		static const unsigned int protected_				= (1u << 0x0003u);
+		static const unsigned int public_					= (1u << 0x0004u);
+		static const unsigned int const_					= (1u << 0x0005u);//Applicable to functions
+		static const unsigned int rval						= (1u << 0x0006u);//Applicable to function return types
 	};
 
 	class object{

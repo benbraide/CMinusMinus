@@ -114,17 +114,17 @@ namespace cminus::storage{
 
 		virtual bool add_(std::shared_ptr<declaration::object> entry, std::size_t address);
 
-		virtual void add_(std::shared_ptr<declaration::variable> entry, std::size_t address);
+		virtual void add_variable_(std::shared_ptr<declaration::variable> entry, std::size_t address);
 
-		virtual void add_(std::shared_ptr<declaration::callable> entry, std::size_t address);
+		virtual void add_callable_(std::shared_ptr<declaration::callable> entry, std::size_t address);
 
-		virtual void add_(std::shared_ptr<declaration::operator_> entry, std::size_t address);
+		virtual void add_operator_(std::shared_ptr<declaration::operator_> entry, std::size_t address);
 
-		virtual void add_(std::shared_ptr<attribute::object> entry);
+		virtual void add_attribute_(std::shared_ptr<attribute::object> entry);
 
-		virtual void add_(std::shared_ptr<type::object> entry);
+		virtual void add_type_(std::shared_ptr<type::object> entry);
 
-		virtual void add_(std::shared_ptr<object> entry);
+		virtual void add_storage_(std::shared_ptr<object> entry);
 
 		virtual void del_(const std::string &name);
 

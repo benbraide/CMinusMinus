@@ -11,7 +11,7 @@ namespace cminus::declaration{
 	public:
 		template <typename attributes_type>
 		variable(const std::string &name, std::shared_ptr<type::object> type, const attributes_type &attributes, unsigned int flags, std::shared_ptr<memory::reference> initialization)
-			: variable(name, type, attributes, flags, std::make_shared<node::memory_reference>(initialization)){}
+			: variable(name, type, attributes, flags, ((initialization == nullptr) ? nullptr : std::make_shared<node::memory_reference>(initialization))){}
 
 		template <typename attributes_type>
 		variable(const std::string &name, std::shared_ptr<type::object> type, const attributes_type &attributes, unsigned int flags, std::shared_ptr<node::object> initialization)

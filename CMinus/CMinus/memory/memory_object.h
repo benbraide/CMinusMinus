@@ -128,8 +128,6 @@ namespace cminus::memory{
 
 		std::size_t write_(std::size_t destination_address, const io::binary_reader &buffer, std::size_t size);
 
-		std::size_t write_(std::size_t destination_address, std::size_t source_address, std::size_t size);
-
 		std::size_t read_(std::size_t source_address, std::byte *buffer, std::size_t size) const;
 
 		std::size_t read_(std::size_t source_address, io::binary_writer &buffer, std::size_t size) const;

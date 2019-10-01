@@ -21,11 +21,15 @@ namespace cminus::memory{
 			allocate_memory_();
 		}
 
+		explicit reference(std::shared_ptr<type::object> type);
+
 		template <typename attributes_type>
 		reference(std::size_t address, std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
 			: context_(context), attributes_(attributes, type), address_(address){
 			init_type_(type);
 		}
+
+		reference(std::size_t address, std::shared_ptr<type::object> type);
 
 		virtual ~reference();
 
@@ -72,6 +76,8 @@ namespace cminus::memory{
 		virtual attribute::collection &get_attributes();
 
 		virtual std::size_t get_address() const;
+
+		virtual std::size_t get_indirect_address() const;
 
 		virtual bool is_lvalue() const;
 
@@ -127,9 +133,13 @@ namespace cminus::memory{
 			allocate_memory_();
 		}
 
+		explicit indirect_reference(std::shared_ptr<type::object> type);
+
 		template <typename attributes_type>
 		indirect_reference(std::size_t address, std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
 			: reference(address, type, attributes, context){}
+
+		indirect_reference(std::size_t address, std::shared_ptr<type::object> type);
 
 		virtual ~indirect_reference();
 
@@ -142,6 +152,8 @@ namespace cminus::memory{
 		virtual std::size_t get_address() const override;
 
 	protected:
+		virtual std::size_t get_memory_size_() const override;
+
 		std::shared_ptr<reference> owned_;
 	};
 

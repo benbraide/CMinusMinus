@@ -1,3 +1,5 @@
+#include "../storage/specialized_storage.h"
+
 #include "special_function_declaration.h"
 
 cminus::declaration::member_function::~member_function() = default;
@@ -11,18 +13,25 @@ int cminus::declaration::member_function::get_context_score_(std::shared_ptr<mem
 		return type::object::get_score_value(is(flags::static_) ? type::object::score_result_type::exact : type::object::score_result_type::nil);
 
 	auto context_type = context->get_type();
-	auto context_class_type = dynamic_cast<type::class_ *>(context_type.get());
+	auto context_class_type = dynamic_cast<type::class_ *>(context_type->get_non_proxy());
 
-	if (context_class_type == nullptr || context_class_type->compute_base_offset(*context_type_))
+	if (context_class_type == nullptr)
 		return type::object::get_score_value(type::object::score_result_type::nil);
 
-	if (context->is_const())
-		return type::object::get_score_value(context_type_->is(type::object::query_type::const_) ? type::object::score_result_type::exact : type::object::score_result_type::nil);
+	auto context_is_const = context->is_const();
+	auto this_context_is_const = context_type_->is(type::object::query_type::const_);
 
-	if (context_type_->is(type::object::query_type::const_))//Gains constant state
-		return (type::object::get_score_value(type::object::score_result_type::exact) - 1);
+	if (context_is_const && !this_context_is_const)
+		return type::object::get_score_value(type::object::score_result_type::nil);
 
-	return type::object::get_score_value(type::object::score_result_type::exact);
+	auto non_const_ref_this_context_type = context_type_->convert(type::object::conversion_type::remove_ref_const, context_type_);
+	auto base_offset = context_class_type->compute_base_offset(*non_const_ref_this_context_type);
+
+	if (base_offset == static_cast<std::size_t>(-1))
+		return type::object::get_score_value(type::object::score_result_type::nil);
+
+	auto score = type::object::get_score_value((base_offset == 0u) ? type::object::score_result_type::exact : type::object::score_result_type::ancestor);
+	return ((context_is_const == this_context_is_const) ? score : (score - 1));
 }
 
 void cminus::declaration::member_function::copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const{
@@ -32,6 +41,7 @@ void cminus::declaration::member_function::copy_context_(std::shared_ptr<memory:
 
 	entry->write_address(context->get_address());
 	runtime::object::current_storage->add_entry("self", entry);
+	runtime::object::current_storage->get_first_of<storage::class_member>()->set_context(entry);
 }
 
 std::size_t cminus::declaration::member_function::get_args_count_(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{
@@ -217,7 +227,7 @@ void cminus::declaration::destructor::evaluate_body_() const{
 	function::evaluate_body_();
 
 	auto self = runtime::object::current_storage->find("self", false);
-	auto class_parent = reinterpret_cast<type::class_ *>(parent_);
+	auto class_parent = dynamic_cast<type::class_ *>(parent_);
 
 	auto &member_variables = class_parent->get_member_variables();
 	for (auto it = member_variables.rbegin(); it != member_variables.rend(); ++it){

@@ -12,7 +12,7 @@ cminus::runtime::exception::code cminus::runtime::exception::unnamed::get_code()
 }
 
 cminus::runtime::exception::return_interrupt::return_interrupt(std::shared_ptr<memory::reference> value)
-	: base("Return statement must be inside a function context"){}
+	: base("Return statement must be inside a function context"), value_(value){}
 
 cminus::runtime::exception::return_interrupt::~return_interrupt() = default;
 

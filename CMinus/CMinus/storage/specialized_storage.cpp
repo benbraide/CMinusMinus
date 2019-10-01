@@ -32,18 +32,16 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::class_member::find(c
 	return parent->find(name, true);
 }
 
+void cminus::storage::class_member::set_context(std::shared_ptr<memory::reference> value){
+	context_ = value;
+}
+
 std::shared_ptr<cminus::memory::reference> cminus::storage::class_member::get_context() const{
 	return context_;
 }
 
 const cminus::declaration::callable &cminus::storage::class_member::get_owner() const{
 	return owner_;
-}
-
-void cminus::storage::class_member::add_(std::shared_ptr<declaration::variable> entry, std::size_t address){
-	unnamed_object::add_(entry, address);
-	if (entry->get_name() == "self")//Update context
-		context_ = named_entries_["self"];
 }
 
 cminus::storage::class_wrapper::class_wrapper(std::shared_ptr<memory::reference> context)

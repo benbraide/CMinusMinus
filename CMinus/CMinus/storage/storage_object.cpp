@@ -18,13 +18,13 @@ void cminus::storage::unnamed_object::add(std::shared_ptr<declaration::object> e
 		return;
 
 	if (auto variable_entry = std::dynamic_pointer_cast<declaration::variable>(entry); variable_entry != nullptr)
-		return add_(variable_entry, address);
+		return add_variable_(variable_entry, address);
 
 	if (auto function_entry = std::dynamic_pointer_cast<declaration::operator_>(entry); function_entry != nullptr)
-		return add_(function_entry, address);
+		return add_operator_(function_entry, address);
 
 	if (auto function_entry = std::dynamic_pointer_cast<declaration::callable>(entry); function_entry != nullptr)
-		return add_(function_entry, address);
+		return add_callable_(function_entry, address);
 }
 
 void cminus::storage::unnamed_object::add(const std::string &name){
@@ -176,7 +176,7 @@ bool cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::object> 
 	return false;
 }
 
-void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::variable> entry, std::size_t address){
+void cminus::storage::unnamed_object::add_variable_(std::shared_ptr<declaration::variable> entry, std::size_t address){
 	auto &name = entry->get_name();
 	if (!name.empty() && exists_(name, entry_type::mem_ref))
 		throw exception::duplicate_entry();
@@ -201,7 +201,7 @@ void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::variable
 	}
 }
 
-void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::callable> entry, std::size_t address){
+void cminus::storage::unnamed_object::add_callable_(std::shared_ptr<declaration::callable> entry, std::size_t address){
 	auto &name = entry->get_name();
 	if (exists_(name, entry_type::function))
 		throw exception::duplicate_entry();
@@ -227,7 +227,7 @@ void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::callable
 		function_it->second->add(entry);
 }
 
-void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::operator_> entry, std::size_t address){
+void cminus::storage::unnamed_object::add_operator_(std::shared_ptr<declaration::operator_> entry, std::size_t address){
 	auto op = entry->get_op();
 	if (auto existing_entry = find_operator_(op); existing_entry == nullptr){//New entry
 		std::shared_ptr<memory::block> block;
@@ -250,15 +250,15 @@ void cminus::storage::unnamed_object::add_(std::shared_ptr<declaration::operator
 		existing_entry->add(entry);
 }
 
-void cminus::storage::unnamed_object::add_(std::shared_ptr<attribute::object> entry){
+void cminus::storage::unnamed_object::add_attribute_(std::shared_ptr<attribute::object> entry){
 	
 }
 
-void cminus::storage::unnamed_object::add_(std::shared_ptr<type::object> entry){
+void cminus::storage::unnamed_object::add_type_(std::shared_ptr<type::object> entry){
 
 }
 
-void cminus::storage::unnamed_object::add_(std::shared_ptr<object> entry){
+void cminus::storage::unnamed_object::add_storage_(std::shared_ptr<object> entry){
 
 }
 
@@ -283,7 +283,7 @@ void cminus::storage::unnamed_object::del_(const std::string &name){
 
 bool cminus::storage::unnamed_object::exists_(const std::string &name, entry_type type) const{
 	if (type == entry_type::mem_ref){
-		if (auto it = named_entries_.find(name); it == named_entries_.end())//Exists if defined
+		if (auto it = named_entries_.find(name); it != named_entries_.end())//Exists if defined
 			return (dynamic_cast<memory::undefined_reference *>(it->second.get()) == nullptr);
 
 		return (functions_.find(name) != functions_.end() || types_.find(name) != types_.end() || storages_.find(name) != storages_.end());

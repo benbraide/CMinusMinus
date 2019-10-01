@@ -56,8 +56,7 @@ std::size_t cminus::memory::object::write(std::size_t destination_address, const
 }
 
 std::size_t cminus::memory::object::write(std::size_t destination_address, std::size_t source_address, std::size_t size){
-	std::shared_lock<std::shared_mutex> guard(lock_);
-	return write_(destination_address, source_address, size);
+	return read(source_address, destination_address, size);
 }
 
 std::size_t cminus::memory::object::write_buffer(std::size_t destination_address, const char *buffer){
@@ -166,13 +165,17 @@ std::size_t cminus::memory::object::write_(std::size_t destination_address, cons
 		return size;
 
 	auto destination_it = blocks_.end();
-	if (find_block_(destination_address, &destination_it) == nullptr || destination_it == blocks_.end())
+	auto destination_block = find_block_(destination_address, &destination_it);
+
+	if (destination_block == nullptr || destination_it == blocks_.end())
 		throw exception::block_not_found(destination_address);
 
 	std::size_t write_size = 0u;
 	while (write_size < size){
-		write_size += (*destination_it)->write((buffer + write_size), (size - write_size));
-		if (++destination_it == blocks_.end())
+		write_size += destination_block->write((buffer + write_size), (size - write_size));
+		if (++destination_it != blocks_.end())
+			destination_block = *destination_it;
+		else
 			break;
 	}
 
@@ -184,44 +187,19 @@ std::size_t cminus::memory::object::write_(std::size_t destination_address, cons
 		return size;
 
 	auto destination_it = blocks_.end();
-	if (find_block_(destination_address, &destination_it) == nullptr || destination_it == blocks_.end())
-		throw exception::block_not_found(destination_address);
-
-	std::size_t write_size = 0u, previous_write_size = 0u;
-	while (write_size < size){
-		write_size += (*destination_it)->write(buffer, (size - write_size));
-		if (previous_write_size < write_size && ++destination_it != blocks_.end())
-			previous_write_size = write_size;
-		else
-			break;
-	}
-
-	return write_size;
-}
-
-std::size_t cminus::memory::object::write_(std::size_t destination_address, std::size_t source_address, std::size_t size){
-	if (size == 0u)
-		return size;
-
-	auto source_it = blocks_.end();
-	auto source_block = find_block_(source_address, &source_it);
-
-	if (source_block == nullptr || source_it == blocks_.end())
-		throw exception::block_not_found(source_address);
-
-	auto destination_it = blocks_.end();
 	auto destination_block = find_block_(destination_address, &destination_it);
 
 	if (destination_block == nullptr || destination_it == blocks_.end())
 		throw exception::block_not_found(destination_address);
 
-	std::size_t write_size = 0u, current_write_size = 0u;
+	std::size_t write_size = 0u, previous_write_size = 0u;
 	while (write_size < size){
-		current_write_size = destination_block->write(*source_block, (size - write_size));
-		if (size <= (write_size += current_write_size))
-			break;
-
-		if (!advance_source_and_destination_(source_block, source_it, destination_block, destination_it, current_write_size))
+		write_size += destination_block->write(buffer, (size - write_size));
+		if (previous_write_size < write_size && ++destination_it != blocks_.end()){
+			destination_block = *destination_it;
+			previous_write_size = write_size;
+		}
+		else
 			break;
 	}
 
@@ -233,13 +211,17 @@ std::size_t cminus::memory::object::read_(std::size_t source_address, std::byte 
 		return size;
 
 	auto source_it = blocks_.end();
-	if (find_block_(source_address, &source_it) == nullptr || source_it == blocks_.end())
+	auto source_block = find_block_(source_address, &source_it);
+
+	if (source_block == nullptr || source_it == blocks_.end())
 		throw exception::block_not_found(source_address);
 
 	std::size_t read_size = 0u;
 	while (read_size < size){
-		read_size += (*source_it)->read((buffer + read_size), (size - read_size));
-		if (++source_it == blocks_.end())
+		read_size += source_block->read((buffer + read_size), (size - read_size));
+		if (++source_it != blocks_.end())
+			source_block = *source_it;
+		else
 			break;
 	}
 
@@ -251,14 +233,18 @@ std::size_t cminus::memory::object::read_(std::size_t source_address, io::binary
 		return size;
 
 	auto source_it = blocks_.end();
-	if (find_block_(source_address, &source_it) == nullptr || source_it == blocks_.end())
+	auto source_block = find_block_(source_address, &source_it);
+
+	if (source_block == nullptr || source_it == blocks_.end())
 		throw exception::block_not_found(source_address);
 
 	std::size_t read_size = 0u, previous_read_size = 0u;
 	while (read_size < size){
 		read_size += (*source_it)->read(buffer, (size - read_size));
-		if (previous_read_size < read_size && ++source_it != blocks_.end())
+		if (previous_read_size < read_size && ++source_it != blocks_.end()){
+			source_block = *source_it;
 			previous_read_size = read_size;
+		}
 		else
 			break;
 	}

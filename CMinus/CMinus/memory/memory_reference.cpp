@@ -6,6 +6,12 @@
 
 #include "memory_reference.h"
 
+cminus::memory::reference::reference(std::shared_ptr<type::object> type)
+	: reference(type, attribute::collection::list_type{}, nullptr){}
+
+cminus::memory::reference::reference(std::size_t address, std::shared_ptr<type::object> type)
+	: reference(address, type, attribute::collection::list_type{}, nullptr){}
+
 cminus::memory::reference::~reference(){
 	if (deallocator_ != nullptr){
 		deallocator_();
@@ -112,6 +118,10 @@ std::size_t cminus::memory::reference::get_address() const{
 	return address_;
 }
 
+std::size_t cminus::memory::reference::get_indirect_address() const{
+	return address_;
+}
+
 bool cminus::memory::reference::is_lvalue() const{
 	return (is_lvalue_ && (context_ == nullptr || context_->is_lvalue()));
 }
@@ -173,6 +183,12 @@ cminus::declaration::callable_group *cminus::memory::function_reference::get_ent
 
 cminus::memory::function_reference::~function_reference() = default;
 
+cminus::memory::indirect_reference::indirect_reference(std::shared_ptr<type::object> type)
+	: indirect_reference(type, attribute::collection::list_type{}, nullptr){}
+
+cminus::memory::indirect_reference::indirect_reference(std::size_t address, std::shared_ptr<type::object> type)
+	: indirect_reference(address, type, attribute::collection::list_type{}, nullptr){}
+
 cminus::memory::indirect_reference::~indirect_reference(){
 	if (deallocator_ != nullptr){
 		deallocator_();
@@ -208,8 +224,12 @@ std::size_t cminus::memory::indirect_reference::get_address() const{
 	return runtime::object::memory_object->read_scalar<std::size_t>(address_);
 }
 
+std::size_t cminus::memory::indirect_reference::get_memory_size_() const{
+	return ((type_ == nullptr) ? 0u : sizeof(void *));
+}
+
 cminus::memory::rval_reference::rval_reference(std::shared_ptr<type::object> type)
-	: reference(0u, type->convert(type::object::conversion_type::remove_ref_const, type), attribute::collection::list_type{}, nullptr){
+	: reference(type->convert(type::object::conversion_type::remove_ref_const, type), attribute::collection::list_type{}, nullptr){
 	is_lvalue_ = false;
 }
 

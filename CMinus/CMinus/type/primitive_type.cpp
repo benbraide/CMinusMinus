@@ -171,7 +171,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::cast(
 		if ((type != cast_type::static_ && type != cast_type::rval_static) || !target_type->is(query_type::string))
 			return nullptr;
 
-		return nullptr;//#TODO: Create string
+		return runtime::object::global_storage->create_string(get_string_value(data));
 	}
 
 	if (type != cast_type::static_ && type != cast_type::rval_static)

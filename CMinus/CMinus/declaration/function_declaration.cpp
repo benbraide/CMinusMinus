@@ -28,7 +28,8 @@ void cminus::declaration::function::add_parameter(std::shared_ptr<variable> valu
 	if (value->get_flags() != flags::nil)
 		throw exception::bad_parameter_list();
 
-	if (auto & name = value->get_name(); !name.empty()){
+	auto &name = value->get_name();
+	if (!name.empty()){
 		for (auto parameter : parameter_list_){
 			if (parameter->get_name() == name)
 				throw exception::bad_parameter_list();
@@ -50,6 +51,7 @@ void cminus::declaration::function::add_parameter(std::shared_ptr<variable> valu
 	else if (!has_initialization)
 		++min_arg_count_;
 
+	parameter_list_.push_back(value);
 	type_->add_parameter_type(value->get_type());
 }
 
@@ -125,7 +127,7 @@ void cminus::declaration::function::init_(std::shared_ptr<type::object> return_t
 			"",											//Name
 			return_type,								//Type
 			attribute::collection::list_type{},			//Attributes
-			flags::nil,									//Flags
+			flags::rval,								//Flags
 			std::shared_ptr<memory::reference>()		//Initialization
 		);
 	}
@@ -282,13 +284,13 @@ int cminus::declaration::function::get_arg_score_(std::shared_ptr<type::object> 
 	else
 		score = arg_type->get_score(*non_ref_const_param_type);
 
-	if (score == type::object::get_score_value(type::object::score_result_type::nil))
-		return score;
-	
-	if ((param_is_ref && !param_is_const) || !param_type->convert(type::object::conversion_type::remove_ref, param_type)->is_constructible(arg))
+	if (score != type::object::get_score_value(type::object::score_result_type::nil))
 		return (score - ((param_is_const == arg_is_const && param_is_ref == arg_is_lval) ? 0 : 1));
+	
+	if (param_type->convert(type::object::conversion_type::remove_ref, param_type)->is_constructible(arg))
+		return type::object::get_score_value(type::object::score_result_type::class_compatible);
 
-	return type::object::get_score_value(type::object::score_result_type::class_compatible);
+	return score;
 }
 
 std::size_t cminus::declaration::function::get_args_count_(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{

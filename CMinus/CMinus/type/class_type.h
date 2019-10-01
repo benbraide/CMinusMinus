@@ -41,8 +41,6 @@ namespace cminus::type{
 
 		virtual std::size_t get_size() const override;
 
-		virtual std::size_t get_memory_size() const override;
-
 		virtual bool is_exact(const type_base &target) const override;
 
 		virtual int get_score(const type_base &target) const override;
@@ -77,6 +75,8 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> find_static_member(const std::string &name) const;
 
+		virtual declaration::callable_group *find_function(const std::string &name) const;
+
 		virtual bool is_assignable_to(std::shared_ptr<type_base> target_type) const;
 
 		virtual bool is_base_type(const class_ &target, bool search_hierarchy) const;
@@ -88,9 +88,13 @@ namespace cminus::type{
 	protected:
 		virtual void construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const override;
 
+		using storage_base::exists_;
+		using storage_base::find_;
+		using storage_base::find_operator_;
+
 		virtual bool add_(std::shared_ptr<declaration::object> entry, std::size_t address) override;
 
-		virtual void add_(std::shared_ptr<declaration::variable> entry, std::size_t address) override;
+		virtual void add_variable_(std::shared_ptr<declaration::variable> entry, std::size_t address) override;
 
 		virtual bool exists_(const std::string &name, entry_type type) const override;
 
