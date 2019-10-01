@@ -1,5 +1,6 @@
 #include "../storage/global_storage.h"
 
+#include "proxy_type.h"
 #include "modified_type.h"
 #include "function_type.h"
 #include "primitive_type.h"
@@ -125,8 +126,8 @@ cminus::type::number_primitive::~number_primitive() = default;
 std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::get_default_value(std::shared_ptr<object> self) const{
 	if (state_ == state_type::nil){//Return a NaN value
 		if (self.get() == this)
-			return std::make_shared<memory::scalar_reference<__int32>>(self, integer_nan_value);
-		return std::make_shared<memory::scalar_reference<__int32>>(runtime::object::global_storage->get_cached_type(*this), integer_nan_value);
+			return std::make_shared<memory::scalar_reference<__int32>>(self, type::get_nan<__int32>::value());
+		return std::make_shared<memory::scalar_reference<__int32>>(std::make_shared<proxy>(*const_cast<number_primitive *>(this)), type::get_nan<__int32>::value());
 	}
 
 	return primitive::get_default_value(self);
@@ -248,17 +249,17 @@ cminus::evaluator::object::id_type cminus::type::number_primitive::get_evaluator
 bool cminus::type::number_primitive::is_nan(const memory::reference &data) const{
 	switch (state_){
 	case state_type::integer:
-		return (data.read_scalar<__int32>() == integer_nan_value);
+		return is_nan_<__int32>(data);
 	case state_type::long_integer:
-		return (data.read_scalar<__int64>() == long_integer_nan_value);
+		return is_nan_<__int64>(data);
 	case state_type::unsigned_integer:
-		return (data.read_scalar<unsigned __int32>() == unsigned_integer_nan_value);
+		return is_nan_<unsigned __int32>(data);
 	case state_type::unsigned_long_integer:
-		return (data.read_scalar<unsigned __int64>() == unsigned_long_integer_nan_value);
+		return is_nan_<unsigned __int64>(data);
 	case state_type::real:
-		return (data.read_scalar<float>() == real_nan_value);
+		return is_nan_<float>(data);
 	case state_type::long_real:
-		return (data.read_scalar<long double>() == long_real_nan_value);
+		return is_nan_<long double>(data);
 	default:
 		break;
 	}
@@ -269,17 +270,17 @@ bool cminus::type::number_primitive::is_nan(const memory::reference &data) const
 std::string cminus::type::number_primitive::get_string_value(std::shared_ptr<memory::reference> data) const{
 	switch (state_){
 	case state_type::integer:
-		return get_string_value_(data->read_scalar<__int32>(), integer_nan_value);
+		return get_string_value_(data->read_scalar<__int32>());
 	case state_type::long_integer:
-		return get_string_value_(data->read_scalar<__int64>(), long_integer_nan_value);
+		return get_string_value_(data->read_scalar<__int64>());
 	case state_type::unsigned_integer:
-		return get_string_value_(data->read_scalar<unsigned __int32>(), unsigned_integer_nan_value);
+		return get_string_value_(data->read_scalar<unsigned __int32>());
 	case state_type::unsigned_long_integer:
-		return get_string_value_(data->read_scalar<unsigned __int64>(), unsigned_long_integer_nan_value);
+		return get_string_value_(data->read_scalar<unsigned __int64>());
 	case state_type::real:
-		return get_string_value_(data->read_scalar<float>(), real_nan_value);
+		return get_string_value_(data->read_scalar<float>());
 	case state_type::long_real:
-		return get_string_value_(data->read_scalar<long double>(), long_real_nan_value);
+		return get_string_value_(data->read_scalar<long double>());
 	default:
 		break;
 	}
@@ -316,9 +317,9 @@ bool cminus::type::number_primitive::has_precedence_over(const number_primitive 
 	return (target.state_ == state_type::integer);
 }
 
-const float cminus::type::number_primitive::real_nan_value = std::numeric_limits<float>::min();
+const float cminus::type::numeric_constants::real_nan_value = std::numeric_limits<float>::min();
 
-const long double cminus::type::number_primitive::long_real_nan_value = std::numeric_limits<long double>::min();
+const long double cminus::type::numeric_constants::long_real_nan_value = std::numeric_limits<long double>::min();
 
 cminus::type::function_primitive::function_primitive()
 	: primitive("FunctionType"){}

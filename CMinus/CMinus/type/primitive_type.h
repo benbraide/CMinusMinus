@@ -127,6 +127,152 @@ namespace cminus::type{
 	using char_primitive = strict_primitive<primitive::id_type::char_, object::query_type::character, sizeof(char), evaluator::object::id_type::byte>;
 	using wchar_primitive = strict_primitive<primitive::id_type::wchar_, object::query_type::character, sizeof(wchar_t), evaluator::object::id_type::byte>;
 
+	struct numeric_constants{
+		static const __int32 integer_nan_value = std::numeric_limits<__int32>::min();
+		static const __int64 long_integer_nan_value = std::numeric_limits<__int64>::min();
+
+		static const unsigned __int32 unsigned_integer_nan_value = std::numeric_limits<unsigned __int32>::max();
+		static const unsigned __int64 unsigned_long_integer_nan_value = std::numeric_limits<unsigned __int64>::max();
+
+		static const float real_nan_value;
+		static const long double long_real_nan_value;
+	};
+
+	template <class target_type>
+	struct get_nan;
+
+	template <>
+	struct get_nan<__int32>{
+		static constexpr __int32 value(){
+			return numeric_constants::integer_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<__int64>{
+		static constexpr __int64 value(){
+			return numeric_constants::long_integer_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<unsigned __int32>{
+		static constexpr unsigned __int32 value(){
+			return numeric_constants::unsigned_integer_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<unsigned __int64>{
+		static constexpr unsigned __int64 value(){
+			return numeric_constants::unsigned_long_integer_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<float>{
+		static constexpr float value(){
+			return numeric_constants::real_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<long double>{
+		static constexpr long double value(){
+			return numeric_constants::long_real_nan_value;
+		}
+	};
+
+	template <class target_type>
+	struct get_max_non_nan;
+
+	template <>
+	struct get_max_non_nan<__int32>{
+		static constexpr __int32 value(){
+			return std::numeric_limits<__int32>::max();
+		}
+	};
+
+	template <>
+	struct get_max_non_nan<__int64>{
+		static constexpr __int64 value(){
+			return std::numeric_limits<__int64>::max();
+		}
+	};
+
+	template <>
+	struct get_max_non_nan<unsigned __int32>{
+		static constexpr unsigned __int32 value(){
+			return (numeric_constants::unsigned_integer_nan_value - 1ui32);
+		}
+	};
+
+	template <>
+	struct get_max_non_nan<unsigned __int64>{
+		static constexpr unsigned __int64 value(){
+			return (numeric_constants::unsigned_long_integer_nan_value - 1ui64);
+		}
+	};
+
+	template <>
+	struct get_max_non_nan<float>{
+		static constexpr float value(){
+			return std::numeric_limits<float>::max();
+		}
+	};
+
+	template <>
+	struct get_max_non_nan<long double>{
+		static constexpr long double value(){
+			return std::numeric_limits<long double>::max();
+		}
+	};
+
+	template <class target_type>
+	struct get_min_non_nan;
+
+	template <>
+	struct get_min_non_nan<__int32>{
+		static constexpr __int32 value(){
+			return (numeric_constants::integer_nan_value + 1i32);
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<__int64>{
+		static constexpr __int64 value(){
+			return (numeric_constants::long_integer_nan_value + 1i64);
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<unsigned __int32>{
+		static constexpr unsigned __int32 value(){
+			return std::numeric_limits<unsigned __int32>::min();
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<unsigned __int64>{
+		static constexpr unsigned __int64 value(){
+			return std::numeric_limits<unsigned __int64>::min();
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<float>{
+		static constexpr float value(){
+			return (numeric_constants::real_nan_value + 1.0f);
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<long double>{
+		static constexpr long double value(){
+			return (numeric_constants::long_real_nan_value + 1.0l);
+		}
+	};
+
 	class number_primitive : public primitive{
 	public:
 		enum class state_type{
@@ -165,17 +311,17 @@ namespace cminus::type{
 		target_type get_nan() const{
 			switch (state_){
 			case state_type::integer:
-				return static_cast<target_type>(integer_nan_value);
+				return static_cast<target_type>(type::get_nan<__int32>::value());
 			case state_type::long_integer:
-				return static_cast<target_type>(long_integer_nan_value);
+				return static_cast<target_type>(type::get_nan<__int64>::value());
 			case state_type::unsigned_integer:
-				return static_cast<target_type>(unsigned_integer_nan_value);
+				return static_cast<target_type>(type::get_nan<unsigned __int32>::value());
 			case state_type::unsigned_long_integer:
-				return static_cast<target_type>(unsigned_long_integer_nan_value);
+				return static_cast<target_type>(type::get_nan<unsigned __int64>::value());
 			case state_type::real:
-				return static_cast<target_type>(real_nan_value);
+				return static_cast<target_type>(type::get_nan<float>::value());
 			case state_type::long_real:
-				return static_cast<target_type>(long_real_nan_value);
+				return static_cast<target_type>(type::get_nan<long double>::value());
 			default:
 				break;
 			}
@@ -187,22 +333,27 @@ namespace cminus::type{
 		target_type read_value(std::shared_ptr<memory::reference> data) const{
 			switch (state_){
 			case state_type::integer:
-				return static_cast<target_type>(data->read_scalar<__int32>());
+				return cast_value<target_type>(data->read_scalar<__int32>());
 			case state_type::long_integer:
-				return static_cast<target_type>(data->read_scalar<__int64>());
+				return cast_value<target_type>(data->read_scalar<__int64>());
 			case state_type::unsigned_integer:
-				return static_cast<target_type>(data->read_scalar<unsigned __int32>());
+				return cast_value<target_type>(data->read_scalar<unsigned __int32>());
 			case state_type::unsigned_long_integer:
-				return static_cast<target_type>(data->read_scalar<unsigned __int64>());
+				return cast_value<target_type>(data->read_scalar<unsigned __int64>());
 			case state_type::real:
-				return static_cast<target_type>(data->read_scalar<float>());
+				return cast_value<target_type>(data->read_scalar<float>());
 			case state_type::long_real:
-				return static_cast<target_type>(data->read_scalar<long double>());
+				return cast_value<target_type>(data->read_scalar<long double>());
 			default:
 				break;
 			}
 
 			return target_type();
+		}
+
+		template <typename target_type, typename value_type>
+		target_type cast_value(value_type from) const{
+			return ((from == type::get_nan<value_type>::template value()) ? type::get_nan<target_type>::template value() : static_cast<target_type>(from));
 		}
 
 		virtual std::string get_string_value(std::shared_ptr<memory::reference> data) const;
@@ -211,19 +362,15 @@ namespace cminus::type{
 
 		virtual bool has_precedence_over(const number_primitive &target) const;
 
-		static const __int32 integer_nan_value = std::numeric_limits<__int32>::min();
-		static const __int64 long_integer_nan_value = std::numeric_limits<__int64>::min();
-
-		static const unsigned __int32 unsigned_integer_nan_value = std::numeric_limits<unsigned __int32>::max();
-		static const unsigned __int64 unsigned_long_integer_nan_value = std::numeric_limits<unsigned __int64>::max();
-
-		static const float real_nan_value;
-		static const long double long_real_nan_value;
-
 	protected:
+		template <typename target_type>
+		bool is_nan_(const memory::reference &data) const{
+			return (data.read_scalar<__int32>() == type::get_nan<target_type>::template value());
+		}
+
 		template <typename value_type>
-		std::string get_string_value_(value_type value, value_type nan_value) const{
-			return ((value == nan_value) ? "NaN" : runtime::to_string<value_type>::template get(value));
+		std::string get_string_value_(value_type value) const{
+			return ((value == type::get_nan<value_type>::template value()) ? "NaN" : runtime::to_string<value_type>::template get(value));
 		}
 
 		state_type state_;
@@ -264,140 +411,5 @@ namespace cminus::type{
 		virtual std::shared_ptr<object> convert(conversion_type type, std::shared_ptr<object> self_or_other = nullptr) const override;
 
 		virtual bool is(query_type type, const object *arg = nullptr) const override;
-	};
-
-	template <class target_type>
-	struct get_nan;
-
-	template <>
-	struct get_nan<__int32>{
-		static constexpr __int32 value(){
-			return number_primitive::integer_nan_value;
-		}
-	};
-
-	template <>
-	struct get_nan<__int64>{
-		static constexpr __int64 value(){
-			return number_primitive::long_integer_nan_value;
-		}
-	};
-
-	template <>
-	struct get_nan<unsigned __int32>{
-		static constexpr unsigned __int32 value(){
-			return number_primitive::unsigned_integer_nan_value;
-		}
-	};
-
-	template <>
-	struct get_nan<unsigned __int64>{
-		static constexpr unsigned __int64 value(){
-			return number_primitive::unsigned_long_integer_nan_value;
-		}
-	};
-
-	template <>
-	struct get_nan<float>{
-		static constexpr float value(){
-			return number_primitive::real_nan_value;
-		}
-	};
-
-	template <>
-	struct get_nan<long double>{
-		static constexpr long double value(){
-			return number_primitive::long_real_nan_value;
-		}
-	};
-
-	template <class target_type>
-	struct get_max_non_nan;
-
-	template <>
-	struct get_max_non_nan<__int32>{
-		static constexpr __int32 value(){
-			return std::numeric_limits<__int32>::max();
-		}
-	};
-
-	template <>
-	struct get_max_non_nan<__int64>{
-		static constexpr __int64 value(){
-			return std::numeric_limits<__int64>::max();
-		}
-	};
-
-	template <>
-	struct get_max_non_nan<unsigned __int32>{
-		static constexpr unsigned __int32 value(){
-			return (number_primitive::unsigned_integer_nan_value - 1ui32);
-		}
-	};
-
-	template <>
-	struct get_max_non_nan<unsigned __int64>{
-		static constexpr unsigned __int64 value(){
-			return (number_primitive::unsigned_long_integer_nan_value - 1ui64);
-		}
-	};
-
-	template <>
-	struct get_max_non_nan<float>{
-		static constexpr float value(){
-			return std::numeric_limits<float>::max();
-		}
-	};
-
-	template <>
-	struct get_max_non_nan<long double>{
-		static constexpr long double value(){
-			return std::numeric_limits<long double>::max();
-		}
-	};
-
-	template <class target_type>
-	struct get_min_non_nan;
-
-	template <>
-	struct get_min_non_nan<__int32>{
-		static constexpr __int32 value(){
-			return (number_primitive::integer_nan_value + 1i32);
-		}
-	};
-
-	template <>
-	struct get_min_non_nan<__int64>{
-		static constexpr __int64 value(){
-			return (number_primitive::long_integer_nan_value + 1i64);
-		}
-	};
-
-	template <>
-	struct get_min_non_nan<unsigned __int32>{
-		static constexpr unsigned __int32 value(){
-			return std::numeric_limits<unsigned __int32>::min();
-		}
-	};
-
-	template <>
-	struct get_min_non_nan<unsigned __int64>{
-		static constexpr unsigned __int64 value(){
-			return std::numeric_limits<unsigned __int64>::min();
-		}
-	};
-
-	template <>
-	struct get_min_non_nan<float>{
-		static constexpr float value(){
-			return (number_primitive::real_nan_value + 1.0f);
-		}
-	};
-
-	template <>
-	struct get_min_non_nan<long double>{
-		static constexpr long double value(){
-			return (number_primitive::long_real_nan_value + 1.0l);
-		}
 	};
 }
