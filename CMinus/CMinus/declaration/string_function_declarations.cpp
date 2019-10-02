@@ -299,3 +299,50 @@ cminus::declaration::string::get_sub::get_sub(type::class_ &parent)
 }
 
 cminus::declaration::string::get_sub::~get_sub() = default;
+
+cminus::declaration::string::resize::resize(type::class_ &parent)
+	: external_member_function("Resize", parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){
+	add_parameter(std::make_shared<declaration::variable>(
+		"size",																	//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"fill",																	//Name
+		runtime::object::global_storage->get_char_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		misc_helper::get_null_char_arg()										//Initialization
+	));
+}
+
+cminus::declaration::string::resize::~resize() = default;
+
+cminus::declaration::string::erase::erase(type::class_ &parent)
+	: external_member_function("Erase", parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){
+	add_parameter(std::make_shared<declaration::variable>(
+		"position",																//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"size",																	//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		misc_helper::get_nan_size_arg()											//Initialization
+	));
+}
+
+cminus::declaration::string::erase::~erase() = default;
+
+cminus::declaration::string::clear::clear(type::class_ &parent)
+	: external_member_function("Clear", parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){}
+
+cminus::declaration::string::clear::~clear() = default;

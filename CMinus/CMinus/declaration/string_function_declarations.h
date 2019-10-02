@@ -145,4 +145,25 @@ namespace cminus::declaration::string{
 
 		virtual ~get_sub();
 	};
+
+	class resize : public external_member_function{
+	public:
+		explicit resize(type::class_ &parent);
+
+		virtual ~resize();
+	};
+
+	class erase : public external_member_function{
+	public:
+		explicit erase(type::class_ &parent);
+
+		virtual ~erase();
+	};
+
+	class clear : public external_member_function{
+	public:
+		explicit clear(type::class_ &parent);
+
+		virtual ~clear();
+	};
 }

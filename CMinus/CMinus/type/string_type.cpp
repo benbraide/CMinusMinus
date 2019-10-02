@@ -63,6 +63,10 @@ cminus::type::string::string()
 	add_callable_(std::make_shared<declaration::string::find_single_def>(*this, false), 0u);
 
 	add_callable_(std::make_shared<declaration::string::get_sub_def>(*this), 0u);
+	add_callable_(std::make_shared<declaration::string::resize_def>(*this), 0u);
+
+	add_callable_(std::make_shared<declaration::string::erase_def>(*this), 0u);
+	add_callable_(std::make_shared<declaration::string::clear_def>(*this), 0u);
 
 	compile_();
 }

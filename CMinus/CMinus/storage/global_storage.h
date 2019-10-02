@@ -52,6 +52,8 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<type::object> get_string_ref_type(bool is_const) const;
 
+		virtual std::shared_ptr<type::object> get_void_type() const;
+
 		virtual std::shared_ptr<type::object> get_boolean_type() const;
 
 		virtual std::shared_ptr<type::object> get_char_type() const;

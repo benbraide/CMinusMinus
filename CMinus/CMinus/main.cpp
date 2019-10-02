@@ -50,6 +50,19 @@ int main(){
 
 		auto sub = global_storage->get_raw_string_type()->find_function("GetSub")->call(str, { pos5 });
 		auto csub = global_storage->get_string_value(sub);
+
+		auto lval_str = global_storage->create_string("L-Val Test String", true);
+		auto dummy = global_storage->get_raw_string_type()->find_function("Resize")->call(lval_str, { pos5 });
+		auto clval_str = global_storage->get_string_value(lval_str);
+		
+		auto pos25 = std::make_shared<cminus::memory::scalar_reference<std::size_t>>(
+			global_storage->get_size_type(),
+			25u
+		);
+
+		auto lval_str2 = global_storage->create_string("L-Val Test String2", true);
+		auto dummy2 = global_storage->get_raw_string_type()->find_function("Resize")->call(lval_str2, { pos25, tchar });
+		auto clval_str2 = global_storage->get_string_value(lval_str2);
 	}
 
 	return 0;

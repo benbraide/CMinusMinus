@@ -111,6 +111,10 @@ std::shared_ptr<cminus::type::object> cminus::storage::global::get_string_ref_ty
 	return get_ref_type(get_cached_type(cached_type::string), is_const);
 }
 
+std::shared_ptr<cminus::type::object> cminus::storage::global::get_void_type() const{
+	return get_cached_type(cached_type::void_);
+}
+
 std::shared_ptr<cminus::type::object> cminus::storage::global::get_boolean_type() const{
 	return get_cached_type(cached_type::bool_);
 }
@@ -198,7 +202,7 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_strin
 		runtime::object::memory_object->write_buffer(data_address, value.data(), buffer_size);
 	}
 	else
-		declaration::string::helper::assign(value.data(), value.size(), false, ref);
+		declaration::string::helper::assign(value.data(), value.size(), false, false, ref);
 
 	ref->set_constructed_state();
 	return ref;

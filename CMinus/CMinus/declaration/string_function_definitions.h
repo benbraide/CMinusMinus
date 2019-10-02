@@ -14,6 +14,7 @@ namespace cminus::declaration::string{
 			nil,
 			extend,
 			shrink,
+			compute,
 		};
 
 		struct essential_info{
@@ -57,9 +58,10 @@ namespace cminus::declaration::string{
 
 		static std::shared_ptr<memory::reference> retrieve_size(std::shared_ptr<memory::reference> context);
 
-		static std::size_t allocate_block(std::size_t buffer_size, allocation_type how, std::size_t split_index, std::shared_ptr<memory::reference> context, bool write_protected = false);
+		static std::size_t allocate_block(std::size_t buffer_size, allocation_type how, std::size_t split_index, std::shared_ptr<memory::reference> context,
+			bool write_protected = false, std::size_t *allocated_address = nullptr);
 
-		static void assign(const char *buffer, std::size_t buffer_size, bool fill, std::shared_ptr<memory::reference> context);
+		static void assign(const char *buffer, std::size_t buffer_size, bool compute, bool fill, std::shared_ptr<memory::reference> context);
 
 		static void insert(const char *buffer, std::size_t buffer_size, std::size_t offset, bool fill, std::shared_ptr<memory::reference> context);
 
@@ -265,6 +267,36 @@ namespace cminus::declaration::string{
 		using get_sub::get_sub;
 
 		virtual ~get_sub_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class resize_def : public resize{
+	public:
+		using resize::resize;
+
+		virtual ~resize_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class erase_def : public erase{
+	public:
+		using erase::erase;
+
+		virtual ~erase_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class clear_def : public clear{
+	public:
+		using clear::clear;
+
+		virtual ~clear_def();
 
 	protected:
 		virtual void evaluate_body_() const override;

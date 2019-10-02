@@ -70,11 +70,12 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::string::helper::
 	return runtime::object::global_storage->get_raw_string_type()->find("size_", context, false);
 }
 
-std::size_t cminus::declaration::string::helper::allocate_block(std::size_t buffer_size, allocation_type how, std::size_t split_index, std::shared_ptr<memory::reference> context, bool write_protected){
+std::size_t cminus::declaration::string::helper::allocate_block(std::size_t buffer_size, allocation_type how, std::size_t split_index,
+	std::shared_ptr<memory::reference> context, bool write_protected, std::size_t *allocated_address){
 	essential_info info{};
 	retrieve_info(info, context);
 
-	if ((how == allocation_type::nil) && buffer_size == info.size_value && info.data_address != 0u)
+	if ((how == allocation_type::nil || how == allocation_type::compute) && buffer_size == info.size_value && info.data_address != 0u)
 		return info.data_address;
 
 	auto computed_size = buffer_size;
@@ -109,12 +110,14 @@ std::size_t cminus::declaration::string::helper::allocate_block(std::size_t buff
 			runtime::object::memory_object->write(new_data_address, info.data_address, split_index);
 	}
 	else if (how == allocation_type::shrink){//Copy applicable bytes
-		if (split_index < info.size_value)//Copy bytes after split index
+		if (split_index < computed_size)//Copy bytes after split index
 			runtime::object::memory_object->write((new_data_address + split_index), (info.data_address + split_index + buffer_size), (computed_size - split_index));
 
 		if (0u < split_index)//Copy bytes before split index
 			runtime::object::memory_object->write(new_data_address, info.data_address, split_index);
 	}
+	else if (how == allocation_type::compute)
+		runtime::object::memory_object->write(new_data_address, info.data_address, std::min(info.size_value, computed_size));
 
 	info.data->write_scalar(new_data_address);//Copy new address
 	info.size->write_scalar(computed_size);//Update size
@@ -122,15 +125,23 @@ std::size_t cminus::declaration::string::helper::allocate_block(std::size_t buff
 	if (info.data_address != 0u)//Free previous block
 		runtime::object::memory_object->deallocate_block(info.data_address);
 
+	if (allocated_address != nullptr)
+		*allocated_address = new_data_address;
+
+	if (how == allocation_type::compute)
+		return ((info.size_value < computed_size) ? (new_data_address + info.size_value) : 0u);
+
 	return new_data_address;
 }
 
-void cminus::declaration::string::helper::assign(const char *buffer, std::size_t buffer_size, bool fill, std::shared_ptr<memory::reference> context){
-	auto data_address = allocate_block(buffer_size, allocation_type::nil, 0u, context);
-	if (buffer != nullptr && fill)//Fill byte
-		runtime::object::memory_object->set(data_address, static_cast<std::byte>(*buffer), buffer_size);
-	else if (buffer != nullptr)//Copy characters
-		runtime::object::memory_object->write_buffer(data_address, buffer, buffer_size);
+void cminus::declaration::string::helper::assign(const char *buffer, std::size_t buffer_size, bool compute, bool fill, std::shared_ptr<memory::reference> context){
+	std::size_t allocated_address = 0u;
+	auto data_address = allocate_block(buffer_size, (compute ? allocation_type::compute : allocation_type::nil), 0u, context, false, &allocated_address);
+
+	if (data_address != 0u && buffer != nullptr && fill)//Fill byte
+		runtime::object::memory_object->set(data_address, static_cast<std::byte>(*buffer), (buffer_size - (data_address - allocated_address)));
+	else if (data_address != 0u && buffer != nullptr)//Copy characters
+		runtime::object::memory_object->write_buffer(data_address, buffer, (buffer_size - (data_address - allocated_address)));
 }
 
 void cminus::declaration::string::helper::insert(const char *buffer, std::size_t buffer_size, std::size_t offset, bool fill, std::shared_ptr<memory::reference> context){
@@ -176,7 +187,7 @@ char *cminus::declaration::string::helper::read_data(const std::string &name, st
 cminus::declaration::string::default_constructor_def::~default_constructor_def() = default;
 
 void cminus::declaration::string::default_constructor_def::evaluate_body_() const{
-	helper::assign(nullptr, 0u, false, nullptr);
+	helper::assign(nullptr, 0u, false, false, nullptr);
 }
 
 cminus::declaration::string::copy_constructor_def::~copy_constructor_def() = default;
@@ -184,7 +195,7 @@ cminus::declaration::string::copy_constructor_def::~copy_constructor_def() = def
 void cminus::declaration::string::copy_constructor_def::evaluate_body_() const{
 	helper::value_info info{};
 	helper::retrieve_info(info, runtime::object::current_storage->find("other", true));
-	helper::assign(info.data, info.size, false, nullptr);
+	helper::assign(info.data, info.size, false, false, nullptr);
 }
 
 cminus::declaration::string::sub_copy_constructor_def::~sub_copy_constructor_def() = default;
@@ -197,7 +208,7 @@ void cminus::declaration::string::sub_copy_constructor_def::evaluate_body_() con
 	if (info.size <= position_value)
 		throw runtime::exception::out_of_range();
 
-	helper::assign((info.data + position_value), std::min((info.size - position_value), helper::read_value<std::size_t>("size", nullptr)), false, nullptr);
+	helper::assign((info.data + position_value), std::min((info.size - position_value), helper::read_value<std::size_t>("size", nullptr)), false, false, nullptr);
 }
 
 cminus::declaration::string::buffer_constructor_def::~buffer_constructor_def() = default;
@@ -205,14 +216,14 @@ cminus::declaration::string::buffer_constructor_def::~buffer_constructor_def() =
 void cminus::declaration::string::buffer_constructor_def::evaluate_body_() const{
 	auto data = helper::read_data("data", nullptr);
 	auto size = helper::read_value<std::size_t>("size", nullptr);
-	helper::assign(data, ((data == nullptr) ? 0u : ((size == type::get_nan<unsigned __int64>::value()) ? std::strlen(data) : size)), false, nullptr);
+	helper::assign(data, ((data == nullptr) ? 0u : ((size == type::get_nan<unsigned __int64>::value()) ? std::strlen(data) : size)), false, false, nullptr);
 }
 
 cminus::declaration::string::fill_constructor_def::~fill_constructor_def() = default;
 
 void cminus::declaration::string::fill_constructor_def::evaluate_body_() const{
 	auto fill = helper::read_value<char>("fill", nullptr);
-	helper::assign(&fill, helper::read_value<std::size_t>("size", nullptr), true, nullptr);
+	helper::assign(&fill, helper::read_value<std::size_t>("size", nullptr), false, true, nullptr);
 }
 
 cminus::declaration::string::destructor_def::~destructor_def() = default;
@@ -362,4 +373,26 @@ void cminus::declaration::string::get_sub_def::evaluate_body_() const{
 		(info.data + position_value),
 		std::min((info.size - position_value), helper::read_value<std::size_t>("size", nullptr))
 	)));
+}
+
+cminus::declaration::string::resize_def::~resize_def() = default;
+
+void cminus::declaration::string::resize_def::evaluate_body_() const{
+	auto fill = helper::read_value<char>("fill", nullptr);
+	helper::assign(&fill, helper::read_value<std::size_t>("size", nullptr), true, true, nullptr);
+}
+
+cminus::declaration::string::erase_def::~erase_def() = default;
+
+void cminus::declaration::string::erase_def::evaluate_body_() const{
+	if (auto position_value = helper::read_value<std::size_t>("position", nullptr); position_value < helper::read_value<std::size_t>("size_", nullptr))
+		helper::erase(helper::read_value<std::size_t>("size", nullptr), position_value, nullptr);
+	else
+		throw runtime::exception::out_of_range();
+}
+
+cminus::declaration::string::clear_def::~clear_def() = default;
+
+void cminus::declaration::string::clear_def::evaluate_body_() const{
+	helper::assign(nullptr, 0u, false, false, nullptr);
 }
