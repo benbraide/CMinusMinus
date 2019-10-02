@@ -38,3 +38,4 @@
 *.filters
 *.user
 /CMinus/.vs/CMinus/v16
+/CMinus/CMinusTest/x64/Debug

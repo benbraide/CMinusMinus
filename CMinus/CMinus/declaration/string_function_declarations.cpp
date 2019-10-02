@@ -113,17 +113,17 @@ cminus::declaration::string::destructor::destructor(type::class_ &parent)
 cminus::declaration::string::destructor::~destructor() = default;
 
 cminus::declaration::string::empty::empty(type::class_ &parent)
-	: external_member_function("Empty", parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_boolean_type()){}
+	: external_member_function("IsEmpty", parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_boolean_type()){}
 
 cminus::declaration::string::empty::~empty() = default;
 
 cminus::declaration::string::size::size(type::class_ &parent)
-	: external_member_function("Size", parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_size_type()){}
+	: external_member_function("GetSize", parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_size_type()){}
 
 cminus::declaration::string::size::~size() = default;
 
 cminus::declaration::string::data::data(type::class_ &parent, bool is_const)
-	: external_member_function("Data", parent, attribute::collection::list_type{}, (is_const ? flags::const_ : flags::nil), runtime::object::global_storage->get_char_pointer_type(is_const)){}
+	: external_member_function("GetData", parent, attribute::collection::list_type{}, (is_const ? flags::const_ : flags::nil), runtime::object::global_storage->get_char_pointer_type(is_const)){}
 
 cminus::declaration::string::data::~data() = default;
 
@@ -138,7 +138,7 @@ cminus::declaration::string::end::end(type::class_ & parent, bool is_const)
 cminus::declaration::string::end::~end() = default;
 
 cminus::declaration::string::at::at(type::class_ &parent, bool is_const)
-	: external_member_function("At", parent, attribute::collection::list_type{}, (is_const ? flags::const_ : flags::nil), runtime::object::global_storage->get_char_ref_type(is_const)){
+	: external_member_function("GetChar", parent, attribute::collection::list_type{}, (is_const ? flags::const_ : flags::nil), runtime::object::global_storage->get_char_ref_type(is_const)){
 	add_parameter(std::make_shared<declaration::variable>(
 		"position",																//Name
 		runtime::object::global_storage->get_size_type(),						//Type

@@ -33,6 +33,7 @@ cminus::type::string::string()
 	add_callable_(std::make_shared<declaration::string::buffer_constructor_def>(*this), 0u);
 	add_callable_(std::make_shared<declaration::string::fill_constructor_def>(*this), 0u);
 
+	add_callable_(std::make_shared<declaration::string::empty_def>(*this), 0u);
 	add_callable_(std::make_shared<declaration::string::size_def>(*this), 0u);
 
 	add_callable_(std::make_shared<declaration::string::data_def>(*this, true), 0u);
