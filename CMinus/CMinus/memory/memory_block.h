@@ -52,6 +52,8 @@ namespace cminus::memory{
 
 		virtual void before_read_() const;
 
+		virtual std::shared_ptr<block> get_block_(std::size_t address, std::byte *buffer, std::size_t size) const;
+
 		std::size_t address_;
 		std::byte *buffer_;
 		std::size_t size_;
@@ -68,6 +70,9 @@ namespace cminus::memory{
 		virtual std::shared_ptr<block> get_offset_block(std::size_t value) const override;
 
 		virtual bool is_write_protected() const;
+
+	protected:
+		virtual std::shared_ptr<block> get_block_(std::size_t address, std::byte *buffer, std::size_t size) const override;
 	};
 
 	class access_protected_block : public block{
@@ -81,6 +86,9 @@ namespace cminus::memory{
 		virtual std::shared_ptr<block> get_offset_block(std::size_t value) const override;
 
 		virtual bool is_access_protected() const;
+
+	protected:
+		virtual std::shared_ptr<block> get_block_(std::size_t address, std::byte *buffer, std::size_t size) const override;
 	};
 
 	class protected_block : public block{
@@ -96,13 +104,21 @@ namespace cminus::memory{
 		virtual bool is_write_protected() const;
 
 		virtual bool is_access_protected() const;
+
+	protected:
+		virtual std::shared_ptr<block> get_block_(std::size_t address, std::byte *buffer, std::size_t size) const override;
 	};
 
 	class free_block : public protected_block{
 	public:
+		free_block(std::size_t address, std::byte *buffer, std::size_t size);
+
 		free_block(std::size_t address, std::size_t size);
 
 		virtual ~free_block();
+
+	protected:
+		virtual std::shared_ptr<block> get_block_(std::size_t address, std::byte *buffer, std::size_t size) const override;
 	};
 
 	class heap_block : public block{
@@ -116,6 +132,9 @@ namespace cminus::memory{
 		virtual std::shared_ptr<block> get_offset_block(std::size_t value) const override;
 
 		virtual bool is_resizable() const override;
+
+	protected:
+		virtual std::shared_ptr<block> get_block_(std::size_t address, std::byte *buffer, std::size_t size) const override;
 	};
 
 	template <class base_type>
@@ -134,4 +153,7 @@ namespace cminus::memory{
 	protected:
 		std::unique_ptr<std::byte[]> data_;
 	};
+
+	template <>
+	class data_block<free_block>;
 }

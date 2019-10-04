@@ -88,19 +88,81 @@ std::shared_ptr<cminus::memory::block> cminus::memory::object::find_block(std::s
 	return find_block_(address, nullptr);
 }
 
+std::size_t cminus::memory::object::get_next_address() const{
+	return next_address_;
+}
+
 std::shared_ptr<cminus::memory::block> cminus::memory::object::reallocate_heap_block_(std::size_t address, std::size_t size){
 	if (size == 0u)
 		throw exception::invalid_size();
 
-	auto block = get_block_(address, nullptr);
-	if (block == nullptr)
+	auto it = blocks_.end(), other_it = blocks_.end();
+	auto block = get_block_(address, &it);
+
+	if (block == nullptr || it == blocks_.end())
 		throw exception::block_not_found(address);
 
 	if (block->size_ == size)//No changes
 		return block;
 
-	if (dynamic_cast<heap_block *>(block.get()) == nullptr)
+	if (!block->is_resizable())
 		throw exception::block_not_resizable(address);
+
+	block->before_read_();
+	if (size < block->size_){//Shrink
+		auto diff = (block->size_ - size);
+
+		if ((other_it = std::next(it)) != blocks_.end() && dynamic_cast<free_block *>(other_it->get()) != nullptr){//Merge with next
+			(*other_it)->address_ -= diff;
+			(*other_it)->size_ += diff;
+		}
+		else if ((next_address_ - address) <= (*it)->size_)//Update next address
+			next_address_ -= diff;
+		else if (blocks_.size() < blocks_.max_size())
+			blocks_.insert(other_it, std::make_shared<free_block>((address + size), diff));
+		else
+			throw exception::out_of_address_space();
+
+		block->size_ = size;
+		return block;
+	}
+
+	auto diff = (size - block->size_);
+	if ((other_it = std::next(it)) != blocks_.end() && dynamic_cast<free_block *>(other_it->get()) != nullptr && diff <= (*other_it)->size_){//Take from next
+		block->size_ += diff;
+		(*other_it)->address_ += diff;
+
+		if ((*other_it)->size_ <= diff || ((*other_it)->size_ - diff) == 0u){
+			diff -= (*other_it)->size_;
+			blocks_.erase(other_it);
+		}
+		else
+			diff = 0u;
+
+		if (diff == 0u)//Took sufficient bytes from next
+			return block;
+	}
+
+	if ((next_address_ - address) <= block->size_ && next_address_ <= (std::numeric_limits<std::size_t>::max() - size)){//Take from next address
+		block->size_ += diff;
+		next_address_ += diff;
+		return block;
+	}
+
+	if (it != blocks_.begin() && dynamic_cast<free_block *>((other_it = std::prev(it))->get()) != nullptr && diff <= (*other_it)->size_){//Take from previous
+		block->address_ -= diff;
+		block->size_ += diff;
+
+		if ((*other_it)->size_ <= diff || ((*other_it)->size_ - diff) == 0u){
+			diff -= (*other_it)->size_;
+			blocks_.erase(other_it);
+		}
+		else
+			diff = 0u;
+
+		if (diff == 0u)//Took sufficient bytes from previous
+			return block;
+	}
 
 	deallocate_block_(address);
 	auto new_block = allocate_block_<data_block<heap_block>>(size);
@@ -122,15 +184,23 @@ void cminus::memory::object::deallocate_block_(std::size_t address){
 	auto next_it = std::next(it);
 
 	if (next_it != blocks_.end() && dynamic_cast<free_block *>(next_it->get()) != nullptr){//Merge with next
-		(*it)->size_ += (*next_it)->size_;
-		blocks_.erase(next_it);
+		(*next_it)->address_ -= (*it)->size_;
+		(*next_it)->size_ += (*it)->size_;
+
+		blocks_.erase(it);
+		it = next_it;
 	}
 
 	if (it != blocks_.begin() && dynamic_cast<free_block *>((next_it = std::prev(it))->get()) != nullptr){//Merge with previous
 		(*next_it)->size_ += (*it)->size_;
 		blocks_.erase(it);
+
+		if ((next_address_ - (*next_it)->address_) <= (*next_it)->size_){//Update next address
+			next_address_ = (*next_it)->address_;
+			blocks_.erase(next_it);
+		}
 	}
-	else if (next_address_ <= (address + (*it)->size_)){//Shrink
+	else if ((next_address_ - address) <= (*it)->size_){//Update next address
 		next_address_ = address;
 		blocks_.erase(it);
 	}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <exception>
 
 namespace cminus::memory::exception{
@@ -53,12 +54,19 @@ namespace cminus::memory::exception{
 	public:
 		unnamed(code code, std::size_t address);
 
+		unnamed(code code, std::size_t address, const char *message);
+
+		unnamed(code code, std::size_t address, const std::string &message);
+
 		virtual ~unnamed();
+
+		virtual const char *what() const override;
 
 		virtual code get_code() const override;
 
 	protected:
 		code code_;
+		std::string message_;
 	};
 
 	class out_of_address_space : public meta_no_address{

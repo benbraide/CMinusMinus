@@ -16,9 +16,19 @@ std::size_t cminus::memory::exception::meta_address::get_address() const{
 }
 
 cminus::memory::exception::unnamed::unnamed(code code, std::size_t address)
-	: meta_address("Memory Exception", address), code_(code){}
+	: unnamed(code, address, "Memory Exception"){}
+
+cminus::memory::exception::unnamed::unnamed(code code, std::size_t address, const char *message)
+	: meta_address(message, address), code_(code){}
+
+cminus::memory::exception::unnamed::unnamed(code code, std::size_t address, const std::string &message)
+	: meta_address("", address), code_(code), message_(message){}
 
 cminus::memory::exception::unnamed::~unnamed() = default;
+
+const char *cminus::memory::exception::unnamed::what() const{
+	return (message_.empty() ? meta_address::what() : message_.data());
+}
 
 cminus::memory::exception::code cminus::memory::exception::unnamed::get_code() const{
 	return code_;

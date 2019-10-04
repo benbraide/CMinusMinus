@@ -68,14 +68,13 @@ namespace cminus::memory{
 
 		std::shared_ptr<block> find_block(std::size_t address) const;
 
+		std::size_t get_next_address() const;
+
 	private:
 		template <typename block_type>
 		std::shared_ptr<block> allocate_block_(std::size_t size){
 			if (size == 0u)
 				throw exception::invalid_size();
-
-			if (blocks_.size() == blocks_.max_size())
-				throw exception::out_of_address_space();
 
 			auto free_it = blocks_.begin();
 			for (; free_it != blocks_.end(); ++free_it){
@@ -103,9 +102,10 @@ namespace cminus::memory{
 
 			if (free_it != blocks_.end()){//Insert
 				if (0u < (*free_it)->size_){
-					if (blocks_.max_size() <= blocks_.size())
+					if (blocks_.size() < blocks_.max_size())
+						blocks_.insert(free_it, block);
+					else
 						throw exception::out_of_address_space();
-					blocks_.insert(free_it, block);
 				}
 				else//Free block is completely used
 					*free_it = block;
