@@ -1,9 +1,19 @@
 #include "declaration_exception.h"
 
 cminus::declaration::exception::unnamed::unnamed(code code)
-	: base("Unknown evaluator error"), code_(code){}
+	: unnamed(code, "Unknown evaluator error"){}
+
+cminus::declaration::exception::unnamed::unnamed(code code, const char *message)
+	: base(message), code_(code){}
+
+cminus::declaration::exception::unnamed::unnamed(code code, const std::string &message)
+	: base(""), code_(code), message_(message){}
 
 cminus::declaration::exception::unnamed::~unnamed() = default;
+
+const char *cminus::declaration::exception::unnamed::what() const{
+	return (message_.empty() ? base::what() : message_.data());
+}
 
 cminus::declaration::exception::code cminus::declaration::exception::unnamed::get_code() const{
 	return code_;

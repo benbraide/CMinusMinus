@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <exception>
 
 namespace cminus::declaration::exception{
@@ -35,12 +36,19 @@ namespace cminus::declaration::exception{
 	public:
 		explicit unnamed(code code);
 
+		unnamed(code code, const char *message);
+
+		unnamed(code code, const std::string &message);
+
 		virtual ~unnamed();
+
+		virtual const char *what() const override;
 
 		virtual code get_code() const override;
 
 	protected:
 		code code_;
+		std::string message_;
 	};
 
 	class bad_declaration : public base{

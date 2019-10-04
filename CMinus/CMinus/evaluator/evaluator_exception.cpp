@@ -3,7 +3,17 @@
 cminus::evaluator::exception::unnamed::unnamed(code code)
 	: base("Unknown evaluator error"), code_(code){}
 
+cminus::evaluator::exception::unnamed::unnamed(code code, const char *message)
+	: base(message), code_(code){}
+
+cminus::evaluator::exception::unnamed::unnamed(code code, const std::string &message)
+	: base(""), code_(code), message_(message){}
+
 cminus::evaluator::exception::unnamed::~unnamed() = default;
+
+const char *cminus::evaluator::exception::unnamed::what() const{
+	return (message_.empty() ? base::what() : message_.data());
+}
 
 cminus::evaluator::exception::code cminus::evaluator::exception::unnamed::get_code() const{
 	return code_;

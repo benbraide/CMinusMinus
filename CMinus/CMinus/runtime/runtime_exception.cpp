@@ -5,7 +5,17 @@
 cminus::runtime::exception::unnamed::unnamed(code code)
 	: base("Unknown evaluator error"), code_(code){}
 
+cminus::runtime::exception::unnamed::unnamed(code code, const char *message)
+	: base(message), code_(code){}
+
+cminus::runtime::exception::unnamed::unnamed(code code, const std::string &message)
+	: base(""), code_(code), message_(message){}
+
 cminus::runtime::exception::unnamed::~unnamed() = default;
+
+const char *cminus::runtime::exception::unnamed::what() const{
+	return (message_.empty() ? base::what() : message_.data());
+}
 
 cminus::runtime::exception::code cminus::runtime::exception::unnamed::get_code() const{
 	return code_;

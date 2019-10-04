@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <memory>
 #include <exception>
 
@@ -33,12 +34,19 @@ namespace cminus::runtime::exception{
 	public:
 		explicit unnamed(code code);
 
+		unnamed(code code, const char *message);
+
+		unnamed(code code, const std::string &message);
+
 		virtual ~unnamed();
+
+		virtual const char *what() const override;
 
 		virtual code get_code() const override;
 
 	protected:
 		code code_;
+		std::string message_;
 	};
 
 	class return_interrupt : public base{

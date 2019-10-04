@@ -3,7 +3,17 @@
 cminus::storage::exception::unnamed::unnamed(code code)
 	: base("Unknown storage error"), code_(code){}
 
+cminus::storage::exception::unnamed::unnamed(code code, const char *message)
+	: base(message), code_(code){}
+
+cminus::storage::exception::unnamed::unnamed(code code, const std::string &message)
+	: base(""), code_(code), message_(message){}
+
 cminus::storage::exception::unnamed::~unnamed() = default;
+
+const char *cminus::storage::exception::unnamed::what() const{
+	return (message_.empty() ? base::what() : message_.data());
+}
 
 cminus::storage::exception::code cminus::storage::exception::unnamed::get_code() const{
 	return code_;
