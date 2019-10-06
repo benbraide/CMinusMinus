@@ -346,3 +346,216 @@ cminus::declaration::string::clear::clear(type::class_ &parent)
 	: external_member_function("Clear", parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){}
 
 cminus::declaration::string::clear::~clear() = default;
+
+cminus::declaration::string::swap::swap(type::class_ &parent)
+	: external_member_function("Swap", parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){
+	add_parameter(std::make_shared<variable>(
+		"other",																//Name
+		misc_helper::get_string_ref_type(parent, false),						//Type
+		attribute::collection::list_type{},										//Attributes
+		flags::nil,																//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+}
+
+cminus::declaration::string::swap::~swap() = default;
+
+cminus::declaration::string::assign_copy::assign_copy(type::class_ &parent, bool append)
+	: external_member_function((append ? "Append" : "Assign"), parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){
+	add_parameter(std::make_shared<variable>(
+		"other",																//Name
+		misc_helper::get_string_ref_type(parent, true),							//Type
+		attribute::collection::list_type{},										//Attributes
+		flags::nil,																//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+}
+
+cminus::declaration::string::assign_copy::~assign_copy() = default;
+
+cminus::declaration::string::assign_sub_copy::assign_sub_copy(type::class_ &parent, bool append)
+	: external_member_function((append ? "Append" : "Assign"), parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){
+	add_parameter(std::make_shared<variable>(
+		"other",																//Name
+		misc_helper::get_string_ref_type(parent, true),							//Type
+		attribute::collection::list_type{},										//Attributes
+		flags::nil,																//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"position",																//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"size",																	//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		misc_helper::get_nan_size_arg()											//Initialization
+	));
+}
+
+cminus::declaration::string::assign_sub_copy::~assign_sub_copy() = default;
+
+cminus::declaration::string::assign_buffer::assign_buffer(type::class_ &parent, bool append)
+	: external_member_function((append ? "Append" : "Assign"), parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){
+	add_parameter(std::make_shared<declaration::variable>(
+		"data",																	//Name
+		runtime::object::global_storage->get_char_pointer_type(true),			//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"size",																	//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		misc_helper::get_nan_size_arg()											//Initialization
+	));
+}
+
+cminus::declaration::string::assign_buffer::~assign_buffer() = default;
+
+cminus::declaration::string::assign_fill::assign_fill(type::class_ &parent, bool append)
+	: external_member_function((append ? "Append" : "Assign"), parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){
+	add_parameter(std::make_shared<declaration::variable>(
+		"size",																	//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"fill",																	//Name
+		runtime::object::global_storage->get_char_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+}
+
+cminus::declaration::string::assign_fill::~assign_fill() = default;
+
+cminus::declaration::string::insert_copy::insert_copy(type::class_ &parent)
+	: external_member_function("Insert", parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){
+	add_parameter(std::make_shared<declaration::variable>(
+		"offset",																//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<variable>(
+		"other",																//Name
+		misc_helper::get_string_ref_type(parent, true),							//Type
+		attribute::collection::list_type{},										//Attributes
+		flags::nil,																//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+}
+
+cminus::declaration::string::insert_copy::~insert_copy() = default;
+
+cminus::declaration::string::insert_sub_copy::insert_sub_copy(type::class_ & parent)
+	: external_member_function("Insert", parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){
+	add_parameter(std::make_shared<declaration::variable>(
+		"offset",																//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<variable>(
+		"other",																//Name
+		misc_helper::get_string_ref_type(parent, true),							//Type
+		attribute::collection::list_type{},										//Attributes
+		flags::nil,																//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"position",																//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"size",																	//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		misc_helper::get_nan_size_arg()											//Initialization
+	));
+}
+
+cminus::declaration::string::insert_sub_copy::~insert_sub_copy() = default;
+
+cminus::declaration::string::insert_buffer::insert_buffer(type::class_ & parent)
+	: external_member_function("Insert", parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){
+	add_parameter(std::make_shared<declaration::variable>(
+		"offset",																//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"data",																	//Name
+		runtime::object::global_storage->get_char_pointer_type(true),			//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"size",																	//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		misc_helper::get_nan_size_arg()											//Initialization
+	));
+}
+
+cminus::declaration::string::insert_buffer::~insert_buffer() = default;
+
+cminus::declaration::string::insert_fill::insert_fill(type::class_ & parent)
+	: external_member_function("Insert", parent, attribute::collection::list_type{}, flags::nil, runtime::object::global_storage->get_void_type()){
+	add_parameter(std::make_shared<declaration::variable>(
+		"offset",																//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"size",																	//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+
+	add_parameter(std::make_shared<declaration::variable>(
+		"fill",																	//Name
+		runtime::object::global_storage->get_char_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<memory::reference>()									//Initialization
+	));
+}
+
+cminus::declaration::string::insert_fill::~insert_fill() = default;

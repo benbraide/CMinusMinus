@@ -69,6 +69,24 @@ cminus::type::string::string()
 	add_callable_(std::make_shared<declaration::string::erase_def>(*this), 0u);
 	add_callable_(std::make_shared<declaration::string::clear_def>(*this), 0u);
 
+	add_callable_(std::make_shared<declaration::string::assign_copy_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::assign_copy_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::assign_sub_copy_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::assign_sub_copy_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::assign_buffer_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::assign_buffer_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::assign_fill_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::assign_fill_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::insert_copy_def>(*this), 0u);
+	add_callable_(std::make_shared<declaration::string::insert_sub_copy_def>(*this), 0u);
+
+	add_callable_(std::make_shared<declaration::string::insert_buffer_def>(*this), 0u);
+	add_callable_(std::make_shared<declaration::string::insert_fill_def>(*this), 0u);
+
 	compile_();
 }
 

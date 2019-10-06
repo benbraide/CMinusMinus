@@ -396,3 +396,123 @@ cminus::declaration::string::clear_def::~clear_def() = default;
 void cminus::declaration::string::clear_def::evaluate_body_() const{
 	helper::assign(nullptr, 0u, false, false, nullptr);
 }
+
+cminus::declaration::string::swap_def::~swap_def() = default;
+
+void cminus::declaration::string::swap_def::evaluate_body_() const{
+	helper::essential_info info{}, other_info{};
+	helper::retrieve_info(info, nullptr);
+	helper::retrieve_info(other_info, runtime::object::current_storage->find("other", true));
+
+	info.data->write_scalar(other_info.data_address);
+	info.size->write_scalar(other_info.size_value);
+
+	other_info.data->write_scalar(info.data_address);
+	other_info.size->write_scalar(info.size_value);
+}
+
+cminus::declaration::string::assign_copy_def::~assign_copy_def() = default;
+
+void cminus::declaration::string::assign_copy_def::evaluate_body_() const{
+	helper::value_info info{};
+	helper::retrieve_info(info, runtime::object::current_storage->find("other", true));
+	if (name_[1] == 's')
+		helper::assign(info.data, info.size, false, false, nullptr);
+	else//Append
+		helper::insert(info.data, info.size, helper::read_value<std::size_t>("size_", nullptr), false, nullptr);
+}
+
+cminus::declaration::string::assign_sub_copy_def::~assign_sub_copy_def() = default;
+
+void cminus::declaration::string::assign_sub_copy_def::evaluate_body_() const{
+	helper::value_info info{};
+	helper::retrieve_info(info, runtime::object::current_storage->find("other", true));
+
+	auto position_value = helper::read_value<std::size_t>("position", nullptr);
+	if (info.size <= position_value)
+		throw runtime::exception::out_of_range();
+
+	auto size = std::min((info.size - position_value), helper::read_value<std::size_t>("size", nullptr));
+	if (name_[1] == 's')
+		helper::assign((info.data + position_value), size, false, false, nullptr);
+	else//Append
+		helper::insert((info.data + position_value), size, helper::read_value<std::size_t>("offset", nullptr), false, nullptr);
+}
+
+cminus::declaration::string::assign_buffer_def::~assign_buffer_def() = default;
+
+void cminus::declaration::string::assign_buffer_def::evaluate_body_() const{
+	auto data = helper::read_data("data", nullptr);
+	auto size = helper::read_value<std::size_t>("size", nullptr);
+
+	if (size == type::get_nan<unsigned __int64>::value())
+		size = std::strlen(data);
+
+	if (name_[1] == 's')
+		helper::assign(data, size, false, false, nullptr);
+	else//Append
+		helper::insert(data, size, helper::read_value<std::size_t>("size_", nullptr), false, nullptr);
+}
+
+cminus::declaration::string::assign_fill_def::~assign_fill_def() = default;
+
+void cminus::declaration::string::assign_fill_def::evaluate_body_() const{
+	auto fill = helper::read_value<char>("fill", nullptr);
+	if (name_[1] == 's')
+		helper::assign(&fill, helper::read_value<std::size_t>("size", nullptr), false, false, nullptr);
+	else//Append
+		helper::insert(&fill, helper::read_value<std::size_t>("size", nullptr), helper::read_value<std::size_t>("size_", nullptr), false, nullptr);
+}
+
+cminus::declaration::string::insert_copy_def::~insert_copy_def() = default;
+
+void cminus::declaration::string::insert_copy_def::evaluate_body_() const{
+	auto offset = helper::read_value<std::size_t>("offset", nullptr);
+	if (helper::read_value<std::size_t>("size_", nullptr) <= offset)
+		throw runtime::exception::out_of_range();
+
+	helper::value_info info{};
+	helper::retrieve_info(info, runtime::object::current_storage->find("other", true));
+
+	helper::insert(info.data, info.size, offset, false, nullptr);
+}
+
+cminus::declaration::string::insert_sub_copy_def::~insert_sub_copy_def() = default;
+
+void cminus::declaration::string::insert_sub_copy_def::evaluate_body_() const{
+	auto offset = helper::read_value<std::size_t>("offset", nullptr);
+	if (helper::read_value<std::size_t>("size_", nullptr) <= offset)
+		throw runtime::exception::out_of_range();
+
+	helper::value_info info{};
+	helper::retrieve_info(info, runtime::object::current_storage->find("other", true));
+
+	auto position_value = helper::read_value<std::size_t>("position", nullptr);
+	if (info.size <= position_value)
+		throw runtime::exception::out_of_range();
+
+	auto size = std::min((info.size - position_value), helper::read_value<std::size_t>("size", nullptr));
+	helper::insert((info.data + position_value), size, offset, false, nullptr);
+}
+
+cminus::declaration::string::insert_buffer_def::~insert_buffer_def() = default;
+
+void cminus::declaration::string::insert_buffer_def::evaluate_body_() const{
+	auto offset = helper::read_value<std::size_t>("offset", nullptr);
+	if (helper::read_value<std::size_t>("size_", nullptr) <= offset)
+		throw runtime::exception::out_of_range();
+
+	auto fill = helper::read_value<char>("fill", nullptr);
+	helper::insert(&fill, helper::read_value<std::size_t>("size", nullptr), offset, false, nullptr);
+}
+
+cminus::declaration::string::insert_fill_def::~insert_fill_def() = default;
+
+void cminus::declaration::string::insert_fill_def::evaluate_body_() const{
+	auto offset = helper::read_value<std::size_t>("offset", nullptr);
+	if (helper::read_value<std::size_t>("size_", nullptr) <= offset)
+		throw runtime::exception::out_of_range();
+
+	auto fill = helper::read_value<char>("fill", nullptr);
+	helper::insert(&fill, helper::read_value<std::size_t>("size", nullptr), helper::read_value<std::size_t>("offset", nullptr), true, nullptr);
+}

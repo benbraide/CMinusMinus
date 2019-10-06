@@ -166,4 +166,67 @@ namespace cminus::declaration::string{
 
 		virtual ~clear();
 	};
+
+	class swap : public external_member_function{
+	public:
+		explicit swap(type::class_ &parent);
+
+		virtual ~swap();
+	};
+
+	class assign_copy : public external_member_function{
+	public:
+		assign_copy(type::class_ &parent, bool append);
+
+		virtual ~assign_copy();
+	};
+
+	class assign_sub_copy : public external_member_function{
+	public:
+		assign_sub_copy(type::class_ &parent, bool append);
+
+		virtual ~assign_sub_copy();
+	};
+
+	class assign_buffer : public external_member_function{
+	public:
+		assign_buffer(type::class_ &parent, bool append);
+
+		virtual ~assign_buffer();
+	};
+
+	class assign_fill : public external_member_function{
+	public:
+		assign_fill(type::class_ &parent, bool append);
+
+		virtual ~assign_fill();
+	};
+
+	class insert_copy : public external_member_function{
+	public:
+		explicit insert_copy(type::class_ &parent);
+
+		virtual ~insert_copy();
+	};
+
+	class insert_sub_copy : public external_member_function{
+	public:
+		explicit insert_sub_copy(type::class_ &parent);
+
+		virtual ~insert_sub_copy();
+	};
+
+	class insert_buffer : public external_member_function{
+	public:
+		explicit insert_buffer(type::class_ &parent);
+
+		virtual ~insert_buffer();
+	};
+
+	class insert_fill : public external_member_function{
+	public:
+		explicit insert_fill(type::class_ &parent);
+
+		virtual ~insert_fill();
+	};
 }

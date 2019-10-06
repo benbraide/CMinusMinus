@@ -301,4 +301,94 @@ namespace cminus::declaration::string{
 	protected:
 		virtual void evaluate_body_() const override;
 	};
+
+	class swap_def : public swap{
+	public:
+		using swap::swap;
+
+		virtual ~swap_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class assign_copy_def : public assign_copy{
+	public:
+		using assign_copy::assign_copy;
+
+		virtual ~assign_copy_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class assign_sub_copy_def : public assign_sub_copy{
+	public:
+		using assign_sub_copy::assign_sub_copy;
+
+		virtual ~assign_sub_copy_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class assign_buffer_def : public assign_buffer{
+	public:
+		using assign_buffer::assign_buffer;
+
+		virtual ~assign_buffer_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class assign_fill_def : public assign_fill{
+	public:
+		using assign_fill::assign_fill;
+
+		virtual ~assign_fill_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class insert_copy_def : public insert_copy{
+	public:
+		using insert_copy::insert_copy;
+
+		virtual ~insert_copy_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class insert_sub_copy_def : public insert_sub_copy{
+	public:
+		using insert_sub_copy::insert_sub_copy;
+
+		virtual ~insert_sub_copy_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class insert_buffer_def : public insert_buffer{
+	public:
+		using insert_buffer::insert_buffer;
+
+		virtual ~insert_buffer_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class insert_fill_def : public insert_fill{
+	public:
+		using insert_fill::insert_fill;
+
+		virtual ~insert_fill_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
 }
