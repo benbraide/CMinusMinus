@@ -15,6 +15,8 @@ namespace cminus::evaluator{
 			pointer,
 			class_,
 			string,
+			enum_,
+			string_iter,
 		};
 
 		virtual ~object();

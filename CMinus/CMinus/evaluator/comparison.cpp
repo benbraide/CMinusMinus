@@ -23,11 +23,11 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::numeric_comparison
 
 	if (right_number_type == nullptr){
 		if (right_type->is(type::object::query_type::string)){
-			if (op != operators::id::plus)
-				throw exception::unsupported_op();
-
 			auto left_string_value = left_number_type->get_string_value(left_value);
 			auto right_string_value = runtime::object::global_storage->get_string_value(right_value);
+
+			if (op == operators::id::spaceship)
+				return create_compare_value_(compare_string_(left_string_value, right_string_value));
 
 			return create_value_(evaluate_string_(op, left_string_value, right_string_value));
 		}
@@ -53,16 +53,28 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::numeric_comparison
 
 	switch (left_number_type->get_state()){
 	case type::number_primitive::state_type::integer:
+		if (op == operators::id::spaceship)
+			return create_compare_value_(compare_numeric_<__int32>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<__int32>(op, compatible_left_value, compatible_right_value));
 	case type::number_primitive::state_type::long_integer:
+		if (op == operators::id::spaceship)
+			return create_compare_value_(compare_numeric_<__int64>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<__int64>(op, compatible_left_value, compatible_right_value));
 	case type::number_primitive::state_type::unsigned_integer:
+		if (op == operators::id::spaceship)
+			return create_compare_value_(compare_numeric_<unsigned __int32>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<unsigned __int32>(op, compatible_left_value, compatible_right_value));
 	case type::number_primitive::state_type::unsigned_long_integer:
+		if (op == operators::id::spaceship)
+			return create_compare_value_(compare_numeric_<unsigned __int64>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<unsigned __int64>(op, compatible_left_value, compatible_right_value));
 	case type::number_primitive::state_type::real:
+		if (op == operators::id::spaceship)
+			return create_compare_value_(compare_numeric_<float>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<float>(op, compatible_left_value, compatible_right_value));
 	case type::number_primitive::state_type::long_real:
+		if (op == operators::id::spaceship)
+			return create_compare_value_(compare_numeric_<long double>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<long double>(op, compatible_left_value, compatible_right_value));
 	default:
 		break;
@@ -85,6 +97,7 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::comparison::pre_ev
 	case operators::id::not_equal:
 	case operators::id::greater_or_equal:
 	case operators::id::greater:
+	case operators::id::spaceship:
 		break;
 	default:
 		return nullptr;
@@ -121,8 +134,16 @@ bool cminus::evaluator::comparison::evaluate_string_(operators::id op, const std
 	return false;
 }
 
+int cminus::evaluator::comparison::compare_string_(const std::string_view &left, const std::string_view &right) const{
+	return left.compare(right);
+}
+
 cminus::evaluator::object::memory_ptr_type cminus::evaluator::comparison::create_value_(bool value) const{
 	return runtime::object::global_storage->get_boolean_value(value);
+}
+
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::comparison::create_compare_value_(int value) const{
+	return runtime::object::global_storage->get_compare_value(value);
 }
 
 cminus::evaluator::pointer_comparison::~pointer_comparison() = default;

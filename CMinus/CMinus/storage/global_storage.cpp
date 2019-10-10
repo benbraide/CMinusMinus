@@ -1,6 +1,7 @@
 #include "../type/function_type.h"
 #include "../type/pointer_type.h"
 #include "../type/string_type.h"
+#include "../type/compare_result_type.h"
 
 #include "../evaluator/initializer.h"
 #include "../evaluator/byte_evaluator.h"
@@ -8,6 +9,9 @@
 
 #include "../evaluator/number_evaluator.h"
 #include "../evaluator/pointer_evaluator.h"
+
+#include "../evaluator/enum_evaluator.h"
+#include "../evaluator/string_evaluator.h"
 
 #include "../declaration/string_function_definitions.h"
 
@@ -24,6 +28,9 @@ cminus::storage::global::global()
 
 	evaluators_[evaluator::object::id_type::number] = std::make_shared<evaluator::number>();
 	evaluators_[evaluator::object::id_type::pointer] = std::make_shared<evaluator::pointer>();
+
+	evaluators_[evaluator::object::id_type::enum_] = std::make_shared<evaluator::enum_>();
+	evaluators_[evaluator::object::id_type::string] = std::make_shared<evaluator::string>();
 
 	cached_types_[cached_type::undefined] = std::make_shared<type::undefined_primitive>();
 	cached_types_[cached_type::void_] = std::make_shared<type::void_primitive>();
@@ -65,6 +72,7 @@ cminus::storage::global::global()
 	nullptr_value_ = std::make_shared<memory::rval_reference>(0u, cached_types_[cached_type::nullptr_]);
 	undefined_value_ = std::make_shared<memory::rval_reference>(0u, cached_types_[cached_type::undefined]);
 
+	cached_types_[cached_type::compare_result] = std::make_shared<type::compare_result>();
 	cached_types_[cached_type::string] = std::make_shared<type::string>();
 }
 
@@ -184,6 +192,10 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_strin
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_string(const std::string_view &value, bool lval) const{
+	return create_string(value, std::string_view(), lval);
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_string(const std::string_view &first, const std::string_view &second, bool lval) const{
 	std::shared_ptr<memory::reference> ref;
 	if (lval)
 		ref = std::make_shared<memory::reference>(get_string_type(), attribute::collection::list_type{}, nullptr);
@@ -193,16 +205,12 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_strin
 	if (ref == nullptr)
 		throw memory::exception::allocation_failure();
 
-	if (!lval){//Allocate write protected data
-		runtime::value_guard guard(runtime::object::is_system, true);
+	runtime::value_guard guard(runtime::object::is_system, true);
+	auto data_address = declaration::string::helper::allocate_block((first.size() + second.size()), declaration::string::helper::allocation_type::nil, 0u, ref, !lval);
 
-		auto buffer_size = value.size();
-		auto data_address = declaration::string::helper::allocate_block(buffer_size, declaration::string::helper::allocation_type::nil, 0u, ref, !lval);
-
-		runtime::object::memory_object->write_buffer(data_address, value.data(), buffer_size);
-	}
-	else
-		declaration::string::helper::assign(value.data(), value.size(), false, false, ref);
+	runtime::object::memory_object->write_buffer(data_address, first.data(), first.size());
+	if (!second.empty())
+		runtime::object::memory_object->write_buffer((data_address + first.size()), second.data(), second.size());
 
 	ref->set_constructed_state();
 	return ref;
@@ -210,6 +218,47 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_strin
 
 std::string_view cminus::storage::global::get_string_value(std::shared_ptr<memory::reference> value) const{
 	return declaration::string::helper::read_data("data_", value);
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_compare_value(int value) const{
+	if (value < 0)
+		value = 1;
+	else if (value == 0)
+		value = 2;
+	else
+		value = 3;
+
+	switch (auto target_type = get_cached_type(cached_type::compare_result); target_type->get_size()){
+	case sizeof(unsigned __int8):
+		return std::make_shared<cminus::memory::scalar_reference<unsigned __int8>>(target_type, static_cast<unsigned __int8>(value));
+	case sizeof(unsigned __int16):
+		return std::make_shared<cminus::memory::scalar_reference<unsigned __int16>>(target_type, static_cast<unsigned __int16>(value));
+	case sizeof(unsigned __int32):
+		return std::make_shared<cminus::memory::scalar_reference<unsigned __int32>>(target_type, static_cast<unsigned __int32>(value));
+	case sizeof(unsigned __int64):
+		return std::make_shared<cminus::memory::scalar_reference<unsigned __int64>>(target_type, static_cast<unsigned __int64>(value));
+	default:
+		break;
+	}
+
+	return nullptr;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_not_equal_compare_value() const{
+	switch (auto target_type = get_cached_type(cached_type::compare_result); target_type->get_size()){
+	case sizeof(unsigned __int8):
+		return std::make_shared<cminus::memory::scalar_reference<unsigned __int8>>(target_type, static_cast<unsigned __int8>(0));
+	case sizeof(unsigned __int16):
+		return std::make_shared<cminus::memory::scalar_reference<unsigned __int16>>(target_type, static_cast<unsigned __int16>(0));
+	case sizeof(unsigned __int32):
+		return std::make_shared<cminus::memory::scalar_reference<unsigned __int32>>(target_type, static_cast<unsigned __int32>(0));
+	case sizeof(unsigned __int64):
+		return std::make_shared<cminus::memory::scalar_reference<unsigned __int64>>(target_type, static_cast<unsigned __int64>(0));
+	default:
+		break;
+	}
+
+	return nullptr;
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_boolean_value(type::boolean_constant value) const{
@@ -228,4 +277,21 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_nullptr_
 
 std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_undefined_value() const{
 	return undefined_value_;
+}
+
+bool cminus::storage::global::compare_enum(const type::object &type, std::shared_ptr<memory::reference> left, std::shared_ptr<memory::reference> right) const{
+	switch (type.get_size()){
+	case sizeof(unsigned __int8):
+		return (left->read_scalar<unsigned __int8>() == right->read_scalar<unsigned __int8>());
+	case sizeof(unsigned __int16):
+		return (left->read_scalar<unsigned __int16>() == right->read_scalar<unsigned __int16>());
+	case sizeof(unsigned __int32):
+		return (left->read_scalar<unsigned __int32>() == right->read_scalar<unsigned __int32>());
+	case sizeof(unsigned __int64):
+		return (left->read_scalar<unsigned __int64>() == right->read_scalar<unsigned __int64>());
+	default:
+		break;
+	}
+
+	return false;
 }

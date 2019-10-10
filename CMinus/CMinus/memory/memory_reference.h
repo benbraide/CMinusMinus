@@ -188,5 +188,9 @@ namespace cminus::memory{
 		}
 
 		virtual ~scalar_reference() = default;
+
+		virtual bool is_const() const override{
+			return true;
+		}
 	};
 }

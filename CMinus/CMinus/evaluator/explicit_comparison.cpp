@@ -1,6 +1,6 @@
 #include "../storage/global_storage.h"
 
-#include "comparison.h"
+#include "evaluator_object.h"
 
 cminus::evaluator::explicit_comparison::~explicit_comparison() = default;
 
@@ -33,9 +33,9 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::expli
 	if (!non_ref_const_left_type->is_exact(*non_ref_const_right_type))
 		return runtime::object::global_storage->get_boolean_value(!is_explicit_equal);
 
-	auto comparison_evaluator = dynamic_cast<const comparison *>(this);
-	if (comparison_evaluator == nullptr)
+	auto evaluator = dynamic_cast<const object *>(this);
+	if (evaluator == nullptr)
 		throw exception::unsupported_op();
 
-	return comparison_evaluator->evaluate((is_explicit_equal ? operators::id::equal : operators::id::not_equal), left_value, right_value);
+	return evaluator->evaluate_binary((is_explicit_equal ? operators::id::equal : operators::id::not_equal), left_value, right_value);
 }

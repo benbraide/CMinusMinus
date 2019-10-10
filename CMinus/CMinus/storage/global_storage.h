@@ -32,6 +32,7 @@ namespace cminus::storage{
 			function,
 			nullptr_,
 			string,
+			compare_result,
 		};
 
 		global();
@@ -82,7 +83,13 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<memory::reference> create_string(const std::string_view &value, bool lval = false) const;
 
+		virtual std::shared_ptr<memory::reference> create_string(const std::string_view &first, const std::string_view &second, bool lval = false) const;
+
 		virtual std::string_view get_string_value(std::shared_ptr<memory::reference> value) const;
+
+		virtual std::shared_ptr<memory::reference> get_compare_value(int value) const;
+
+		virtual std::shared_ptr<memory::reference> get_not_equal_compare_value() const;
 
 		virtual std::shared_ptr<memory::reference> get_boolean_value(type::boolean_constant value) const;
 
@@ -91,6 +98,8 @@ namespace cminus::storage{
 		virtual std::shared_ptr<memory::reference> get_nullptr_value() const;
 
 		virtual std::shared_ptr<memory::reference> get_undefined_value() const;
+
+		virtual bool compare_enum(const type::object &type, std::shared_ptr<memory::reference> left, std::shared_ptr<memory::reference> right) const;
 
 	protected:
 		std::unordered_map<cached_type, std::shared_ptr<type::object>> cached_types_;

@@ -1,3 +1,4 @@
+#include "../type/modified_type.h"
 #include "../storage/global_storage.h"
 
 #include "arithmetic.h"
@@ -116,7 +117,7 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::evalua
 	if (left_type == nullptr || right_type == nullptr)
 		throw exception::invalid_type();
 
-	auto left_number_type = dynamic_cast<type::number_primitive *>(left_type->get_non_proxy());
+	auto left_number_type = dynamic_cast<type::number_primitive *>(left_type->convert(type::object::conversion_type::remove_ref_const, left_type)->get_non_proxy());
 	if (left_number_type == nullptr)
 		throw exception::unsupported_op();
 
@@ -124,7 +125,7 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::evalua
 	attribute::read_guard right_read_guard(right_value, nullptr);
 
 	auto compatible_left_value = left_value, compatible_right_value = right_value;
-	auto right_number_type = dynamic_cast<type::number_primitive *>(right_type->get_non_proxy());
+	auto right_number_type = dynamic_cast<type::number_primitive *>(right_type->convert(type::object::conversion_type::remove_ref_const, right_type)->get_non_proxy());
 
 	if (right_number_type == nullptr){
 		if (right_type->is(type::object::query_type::string)){
@@ -181,9 +182,14 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::evalua
 }
 
 cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::create_byte_val_(std::byte value) const{
-	return nullptr;
+	return std::make_shared<memory::scalar_reference<std::byte>>(runtime::object::global_storage->get_cached_type(storage::global::cached_type::byte_), value);
 }
 
 cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::create_byte_ref_(std::size_t address, bool is_const) const{
-	return nullptr;
+	return std::make_shared<memory::reference>(
+		address,
+		runtime::object::global_storage->get_ref_type(runtime::object::global_storage->get_cached_type(storage::global::cached_type::byte_), is_const),
+		attribute::collection::list_type{},
+		nullptr
+	);
 }

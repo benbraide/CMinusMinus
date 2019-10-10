@@ -17,6 +17,8 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const override;
 
+		virtual std::shared_ptr<evaluator::object> get_evaluator() const override;
+
 		virtual bool is(query_type type, const type_base *arg = nullptr) const override;
 	};
 }

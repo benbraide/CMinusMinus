@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../type/string_type.h"
+
 #include "special_function_declaration.h"
 
 namespace cminus::declaration::string{

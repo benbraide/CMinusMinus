@@ -37,6 +37,18 @@ namespace cminus::evaluator{
 		}
 
 		template <typename target_type>
+		int compare_(object::memory_ptr_type left, object::memory_ptr_type right) const{
+			auto left_value = left->read_scalar<target_type>(), right_value = right->read_scalar<target_type>();
+			if (left_value < right_value)
+				return -1;
+
+			if (right_value < left_value)
+				return 1;
+
+			return 0;
+		}
+
+		template <typename target_type>
 		bool evaluate_numeric_(operators::id op, object::memory_ptr_type left, object::memory_ptr_type right) const{
 			auto left_is_nan = left->is_nan(), right_is_nan = left->is_nan();
 			if (left_is_nan || right_is_nan){
@@ -55,9 +67,22 @@ namespace cminus::evaluator{
 			return evaluate_<target_type>(op, left, right);
 		}
 
+		template <typename target_type>
+		int compare_numeric_(object::memory_ptr_type left, object::memory_ptr_type right) const{
+			auto left_is_nan = left->is_nan(), right_is_nan = left->is_nan();
+			if (left_is_nan || right_is_nan)
+				return ((left_is_nan == right_is_nan) ? 0 : -1);
+
+			return compare_<target_type>(left, right);
+		}
+
 		bool evaluate_string_(operators::id op, const std::string_view &left, const std::string_view &right) const;
 
+		int compare_string_(const std::string_view &left, const std::string_view &right) const;
+
 		virtual object::memory_ptr_type create_value_(bool value) const;
+
+		virtual object::memory_ptr_type create_compare_value_(int value) const;
 	};
 
 	template <class target_type>

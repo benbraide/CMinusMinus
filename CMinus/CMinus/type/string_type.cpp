@@ -152,6 +152,10 @@ std::shared_ptr<cminus::memory::reference> cminus::type::string::cast(std::share
 	return class_::cast(data, target_type, type);
 }
 
+std::shared_ptr<cminus::evaluator::object> cminus::type::string::get_evaluator() const{
+	return runtime::object::global_storage->get_evaluator(evaluator::object::id_type::string);
+}
+
 bool cminus::type::string::is(query_type type, const type_base *arg) const{
 	return (type == query_type::string || type == query_type::primitive || class_::is(type, arg));
 }
