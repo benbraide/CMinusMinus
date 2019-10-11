@@ -149,7 +149,7 @@ bool cminus::type::class_::is(query_type type, const type_base *arg) const{
 }
 
 bool cminus::type::class_::is_accessible(unsigned int access) const{
-	if (runtime::object::allow_access)
+	if ((runtime::object::state & runtime::flags::allow_access) != 0u)
 		return true;
 
 	auto class_storage = runtime::object::current_storage->get_first_of<class_>();

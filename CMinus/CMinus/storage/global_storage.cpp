@@ -205,7 +205,7 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_strin
 	if (ref == nullptr)
 		throw memory::exception::allocation_failure();
 
-	runtime::value_guard guard(runtime::object::is_system, true);
+	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::system));
 	auto data_address = declaration::string::helper::allocate_block((first.size() + second.size()), declaration::string::helper::allocation_type::nil, 0u, ref, !lval);
 
 	runtime::object::memory_object->write_buffer(data_address, first.data(), first.size());

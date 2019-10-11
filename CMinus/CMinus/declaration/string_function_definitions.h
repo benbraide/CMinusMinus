@@ -84,7 +84,7 @@ namespace cminus::declaration::string{
 		template <typename target_type>
 		static target_type read_value(const std::string &name, std::shared_ptr<memory::reference> context){
 			if (context != nullptr){
-				runtime::value_guard guard(runtime::object::allow_access, true);
+				runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::allow_access));
 				return runtime::object::global_storage->get_raw_string_type()->find(name, context, false)->read_scalar<target_type>();
 			}
 			

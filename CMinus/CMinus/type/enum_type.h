@@ -67,7 +67,7 @@ namespace cminus::type{
 				throw memory::exception::allocation_failure();
 
 			std::size_t index = 0u;
-			runtime::value_guard guard(runtime::object::is_system, true);
+			runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::system));
 
 			for (auto &item : items_){
 				memory.write_scalar((address_ + (index * size_)), index);

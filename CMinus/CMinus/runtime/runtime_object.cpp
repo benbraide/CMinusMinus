@@ -4,9 +4,7 @@
 
 cminus::memory::object *cminus::runtime::object::memory_object = nullptr;
 
-thread_local bool cminus::runtime::object::is_system = false;
-
-thread_local bool cminus::runtime::object::allow_access = false;
+thread_local unsigned int cminus::runtime::object::state = runtime::flags::nil;
 
 cminus::storage::global *cminus::runtime::object::global_storage = nullptr;
 

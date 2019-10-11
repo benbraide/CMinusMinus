@@ -64,7 +64,7 @@ TEST(SpecialMemoryBlockTest, TestWriteProtected){
 	EXPECT_THROW(block.write_buffer("test write"), cminus::memory::exception::write_protected);
 	
 	{//Scoped
-		cminus::runtime::value_guard guard(cminus::runtime::object::is_system, true);
+		cminus::runtime::value_guard guard(cminus::runtime::object::state, (cminus::runtime::object::state | cminus::runtime::flags::system));
 		EXPECT_EQ(block.write_buffer("test write"), block.get_size());
 	}
 
@@ -84,7 +84,7 @@ TEST(SpecialMemoryBlockTest, TestAccessProtected){
 	EXPECT_THROW(block.read_buffer(buffer, 4), cminus::memory::exception::access_protected);
 
 	{//Scoped
-		cminus::runtime::value_guard guard(cminus::runtime::object::is_system, true);
+		cminus::runtime::value_guard guard(cminus::runtime::object::state, (cminus::runtime::object::state | cminus::runtime::flags::system));
 		EXPECT_EQ(block.read_buffer(buffer, 4), 4);
 	}
 }
@@ -101,7 +101,7 @@ TEST(SpecialMemoryBlockTest, TestProtected){
 	EXPECT_THROW(block.read_buffer(buffer, 4), cminus::memory::exception::access_protected);
 
 	{//Scoped
-		cminus::runtime::value_guard guard(cminus::runtime::object::is_system, true);
+		cminus::runtime::value_guard guard(cminus::runtime::object::state, (cminus::runtime::object::state | cminus::runtime::flags::system));
 		EXPECT_EQ(block.write_buffer("test write"), block.get_size());
 		EXPECT_EQ(block.read_buffer(buffer, 4), 4);
 	}
@@ -119,7 +119,7 @@ TEST(SpecialMemoryBlockTest, TestFree){
 	EXPECT_THROW(block.read_buffer(buffer, 4), cminus::memory::exception::access_protected);
 
 	{//Scoped
-		cminus::runtime::value_guard guard(cminus::runtime::object::is_system, true);
+		cminus::runtime::value_guard guard(cminus::runtime::object::state, (cminus::runtime::object::state | cminus::runtime::flags::system));
 		EXPECT_THROW(block.write_buffer("test write"), cminus::memory::exception::write_protected);
 		EXPECT_THROW(block.read_buffer(buffer, 4), cminus::memory::exception::access_protected);
 	}

@@ -183,7 +183,7 @@ namespace cminus::memory{
 	public:
 		scalar_reference(std::shared_ptr<type::object> type, value_type value)
 			: write_protected_rval_reference(type){
-			runtime::value_guard guard(runtime::object::is_system, true);
+			runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::system));
 			runtime::object::memory_object->write_scalar(address_, value);
 		}
 

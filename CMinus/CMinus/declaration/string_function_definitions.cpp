@@ -5,7 +5,7 @@
 
 void cminus::declaration::string::helper::retrieve_info(essential_info &info, std::shared_ptr<memory::reference> context){
 	if (context != nullptr){
-		runtime::value_guard guard(runtime::object::allow_access, true);
+		runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::allow_access));
 		auto string_type = runtime::object::global_storage->get_raw_string_type();
 
 		info.data = string_type->find("data_", context, false);
@@ -22,7 +22,7 @@ void cminus::declaration::string::helper::retrieve_info(essential_info &info, st
 
 void cminus::declaration::string::helper::retrieve_info(member_info &info, std::shared_ptr<memory::reference> context){
 	if (context != nullptr){
-		runtime::value_guard guard(runtime::object::allow_access, true);
+		runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::allow_access));
 		auto string_type = runtime::object::global_storage->get_raw_string_type();
 
 		info.data = string_type->find("data_", context, false);
@@ -232,7 +232,7 @@ void cminus::declaration::string::destructor_def::evaluate_body_() const{
 	helper::member_info info{};
 	helper::retrieve_info(info, nullptr);
 
-	runtime::value_guard guard(runtime::object::is_system, true);
+	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::system));
 	info.size->write_scalar(static_cast<std::size_t>(0));
 
 	if (auto data_address = info.data->read_scalar<std::size_t>(); data_address != 0u){//Free memory
