@@ -15,6 +15,29 @@ std::string cminus::type::pointer_primitive::get_qname() const{
 	return ((base_type_ == nullptr) ? "NullptrType" : (base_type_->get_qname() + "*"));
 }
 
+void cminus::type::pointer_primitive::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	if (base_type_ != nullptr){
+		auto address = data->read_scalar<std::size_t>();
+		auto hex_address = runtime::to_hex_string<std::size_t>::get(address, 8);
+
+		writer.write_buffer(hex_address.data(), hex_address.size());
+		writer.write_scalar('{');
+
+		if (address != 0u){
+			if (auto base_value = std::make_shared<memory::reference>(address, base_type_); base_value != nullptr)
+				base_type_->print_value(writer, base_value);
+			else
+				throw memory::exception::allocation_failure();
+		}
+		else
+			writer.write_buffer("nullptr");
+
+		writer.write_scalar('}');
+	}
+	else
+		writer.write_buffer("nullptr");
+}
+
 std::size_t cminus::type::pointer_primitive::get_size() const{
 	return sizeof(void *);
 }

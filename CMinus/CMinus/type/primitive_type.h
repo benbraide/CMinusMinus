@@ -84,6 +84,8 @@ namespace cminus::type{
 
 		virtual ~undefined_primitive();
 
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
 		virtual std::size_t get_size() const override;
 
 		virtual bool is_exact(const object &target) const override;
@@ -102,6 +104,36 @@ namespace cminus::type{
 			: primitive(convert_id_to_string(id)){}
 
 		virtual ~strict_primitive() = default;
+
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override{
+			switch (id){
+			case primitive::id_type::bool_:
+				switch (data->read_scalar<boolean_constant>()){
+				case boolean_constant::false_:
+					writer.write_buffer("false");
+					break;
+				case boolean_constant::true_:
+					writer.write_buffer("true");
+					break;
+				default:
+					writer.write_buffer("indeterminate");
+					break;
+				}
+				break;
+			case primitive::id_type::byte_:
+				runtime::to_hex_string<int>::get(static_cast<int>(data->read_scalar<std::byte>()), 2);
+				break;
+			case primitive::id_type::char_:
+				writer.write_scalar(data->read_scalar<char>());
+				break;
+			case primitive::id_type::wchar_:
+				writer.write_scalar(data->read_scalar<wchar_t>());
+				break;
+			default:
+				throw runtime::exception::not_supported();
+				break;
+			}
+		}
 
 		virtual std::size_t get_size() const override{
 			return size;
@@ -291,6 +323,8 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> get_default_value(std::shared_ptr<object> self) const override;
 
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
 		virtual std::size_t get_size() const override;
 
 		virtual bool is_exact(const object &target) const override;
@@ -383,6 +417,8 @@ namespace cminus::type{
 
 		virtual ~function_primitive();
 
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
 		virtual std::size_t get_size() const override;
 
 		virtual bool is_exact(const object &target) const override;
@@ -399,6 +435,8 @@ namespace cminus::type{
 		auto_primitive();
 
 		virtual ~auto_primitive();
+
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 
 		virtual std::size_t get_size() const override;
 

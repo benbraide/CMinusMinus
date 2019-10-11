@@ -26,6 +26,8 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> get_default_value(std::shared_ptr<object> self) const override;
 
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
 		virtual std::size_t get_size() const override;
 
 		virtual std::size_t get_memory_size() const override;

@@ -64,9 +64,9 @@ namespace cminus::runtime{
 
 	template <class value_type>
 	struct to_hex_string{
-		static std::string get(value_type value){
+		static std::string get(value_type value, std::size_t width){
 			std::stringstream stream;
-			stream << "0x" << std::setfill('0') << std::setw(sizeof(value_type) * 2) << std::hex << value;
+			stream << "0x" << std::setfill('0') << std::setw(width) << std::hex << value;
 			return stream.str();
 		}
 	};

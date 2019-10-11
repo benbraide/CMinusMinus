@@ -15,6 +15,8 @@ namespace cminus::type{
 
 		virtual std::string get_qname() const override;
 
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
 		virtual std::size_t get_size() const override;
 
 		virtual bool is_exact(const object &target) const override;

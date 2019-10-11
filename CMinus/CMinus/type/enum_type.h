@@ -15,7 +15,11 @@ namespace cminus::type{
 
 		virtual const std::string &get_name() const override;
 
+		virtual std::string get_qname() const override;
+
 		virtual storage::object *get_parent() const override;
+
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 
 		virtual std::size_t get_size() const override;
 
@@ -70,6 +74,24 @@ namespace cminus::type{
 				items_map_[item] = (address_ + (index * size_));
 				++index;
 			}
+		}
+
+		template <typename target_type>
+		target_type read_value_as_(std::shared_ptr<memory::reference> data) const{
+			switch (size_){
+			case sizeof(unsigned __int8):
+				return static_cast<target_type>(data->read_scalar<unsigned __int8>());
+			case sizeof(unsigned __int16):
+				return static_cast<target_type>(data->read_scalar<unsigned __int16>());
+			case sizeof(unsigned __int32):
+				return static_cast<target_type>(data->read_scalar<unsigned __int32>());
+			case sizeof(unsigned __int64):
+				return static_cast<target_type>(data->read_scalar<unsigned __int64>());
+			default:
+				break;
+			}
+
+			return target_type();
 		}
 
 		std::list<std::string> items_;

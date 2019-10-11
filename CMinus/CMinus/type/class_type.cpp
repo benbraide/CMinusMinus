@@ -33,6 +33,10 @@ const std::string &cminus::type::class_::get_name() const{
 	return type_base::get_name();
 }
 
+std::string cminus::type::class_::get_qname() const{
+	return type_base::get_qname();
+}
+
 cminus::storage::object *cminus::type::class_::get_parent() const{
 	return type_base::get_parent();
 }
@@ -63,6 +67,23 @@ void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) c
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::get_default_value(std::shared_ptr<type_base> self) const{
 	return nullptr;
+}
+
+void cminus::type::class_::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	auto callable = find_function_(("ToString"));
+	if (callable == nullptr)
+		throw runtime::exception::not_supported();
+
+	auto value = callable->call(data, {});
+	if (value == nullptr)
+		throw runtime::exception::not_supported();
+
+	auto str_value = value->get_type()->cast(value, runtime::object::global_storage->get_string_type(), cast_type::rval_static);
+	if (str_value == nullptr)
+		throw runtime::exception::not_supported();
+
+	auto str_data = runtime::object::global_storage->get_string_value(str_value);
+	writer.write_buffer(str_data.data(), str_data.size());
 }
 
 std::size_t cminus::type::class_::get_size() const{

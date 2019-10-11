@@ -9,6 +9,10 @@ std::size_t cminus::type::variadic::get_size() const{
 	return 0u;
 }
 
+void cminus::type::variadic::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	throw runtime::exception::not_supported();
+}
+
 bool cminus::type::variadic::is_exact(const object &target) const{
 	auto variadic_target = dynamic_cast<variadic *>(target.get_non_proxy());
 	return (variadic_target != nullptr && base_type_->is_exact(*variadic_target->base_type_));
@@ -93,4 +97,20 @@ cminus::type::expansion_variadic::~expansion_variadic() = default;
 void cminus::type::expansion_variadic::extend_argument_list(std::shared_ptr<memory::reference> data, std::list<std::shared_ptr<memory::reference>> &list) const{
 	for (std::size_t index = 0u; index < count_; ++index)
 		list.push_back(get_indexed(data, index));
+}
+
+void cminus::type::expansion_variadic::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	writer.write_scalar('[');
+
+	auto is_first = true;
+	for (std::size_t index = 0u; index < count_; ++index){
+		if (is_first)
+			is_first = false;
+		else
+			writer.write_buffer(", ");
+
+		base_type_->print_value(writer, get_indexed(data, index));
+	}
+
+	writer.write_scalar(']');
 }

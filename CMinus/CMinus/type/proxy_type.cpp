@@ -33,6 +33,10 @@ std::shared_ptr<cminus::memory::reference> cminus::type::proxy::get_default_valu
 	return target_->get_default_value(self);
 }
 
+void cminus::type::proxy::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	target_->print_value(writer, data);
+}
+
 std::size_t cminus::type::proxy::get_size() const{
 	return target_->get_size();
 }

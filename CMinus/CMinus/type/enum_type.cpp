@@ -21,8 +21,25 @@ const std::string &cminus::type::enum_::get_name() const{
 	return type_base::get_name();
 }
 
+std::string cminus::type::enum_::get_qname() const{
+	return type_base::get_qname();
+}
+
 cminus::storage::object *cminus::type::enum_::get_parent() const{
 	return type_base::get_parent();
+}
+
+void cminus::type::enum_::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	auto index = read_value_as_<std::size_t>(data);
+	if (items_.size() <= index)
+		throw runtime::exception::out_of_range();
+
+	auto qname = get_qname();
+	writer.write_buffer(qname.data(), qname.size());
+	writer.write_buffer("::");
+
+	auto it = std::next(items_.begin(), index);
+	writer.write_buffer(it->data(), it->size());
 }
 
 std::size_t cminus::type::enum_::get_size() const{
@@ -52,7 +69,20 @@ std::shared_ptr<cminus::memory::reference> cminus::type::enum_::cast(std::shared
 	if (type == cast_type::rval_static || !is_lval || is_ref)
 		return data;//No copy needed
 
-	return std::make_shared<memory::scalar_reference<std::size_t>>(target_type, data->read_scalar<std::size_t>());
+	switch (size_){
+	case sizeof(unsigned __int8):
+		return std::make_shared<memory::scalar_reference<unsigned __int8>>(target_type, data->read_scalar<unsigned __int8>());
+	case sizeof(unsigned __int16):
+		return std::make_shared<memory::scalar_reference<unsigned __int16>>(target_type, data->read_scalar<unsigned __int16>());
+	case sizeof(unsigned __int32):
+		return std::make_shared<memory::scalar_reference<unsigned __int32>>(target_type, data->read_scalar<unsigned __int32>());
+	case sizeof(unsigned __int64):
+		return std::make_shared<memory::scalar_reference<unsigned __int64>>(target_type, data->read_scalar<unsigned __int64>());
+	default:
+		break;
+	}
+
+	return nullptr;
 }
 
 std::shared_ptr<cminus::evaluator::object> cminus::type::enum_::get_evaluator() const{
@@ -134,10 +164,8 @@ void cminus::type::enum_::add_(const std::string &name){
 }
 
 void cminus::type::enum_::compile_(){
-	if (items_.empty()){
-		size_ = 0u;
-		return;
-	}
+	if (items_.empty())
+		throw declaration::exception::bad_declaration();
 
 	if (items_.size() <= std::numeric_limits<unsigned __int8>::max())
 		compile_<unsigned __int8>(*runtime::object::memory_object);

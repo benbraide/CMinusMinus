@@ -98,6 +98,11 @@ bool cminus::type::string::is_constructible(std::shared_ptr<memory::reference> t
 	return target->get_type()->is(query_type::numeric);
 }
 
+void cminus::type::string::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	auto str_data = runtime::object::global_storage->get_string_value(data);
+	writer.write_buffer(str_data.data(), str_data.size());
+}
+
 int cminus::type::string::get_score(const type_base &target) const{
 	return (target.is(query_type::numeric) ? get_score_value(score_result_type::assignable) : class_::get_score(target));
 }

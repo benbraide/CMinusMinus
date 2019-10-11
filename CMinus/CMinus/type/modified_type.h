@@ -9,6 +9,8 @@ namespace cminus::type{
 
 		virtual ~modified();
 
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
 		virtual std::size_t get_size() const override;
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;

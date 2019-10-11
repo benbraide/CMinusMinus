@@ -101,3 +101,12 @@ cminus::runtime::exception::out_of_range::~out_of_range() = default;
 cminus::runtime::exception::code cminus::runtime::exception::out_of_range::get_code() const{
 	return code::out_of_range;
 }
+
+cminus::runtime::exception::not_supported::not_supported()
+	: base("Specified action is not supported"){}
+
+cminus::runtime::exception::not_supported::~not_supported() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::not_supported::get_code() const{
+	return code::not_supported;
+}

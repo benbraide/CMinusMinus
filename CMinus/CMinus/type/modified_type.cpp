@@ -5,6 +5,10 @@ cminus::type::modified::modified(const std::string &name, std::shared_ptr<object
 
 cminus::type::modified::~modified() = default;
 
+void cminus::type::modified::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	base_type_->print_value(writer, data);
+}
+
 std::size_t cminus::type::modified::get_size() const{
 	return base_type_->get_size();
 }

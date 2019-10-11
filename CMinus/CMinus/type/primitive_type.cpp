@@ -67,6 +67,10 @@ cminus::type::undefined_primitive::undefined_primitive()
 
 cminus::type::undefined_primitive::~undefined_primitive() = default;
 
+void cminus::type::undefined_primitive::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	writer.write_buffer("undefined");
+}
+
 std::size_t cminus::type::undefined_primitive::get_size() const{
 	return 0u;
 }
@@ -131,6 +135,58 @@ std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::get_d
 	}
 
 	return primitive::get_default_value(self);
+}
+
+void cminus::type::number_primitive::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	switch (state_){
+	case state_type::integer:
+		if (is_nan_<__int32>(*data))
+			writer.write_buffer("NaN");
+		else
+			writer.write_scalar(data->read_scalar<__int32>());
+		break;
+	case state_type::long_integer:
+		if (!is_nan_<__int64>(*data)){
+			writer.write_scalar(data->read_scalar<__int64>());
+			writer.write_scalar('L');
+		}
+		else
+			writer.write_buffer("NaN");
+		break;
+	case state_type::unsigned_integer:
+		if (!is_nan_<unsigned __int32>(*data)){
+			writer.write_scalar(data->read_scalar<unsigned __int32>());
+			writer.write_buffer("U");
+		}
+		else
+			writer.write_buffer("NaN");
+		break;
+	case state_type::unsigned_long_integer:
+		if (!is_nan_<unsigned __int64>(*data)){
+			writer.write_scalar(data->read_scalar<unsigned __int64>());
+			writer.write_buffer("UL");
+		}
+		else
+			writer.write_buffer("NaN");
+		break;
+	case state_type::real:
+		if (is_nan_<float>(*data))
+			writer.write_buffer("NaN");
+		else
+			writer.write_scalar(data->read_scalar<float>());
+		break;
+	case state_type::long_real:
+		if (!is_nan_<long double>(*data)){
+			writer.write_scalar(data->read_scalar<long double>());
+			writer.write_scalar('L');
+		}
+		else
+			writer.write_buffer("NaN");
+		break;
+	default:
+		writer.write_buffer("NaN");
+		break;
+	}
 }
 
 std::size_t cminus::type::number_primitive::get_size() const{
@@ -326,6 +382,10 @@ cminus::type::function_primitive::function_primitive()
 
 cminus::type::function_primitive::~function_primitive() = default;
 
+void cminus::type::function_primitive::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	throw runtime::exception::not_supported();
+}
+
 std::size_t cminus::type::function_primitive::get_size() const{
 	return sizeof(void *);
 }
@@ -364,6 +424,10 @@ cminus::type::auto_primitive::auto_primitive()
 	: primitive("Auto"){}
 
 cminus::type::auto_primitive::~auto_primitive() = default;
+
+void cminus::type::auto_primitive::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	throw runtime::exception::not_supported();
+}
 
 std::size_t cminus::type::auto_primitive::get_size() const{
 	return 0u;

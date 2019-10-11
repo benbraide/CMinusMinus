@@ -23,6 +23,10 @@ std::string cminus::type::function::get_qname() const{
 	return qname_;
 }
 
+void cminus::type::function::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	throw runtime::exception::not_supported();
+}
+
 std::size_t cminus::type::function::get_size() const{
 	return 0u;
 }

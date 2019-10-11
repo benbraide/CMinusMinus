@@ -31,6 +31,8 @@ namespace cminus::type{
 
 		virtual const std::string &get_name() const override;
 
+		virtual std::string get_qname() const override;
+
 		virtual storage::object *get_parent() const override;
 
 		virtual bool is_constructible(std::shared_ptr<memory::reference> target) const override;
@@ -38,6 +40,8 @@ namespace cminus::type{
 		virtual void destruct(std::shared_ptr<memory::reference> target) const override;
 
 		virtual std::shared_ptr<memory::reference> get_default_value(std::shared_ptr<type_base> self) const override;
+
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 
 		virtual std::size_t get_size() const override;
 

@@ -11,6 +11,8 @@ namespace cminus::type{
 
 		virtual std::size_t get_size() const override;
 
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
 		virtual bool is_exact(const object &target) const override;
 
 		virtual int get_score(const object &target) const override;
@@ -54,5 +56,7 @@ namespace cminus::type{
 		virtual ~expansion_variadic();
 
 		virtual void extend_argument_list(std::shared_ptr<memory::reference> data, std::list<std::shared_ptr<memory::reference>> &list) const override;
+
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 	};
 }
