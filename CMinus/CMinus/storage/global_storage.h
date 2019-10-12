@@ -17,6 +17,7 @@ namespace cminus::storage{
 		enum class cached_type{
 			nil,
 			undefined,
+			auto_,
 			void_,
 			bool_,
 			byte_,
@@ -47,11 +48,17 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<type::object> get_ref_type(std::shared_ptr<type::object> base_type, bool is_const) const;
 
+		virtual std::shared_ptr<type::object> get_auto_pointer_type(bool is_const) const;
+
+		virtual std::shared_ptr<type::object> get_auto_ref_type(bool is_const) const;
+
 		virtual std::shared_ptr<type::object> get_char_pointer_type(bool is_const) const;
 
 		virtual std::shared_ptr<type::object> get_char_ref_type(bool is_const) const;
 
 		virtual std::shared_ptr<type::object> get_string_ref_type(bool is_const) const;
+
+		virtual std::shared_ptr<type::object> get_auto_type() const;
 
 		virtual std::shared_ptr<type::object> get_void_type() const;
 

@@ -33,6 +33,7 @@ cminus::storage::global::global()
 	evaluators_[evaluator::object::id_type::string] = std::make_shared<evaluator::string>();
 
 	cached_types_[cached_type::undefined] = std::make_shared<type::undefined_primitive>();
+	cached_types_[cached_type::auto_] = std::make_shared<type::auto_primitive>();
 	cached_types_[cached_type::void_] = std::make_shared<type::void_primitive>();
 
 	cached_types_[cached_type::bool_] = std::make_shared<type::bool_primitive>();
@@ -107,6 +108,14 @@ std::shared_ptr<cminus::type::object> cminus::storage::global::get_ref_type(std:
 	return std::make_shared<cminus::type::constant>(std::make_shared<cminus::type::ref>(base_type));
 }
 
+std::shared_ptr<cminus::type::object> cminus::storage::global::get_auto_pointer_type(bool is_const) const{
+	return get_pointer_type(get_cached_type(cached_type::auto_), is_const);
+}
+
+std::shared_ptr<cminus::type::object> cminus::storage::global::get_auto_ref_type(bool is_const) const{
+	return get_ref_type(get_cached_type(cached_type::auto_), is_const);
+}
+
 std::shared_ptr<cminus::type::object> cminus::storage::global::get_char_pointer_type(bool is_const) const{
 	return get_pointer_type(get_cached_type(cached_type::char_), is_const);
 }
@@ -117,6 +126,10 @@ std::shared_ptr<cminus::type::object> cminus::storage::global::get_char_ref_type
 
 std::shared_ptr<cminus::type::object> cminus::storage::global::get_string_ref_type(bool is_const) const{
 	return get_ref_type(get_cached_type(cached_type::string), is_const);
+}
+
+std::shared_ptr<cminus::type::object> cminus::storage::global::get_auto_type() const{
+	return get_cached_type(cached_type::auto_);
 }
 
 std::shared_ptr<cminus::type::object> cminus::storage::global::get_void_type() const{

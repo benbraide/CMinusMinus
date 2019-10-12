@@ -147,11 +147,11 @@ bool cminus::type::pointer_primitive::is(query_type type, const object *arg) con
 	if (type == query_type::pointer || (type == query_type::nullptr_ && base_type_ == nullptr))
 		return true;
 
-	if (type == query_type::updatable && base_type_ != nullptr && base_type_->is(type))
-		return true;
+	if (type == query_type::const_pointer)
+		return (base_type_ != nullptr && base_type_->is(query_type::const_));
 
-	if (type == query_type::auto_ && base_type_ != nullptr && base_type_->is(type))
-		return true;
+	if (type == query_type::auto_ || type == query_type::inferred || type == query_type::updatable)
+		return (base_type_ != nullptr && base_type_->is(type));
 
 	return primitive::is(type, arg);
 }

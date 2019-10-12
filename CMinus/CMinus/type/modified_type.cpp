@@ -55,7 +55,7 @@ int cminus::type::constant::get_score(const object &target) const{
 std::shared_ptr<cminus::type::object> cminus::type::constant::convert(conversion_type type, std::shared_ptr<object> self_or_other) const{
 	if (type == conversion_type::infer){
 		if (auto computed_base_type = base_type_->convert(type, self_or_other); computed_base_type != nullptr && computed_base_type != base_type_)
-			return (self_or_other->is(query_type::const_) ? self_or_other : std::make_shared<constant>(computed_base_type));
+			return (computed_base_type->is(query_type::const_) ? computed_base_type : std::make_shared<constant>(computed_base_type));
 	}
 
 	if (type == conversion_type::remove_ref || type == conversion_type::remove_indirection){

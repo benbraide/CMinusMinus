@@ -181,7 +181,7 @@ void cminus::type::class_::add_base(unsigned int access, std::shared_ptr<class_>
 			access = declaration::flags::public_;
 
 		base_types_.push_back(base_type_info{ access, size_, value });
-		base_types_map_[value->get_name()] = &*base_types_.rbegin();
+		base_types_map_[value->get_name()] = &base_types_.back();
 		size_ += value->size_;
 	}
 	else
@@ -251,6 +251,9 @@ const cminus::type::class_::member_variable_info *cminus::type::class_::find_non
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_non_static_member(const std::string &name, std::shared_ptr<memory::reference> context) const{
+	if (context == nullptr)
+		return nullptr;
+
 	auto entry = find_non_static_member(name);
 	if (entry == nullptr)
 		return nullptr;
@@ -344,11 +347,12 @@ bool cminus::type::class_::add_(std::shared_ptr<declaration::object> entry, std:
 }
 
 void cminus::type::class_::add_variable_(std::shared_ptr<declaration::variable> entry, std::size_t address){
-	if (!entry->is(declaration::flags::static_)){
-		auto entry_memory_size = entry->get_type()->get_memory_size();
-		if (entry_memory_size == 0u)
-			throw declaration::exception::bad_declaration();
+	auto entry_type = entry->get_type();
+	auto entry_memory_size = entry_type->get_memory_size();
+	if (entry_memory_size == 0u && !entry_type->is(query_type::class_))
+		throw declaration::exception::bad_declaration();
 
+	if (!entry->is(declaration::flags::static_)){
 		auto &name = entry->get_name();
 		if (name.empty())
 			throw storage::exception::unnamed_entry();
@@ -363,7 +367,7 @@ void cminus::type::class_::add_variable_(std::shared_ptr<declaration::variable> 
 			base_type.address_offset += entry_memory_size;
 	}
 	else if (!is_compiling_ && ((entry->get_flags() & declaration::flags::immediate) == 0u)){
-		static_size_ += entry->get_type()->get_memory_size();
+		static_size_ += entry_memory_size;
 		static_declarations_.push_back(entry);
 		static_declarations_map_[entry->get_name()] = entry;
 	}

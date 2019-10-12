@@ -43,6 +43,7 @@ namespace cminus::type{
 			const_,
 			ref,
 			pointer,
+			const_pointer,
 			nullptr_,
 			array_,
 			function,
