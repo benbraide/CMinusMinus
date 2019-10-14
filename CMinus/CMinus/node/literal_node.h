@@ -18,18 +18,6 @@ namespace cminus::node{
 			return std::make_shared<memory::scalar_reference<value_type>>(storage::get_cached_type<value_type>::template type(), value_);
 		}
 
-		virtual std::string evaluate_as_name() const override{
-			return "";
-		}
-
-		virtual std::shared_ptr<type::object> evaluate_as_type() const override{
-			return nullptr;
-		}
-
-		virtual storage::object *evaluate_as_storage() const override{
-			return nullptr;
-		}
-
 	protected:
 		value_type value_;
 	};

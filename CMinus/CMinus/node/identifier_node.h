@@ -11,14 +11,16 @@ namespace cminus::node{
 
 		virtual std::shared_ptr<memory::reference> evaluate() const override;
 
+		virtual std::shared_ptr<memory::reference> lookup(std::shared_ptr<memory::reference> context, bool search_tree) const override;
+
 		virtual std::string evaluate_as_name() const override;
 
-		virtual std::shared_ptr<type::object> evaluate_as_type() const override;
+		virtual std::shared_ptr<type::object> evaluate_as_type(bool search_tree) const override;
 
-		virtual storage::object *evaluate_as_storage() const override;
+		virtual storage::object *evaluate_as_storage(bool search_tree) const override;
 
 	protected:
-		virtual storage::object *get_storage_() const;
+		virtual storage::object *get_storage_(bool search_tree) const;
 
 		virtual bool should_search_tree_() const;
 
@@ -31,12 +33,10 @@ namespace cminus::node{
 
 		virtual ~scoped_identifier();
 
-		virtual std::shared_ptr<memory::reference> evaluate() const override;
-
 		virtual std::string evaluate_as_name() const override;
 
 	protected:
-		virtual storage::object *get_storage_() const override;
+		virtual storage::object *get_storage_(bool search_tree) const override;
 
 		virtual bool should_search_tree_() const override;
 
