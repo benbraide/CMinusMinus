@@ -34,6 +34,8 @@ namespace cminus::storage{
 			nullptr_,
 			string,
 			compare_result,
+			attribute_stage,
+			attribute_result,
 		};
 
 		global();
@@ -93,6 +95,10 @@ namespace cminus::storage{
 		virtual std::shared_ptr<memory::reference> create_string(const std::string_view &first, const std::string_view &second, bool lval = false) const;
 
 		virtual std::string_view get_string_value(std::shared_ptr<memory::reference> value) const;
+
+		virtual std::size_t read_enum_value(std::shared_ptr<memory::reference> value) const;
+
+		virtual std::shared_ptr<memory::reference> get_enum_value(cached_type type, std::size_t value) const;
 
 		virtual std::shared_ptr<memory::reference> get_compare_value(int value) const;
 
