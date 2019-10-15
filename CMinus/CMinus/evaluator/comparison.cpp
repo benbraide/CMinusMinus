@@ -15,9 +15,6 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::numeric_comparison
 	if (left_number_type == nullptr)
 		throw exception::unsupported_op();
 
-	attribute::read_guard left_read_guard(left_value, nullptr);
-	attribute::read_guard right_read_guard(right_value, nullptr);
-
 	auto compatible_left_value = left_value, compatible_right_value = right_value;
 	auto right_number_type = dynamic_cast<type::number_primitive *>(right_type->get_non_proxy());
 
@@ -152,9 +149,6 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer_comparison
 	auto left_type = left_value->get_type(), right_type = right_value->get_type();
 	if (left_type == nullptr || right_type == nullptr)
 		throw exception::invalid_type();
-
-	attribute::read_guard left_read_guard(left_value, nullptr);
-	attribute::read_guard right_read_guard(right_value, nullptr);
 
 	auto compatible_left_value = left_value, compatible_right_value = right_value;
 	if ((compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::rval_static)) == nullptr){//Try casting left value

@@ -9,11 +9,8 @@ cminus::evaluator::object::id_type cminus::evaluator::byte::get_id() const{
 }
 
 cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::byte::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
-	if (op == operators::id::bitwise_inverse && target->get_type()->is(type::object::query_type::byte)){
-		attribute::read_guard guard(target, nullptr);
+	if (op == operators::id::bitwise_inverse)
 		return std::make_shared<memory::scalar_reference<std::byte>>(target->get_type(), ~target->read_scalar<std::byte>());
-	}
-
 	return nullptr;
 }
 
@@ -46,9 +43,6 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::byte:
 	auto right_number_type = dynamic_cast<type::number_primitive *>(right_type->get_non_proxy());
 	if (right_number_type == nullptr || !right_type->is(type::object::query_type::integral))
 		throw exception::unsupported_op();
-
-	attribute::read_guard left_read_guard(left_value, nullptr);
-	attribute::read_guard right_read_guard(right_value, nullptr);
 
 	auto index = right_number_type->read_value<std::size_t>(right_value);
 	if (8u <= index)

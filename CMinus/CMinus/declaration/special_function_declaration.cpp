@@ -1,3 +1,4 @@
+#include "../storage/global_storage.h"
 #include "../storage/specialized_storage.h"
 
 #include "special_function_declaration.h"
@@ -9,6 +10,9 @@ cminus::declaration::callable::id_type cminus::declaration::member_function::get
 }
 
 int cminus::declaration::member_function::get_context_score_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const{
+	if (is(flags::static_) || context_declaration_ == nullptr)
+		return type::object::get_score_value(type::object::score_result_type::exact);
+
 	if (context == nullptr)
 		return type::object::get_score_value(is(flags::static_) ? type::object::score_result_type::exact : type::object::score_result_type::nil);
 
@@ -18,13 +22,14 @@ int cminus::declaration::member_function::get_context_score_(std::shared_ptr<mem
 	if (context_class_type == nullptr)
 		return type::object::get_score_value(type::object::score_result_type::nil);
 
+	auto this_context_type = context_declaration_->get_type();
 	auto context_is_const = context->is_const();
-	auto this_context_is_const = context_type_->is(type::object::query_type::const_);
+	auto this_context_is_const = this_context_type->is(type::object::query_type::const_);
 
 	if (context_is_const && !this_context_is_const)
 		return type::object::get_score_value(type::object::score_result_type::nil);
 
-	auto non_const_ref_this_context_type = context_type_->convert(type::object::conversion_type::remove_ref_const, context_type_);
+	auto non_const_ref_this_context_type = this_context_type->convert(type::object::conversion_type::remove_ref_const, this_context_type);
 	auto base_offset = context_class_type->compute_base_offset(*non_const_ref_this_context_type);
 
 	if (base_offset == static_cast<std::size_t>(-1))
@@ -35,13 +40,13 @@ int cminus::declaration::member_function::get_context_score_(std::shared_ptr<mem
 }
 
 void cminus::declaration::member_function::copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const{
-	auto entry = std::make_shared<memory::indirect_reference>(context_type_, attribute::collection::list_type{}, nullptr);
-	if (entry == nullptr)
-		throw memory::exception::allocation_failure();
+	if (context_declaration_ == nullptr)
+		return;
 
-	entry->write_address(context->get_address());
-	runtime::object::current_storage->add_entry("self", entry);
-	runtime::object::current_storage->get_first_of<storage::class_member>()->set_context(entry);
+	if (auto entry = context_declaration_->evaluate(0u); entry != nullptr)
+		runtime::object::current_storage->get_first_of<storage::class_member>()->set_context(entry);
+	else
+		throw memory::exception::allocation_failure();
 }
 
 std::size_t cminus::declaration::member_function::get_args_count_(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{
@@ -52,13 +57,15 @@ void cminus::declaration::member_function::init_context_(type::class_ &parent){
 	if (is(flags::static_))//Context not required
 		return;
 
-	context_type_ = std::make_shared<type::proxy>(parent);
-	context_type_ = std::make_shared<type::ref>(context_type_);
+	context_declaration_ = std::make_shared<variable>(
+		"self",
+		runtime::object::global_storage->get_ref_type(std::make_shared<type::proxy>(parent), is(flags::const_)),
+		attribute::collection::list_type{},
+		flags::nil,
+		std::shared_ptr<node::object>()
+	);
 
-	if (is(flags::const_))//Constant function -- Make context type constant
-		context_type_ = std::make_shared<type::constant>(context_type_);
-
-	type_->add_parameter_type(context_type_);
+	type_->add_parameter_type(context_declaration_->get_type());
 }
 
 cminus::declaration::defined_member_function::~defined_member_function() = default;

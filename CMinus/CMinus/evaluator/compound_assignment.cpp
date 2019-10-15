@@ -46,13 +46,10 @@ bool cminus::evaluator::compound_assignment::assign(operators::id op, object::me
 	if (left_number_type == nullptr)
 		throw exception::unsupported_op();
 
-	attribute::read_guard read_guard(right_value, nullptr);
 	auto compatible_value = right_type->cast(right_value, right_type, type::cast_type::rval_static);
-
 	if (compatible_value == nullptr)
 		throw exception::incompatible_rval();
 
-	attribute::write_read_guard write_read_guard(left_value, right_value);
 	switch (left_number_type->get_state()){
 	case type::number_primitive::state_type::integer:
 		return evaluate_and_assign_integral_<__int32>(op, left_value, right_value);

@@ -7,11 +7,11 @@ cminus::evaluator::object::id_type cminus::evaluator::pointer::get_id() const{
 }
 
 cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::pointer::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
-	auto is_dereference = (op == operators::id::times);
-	if (!is_dereference && op != operators::id::increment && op != operators::id::decrement)
+	auto is_lval = (op == operators::id::increment || op == operators::id::decrement);
+	if (!is_lval && op != operators::id::times && op != operators::id::decrement)
 		return nullptr;
 
-	if (!is_dereference){//Increment | Decrement
+	if (is_lval){//Increment | Decrement
 		if (!target->is_lvalue())
 			throw exception::rval_assignment();
 
@@ -27,12 +27,10 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::point
 	if (base_type == nullptr)
 		throw exception::unsupported_op();
 
-	if (!is_dereference){//Increment | Decrement
-		attribute::write_read_guard guard(target, nullptr);
-		return evaluate_integral_<__int64>(op, target, true, base_type->get_size());
-	}
+	if (is_lval)//Increment | Decrement
+		return evaluate_integral_<std::size_t>(op, target, true, base_type->get_size());
 
-	return std::make_shared<memory::reference>(target->read_scalar<std::size_t>(), base_type, attribute::collection::list_type{}, nullptr);
+	return std::make_shared<memory::reference>(target->read_scalar<std::size_t>(), base_type, nullptr);
 }
 
 cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::pointer::evaluate_unary_right(operators::id op, memory_ptr_type target) const{
@@ -53,7 +51,6 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::point
 	if (base_type == nullptr)
 		throw exception::unsupported_op();
 
-	attribute::write_read_guard guard(target, nullptr);
 	return evaluate_integral_<__int64>(op, target, false, base_type->get_size());
 }
 
@@ -83,13 +80,9 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::point
 	if (right_number_type == nullptr || !right_type->is(type::object::query_type::integral))
 		throw exception::unsupported_op();
 
-	attribute::read_guard left_read_guard(left_value, nullptr);
-	attribute::read_guard right_read_guard(right_value, nullptr);
-
 	return std::make_shared<memory::reference>(
 		(left_value->read_scalar<std::size_t>() + (left_base_type->get_size() * right_number_type->read_value<std::size_t>(right_value))),
 		left_base_type,
-		attribute::collection::list_type{},
 		nullptr
 	);
 }

@@ -6,62 +6,44 @@
 
 #include "memory_block.h"
 
-
 namespace cminus::declaration{
+	class object;
 	class callable_group;
 }
 
 namespace cminus::memory{
-	class reference : public io::binary_writer, public io::binary_reader{
+	class reference{
 	public:
-		template <typename attributes_type>
-		reference(std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
-			: context_(context), attributes_(attributes, type){
-			init_type_(type);
-			allocate_memory_();
-		}
+		reference(std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
 
 		explicit reference(std::shared_ptr<type::object> type);
 
-		template <typename attributes_type>
-		reference(std::size_t address, std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
-			: context_(context), attributes_(attributes, type), address_(address){
-			init_type_(type);
-		}
+		reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
 
 		reference(std::size_t address, std::shared_ptr<type::object> type);
 
 		virtual ~reference();
 
-		virtual std::size_t get_position() const override;
+		virtual std::size_t initialize(std::shared_ptr<reference> value);
 
-		virtual std::size_t get_size() const override;
-
-		virtual std::size_t set(std::byte value, std::size_t size) override;
-
-		virtual std::size_t write(const std::byte *buffer, std::size_t size) override;
-
-		virtual std::size_t write(const io::binary_reader &buffer, std::size_t size);
-
-		virtual std::size_t write(std::size_t source_address, std::size_t size);
+		virtual std::size_t write(std::shared_ptr<reference> value);
 
 		virtual std::size_t write_address(std::size_t value);
 
-		virtual std::size_t write_ownership(std::shared_ptr<reference> target);
+		virtual std::size_t read(std::byte *buffer, std::size_t size) const;
 
-		virtual std::size_t read(std::byte *buffer, std::size_t size) const override;
-
-		virtual std::size_t read(io::binary_writer &buffer, std::size_t size) const;
-
-		virtual std::size_t read(std::size_t destination_address, std::size_t size) const;
+		template <typename target_type>
+		target_type read_scalar() const{
+			auto buffer = target_type();
+			read((std::byte *)(&buffer), sizeof(target_type));
+			return buffer;
+		}
 
 		virtual void set_constructed_state();
 		
 		virtual bool is_constructed() const;
 
 		virtual std::shared_ptr<type::object> get_type() const;
-
-		virtual std::shared_ptr<type::object> get_decl_type() const;
 
 		virtual std::shared_ptr<reference> apply_offset(std::size_t value, std::shared_ptr<type::object> type) const;
 
@@ -71,13 +53,11 @@ namespace cminus::memory{
 
 		virtual std::shared_ptr<reference> get_context() const;
 
-		virtual const attribute::collection &get_attributes() const;
-
-		virtual attribute::collection &get_attributes();
-
 		virtual std::size_t get_address() const;
 
 		virtual std::size_t get_indirect_address() const;
+
+		virtual std::size_t get_size() const;
 
 		virtual bool is_lvalue() const;
 
@@ -86,25 +66,30 @@ namespace cminus::memory{
 		virtual bool is_nan() const;
 
 	protected:
-		virtual void init_type_(std::shared_ptr<type::object> type);
-
 		virtual void allocate_memory_();
 
 		virtual std::shared_ptr<block> allocate_block_() const;
 
 		virtual std::size_t get_memory_size_() const;
 
+		virtual void before_write_(std::shared_ptr<reference> value) const;
+
+		virtual void after_write_(std::shared_ptr<reference> value) const;
+
+		virtual void before_read_() const;
+
+		virtual void after_read_() const;
+
 		virtual void destruct_();
 
 		std::shared_ptr<type::object> type_;
 		std::shared_ptr<reference> context_;
 
-		attribute::collection attributes_;
 		std::size_t address_ = 0u;
+		std::function<void()> deallocator_;
 
 		bool is_lvalue_ = true;
 		bool is_constructed_ = false;
-		std::function<void()> deallocator_;
 	};
 
 	class undefined_reference : public reference{
@@ -112,6 +97,28 @@ namespace cminus::memory{
 		explicit undefined_reference(std::shared_ptr<reference> context);
 
 		virtual ~undefined_reference();
+	};
+
+	class declared_reference : public reference{
+	public:
+		declared_reference(const declaration::object &declaration, std::shared_ptr<reference> context);
+
+		declared_reference(std::size_t address, const declaration::object &declaration, std::shared_ptr<reference> context);
+
+		virtual ~declared_reference();
+
+		virtual const declaration::object *get_declaration() const;
+
+	protected:
+		virtual void before_write_(std::shared_ptr<reference> value) const override;
+
+		virtual void after_write_(std::shared_ptr<reference> value) const override;
+
+		virtual void before_read_() const override;
+
+		virtual void after_read_() const override;
+
+		const declaration::object *declaration_;
 	};
 
 	class function_reference : public reference{
@@ -127,29 +134,17 @@ namespace cminus::memory{
 		virtual declaration::callable_group *get_entry() const;
 	};
 
-	class indirect_reference : public reference{
+	class indirect_reference : public declared_reference{
 	public:
-		template <typename attributes_type>
-		indirect_reference(std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
-			: reference(0u, type, attributes, context){
-			allocate_memory_();
-		}
+		indirect_reference(const declaration::object &declaration, std::shared_ptr<reference> context);
 
-		explicit indirect_reference(std::shared_ptr<type::object> type);
-
-		template <typename attributes_type>
-		indirect_reference(std::size_t address, std::shared_ptr<type::object> type, const attributes_type &attributes, std::shared_ptr<reference> context)
-			: reference(address, type, attributes, context){}
-
-		indirect_reference(std::size_t address, std::shared_ptr<type::object> type);
+		indirect_reference(std::size_t address, const declaration::object &declaration, std::shared_ptr<reference> context);
 
 		virtual ~indirect_reference();
 
+		virtual std::size_t initialize(std::shared_ptr<reference> value) override;
+
 		virtual std::size_t write_address(std::size_t value) override;
-
-		virtual std::size_t write_ownership(std::shared_ptr<reference> target) override;
-
-		virtual std::shared_ptr<type::object> get_decl_type() const override;
 
 		virtual std::size_t get_address() const override;
 

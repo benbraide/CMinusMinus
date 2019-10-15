@@ -9,11 +9,8 @@ cminus::evaluator::object::id_type cminus::evaluator::boolean::get_id() const{
 }
 
 cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::boolean::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
-	if (op == operators::id::relational_not){
-		attribute::read_guard guard(target, nullptr);
+	if (op == operators::id::relational_not)
 		return runtime::object::global_storage->get_boolean_value(target->read_scalar<type::boolean_constant>() == type::boolean_constant::false_);
-	}
-
 	return nullptr;
 }
 

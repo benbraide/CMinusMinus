@@ -13,7 +13,6 @@ cminus::type::class_::class_(const std::string &name, storage_base *parent)
 	dummy_context_ = std::make_shared<memory::reference>(
 		0u,
 		class_context_->get_type(),
-		attribute::collection::list_type{},
 		nullptr
 	);
 }
@@ -258,10 +257,9 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_non_static
 	if (entry == nullptr)
 		return nullptr;
 
-	return std::make_shared<memory::reference>(
+	return std::make_shared<memory::declared_reference>(
 		(context->get_address() + entry->address_offset),
-		entry->value->get_type(),
-		entry->value->get_attributes().get_list(),
+		*entry->value,
 		context
 	);
 }
@@ -429,10 +427,9 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_(const std
 		if (!is_accessible(it->second->value->get_flags()))
 			throw storage::exception::inaccessible_entry();
 
-		return std::make_shared<memory::reference>(
+		return std::make_shared<memory::declared_reference>(
 			(address_offset + context->get_address() + it->second->address_offset),
-			it->second->value->get_type(),
-			it->second->value->get_attributes().get_list(),
+			*it->second->value,
 			context
 		);
 	}

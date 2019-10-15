@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-#include <exception>
+
+#include "../exception_base.h"
 
 namespace cminus::memory::exception{
 	enum class code{
@@ -18,9 +19,9 @@ namespace cminus::memory::exception{
 		uninitialized_memory,
 	};
 
-	class base : public std::exception{
+	class base : public exception_base{
 	public:
-		using exception::exception;
+		using exception_base::exception_base;
 
 		virtual ~base() = default;
 

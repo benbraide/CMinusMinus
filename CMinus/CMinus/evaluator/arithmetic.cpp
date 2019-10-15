@@ -46,12 +46,6 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::evalua
 			throw exception::const_assignment();
 	}
 
-	std::shared_ptr<attribute::guard> guard;
-	if (is_lval)//Write and read
-		guard = std::make_shared<attribute::write_read_guard>(target, nullptr);
-	else//Read
-		guard = std::make_shared<attribute::read_guard>(target, nullptr);
-
 	object::memory_ptr_type result;
 	switch (target_number_type->get_state()){
 	case type::number_primitive::state_type::integer:
@@ -121,9 +115,6 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::evalua
 	if (left_number_type == nullptr)
 		throw exception::unsupported_op();
 
-	attribute::read_guard left_read_guard(left_value, nullptr);
-	attribute::read_guard right_read_guard(right_value, nullptr);
-
 	auto compatible_left_value = left_value, compatible_right_value = right_value;
 	auto right_number_type = dynamic_cast<type::number_primitive *>(right_type->convert(type::object::conversion_type::remove_ref_const, right_type)->get_non_proxy());
 
@@ -189,7 +180,6 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::create
 	return std::make_shared<memory::reference>(
 		address,
 		runtime::object::global_storage->get_ref_type(runtime::object::global_storage->get_cached_type(storage::global::cached_type::byte_), is_const),
-		attribute::collection::list_type{},
 		nullptr
 	);
 }

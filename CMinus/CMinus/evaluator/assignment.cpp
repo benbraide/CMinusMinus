@@ -23,13 +23,10 @@ bool cminus::evaluator::assignment::assign(operators::id op, object::memory_ptr_
 	if (left_type == nullptr || right_type == nullptr)
 		throw exception::invalid_type();
 
-	attribute::write_guard write_guard(left_value, right_value);
-	attribute::read_guard read_guard(right_value, nullptr);
-
 	auto compatible_value = right_type->cast(right_value, left_type, type::cast_type::rval_static);
 	if (compatible_value == nullptr)
 		throw exception::incompatible_rval();
 
-	left_value->write(*compatible_value, left_type->get_size());
+	left_value->write(compatible_value);
 	return true;
 }

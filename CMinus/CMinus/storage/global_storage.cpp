@@ -194,7 +194,7 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_zero_val
 
 	auto reference = std::make_shared<memory::rval_reference>(type);
 	if (reference != nullptr)
-		reference->set(std::byte(0), type->get_size());
+		runtime::object::memory_object->set(reference->get_address(), std::byte(0), type->get_size());
 
 	return reference;
 }
@@ -214,7 +214,7 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_strin
 std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_string(const std::string_view &first, const std::string_view &second, bool lval) const{
 	std::shared_ptr<memory::reference> ref;
 	if (lval)
-		ref = std::make_shared<memory::reference>(get_string_type(), attribute::collection::list_type{}, nullptr);
+		ref = std::make_shared<memory::reference>(get_string_type(), nullptr);
 	else//Allocate write protected memory
 		ref = std::make_shared<memory::write_protected_rval_reference>(get_string_type());
 

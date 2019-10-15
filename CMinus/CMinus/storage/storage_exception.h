@@ -1,7 +1,8 @@
 #pragma once
 
 #include <string>
-#include <exception>
+
+#include "../exception_base.h"
 
 namespace cminus::storage::exception{
 	enum class code{
@@ -14,9 +15,9 @@ namespace cminus::storage::exception{
 		no_member_context,
 	};
 
-	class base : public std::exception{
+	class base : public exception_base{
 	public:
-		using exception::exception;
+		using exception_base::exception_base;
 
 		virtual ~base() = default;
 

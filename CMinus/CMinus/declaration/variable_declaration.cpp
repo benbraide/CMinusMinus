@@ -44,20 +44,20 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::alloca
 	std::shared_ptr<memory::reference> reference;
 	if (computed_type->is(type::object::query_type::ref)){
 		if (address == 0u)//Allocate memory
-			reference = std::make_shared<memory::indirect_reference>(computed_type, attributes_.get_list(), nullptr);
+			reference = std::make_shared<memory::indirect_reference>(*this, nullptr);
 		else//Use address
-			reference = std::make_shared<memory::indirect_reference>(address, computed_type, attributes_.get_list(), nullptr);
+			reference = std::make_shared<memory::indirect_reference>(address, *this, nullptr);
 	}
 	else if (address == 0u){//Allocate memory
 		if (is(flags::rval))
 			reference = std::make_shared<memory::rval_reference>(computed_type);
 		else
-			reference = std::make_shared<memory::reference>(computed_type, attributes_.get_list(), nullptr);
+			reference = std::make_shared<memory::declared_reference>(*this, nullptr);
 	}
 	else if (is(flags::rval))
 		reference = std::make_shared<memory::rval_reference>(address, computed_type);
 	else
-		reference = std::make_shared<memory::reference>(address, computed_type, attributes_.get_list(), nullptr);
+		reference = std::make_shared<memory::declared_reference>(address, *this, nullptr);
 
 	if (reference == nullptr || reference->get_indirect_address() == 0u)
 		throw memory::exception::allocation_failure();
@@ -119,6 +119,6 @@ void cminus::declaration::variable::initialize_memory_(std::shared_ptr<memory::r
 	for (auto arg : value)//Extend arguments
 		arg->get_type()->extend_argument_list(arg, args);
 
-	target->get_decl_type()->construct(target, args);
+	target->get_type()->construct(target, args);
 	target->set_constructed_state();
 }

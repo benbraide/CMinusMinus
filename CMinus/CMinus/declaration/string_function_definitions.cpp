@@ -119,8 +119,8 @@ std::size_t cminus::declaration::string::helper::allocate_block(std::size_t buff
 	else if (how == allocation_type::compute)
 		runtime::object::memory_object->write(new_data_address, info.data_address, std::min(info.size_value, computed_size));
 
-	info.data->write_scalar(new_data_address);//Copy new address
-	info.size->write_scalar(computed_size);//Update size
+	runtime::object::memory_object->write_scalar(info.data->get_address(), new_data_address);//Copy new address
+	runtime::object::memory_object->write_scalar(info.size->get_address(), computed_size);//Update size
 
 	if (info.data_address != 0u)//Free previous block
 		runtime::object::memory_object->deallocate_block(info.data_address);
@@ -233,11 +233,11 @@ void cminus::declaration::string::destructor_def::evaluate_body_() const{
 	helper::retrieve_info(info, nullptr);
 
 	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::system));
-	info.size->write_scalar(static_cast<std::size_t>(0));
+	runtime::object::memory_object->write_scalar(info.size->get_address(), static_cast<std::size_t>(0));
 
 	if (auto data_address = info.data->read_scalar<std::size_t>(); data_address != 0u){//Free memory
 		runtime::object::memory_object->deallocate_block(data_address);
-		info.data->write_scalar(static_cast<std::size_t>(0));
+		runtime::object::memory_object->write_scalar(info.data->get_address(), static_cast<std::size_t>(0));
 	}
 }
 
@@ -404,11 +404,11 @@ void cminus::declaration::string::swap_def::evaluate_body_() const{
 	helper::retrieve_info(info, nullptr);
 	helper::retrieve_info(other_info, runtime::object::current_storage->find("other", true));
 
-	info.data->write_scalar(other_info.data_address);
-	info.size->write_scalar(other_info.size_value);
+	runtime::object::memory_object->write_scalar(info.data->get_address(), other_info.data_address);
+	runtime::object::memory_object->write_scalar(info.size->get_address(), other_info.size_value);
 
-	other_info.data->write_scalar(info.data_address);
-	other_info.size->write_scalar(info.size_value);
+	runtime::object::memory_object->write_scalar(other_info.data->get_address(), info.data_address);
+	runtime::object::memory_object->write_scalar(other_info.size->get_address(), info.size_value);
 }
 
 cminus::declaration::string::assign_copy_def::~assign_copy_def() = default;

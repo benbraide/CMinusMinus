@@ -29,7 +29,7 @@ namespace cminus::declaration{
 
 		virtual void init_context_(type::class_ &parent);
 
-		std::shared_ptr<type::object> context_type_;
+		std::shared_ptr<variable> context_declaration_;
 	};
 
 	class defined_member_function : public member_function{

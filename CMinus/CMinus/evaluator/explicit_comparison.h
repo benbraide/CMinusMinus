@@ -2,9 +2,7 @@
 
 #include "../type/type_object.h"
 #include "../node/node_object.h"
-
 #include "../operators/operator_id.h"
-#include "../attribute/attribute_guard.h"
 
 #include "evaluator_exception.h"
 

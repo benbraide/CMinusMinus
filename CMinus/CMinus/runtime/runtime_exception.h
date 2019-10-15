@@ -2,7 +2,8 @@
 
 #include <string>
 #include <memory>
-#include <exception>
+
+#include "../exception_base.h"
 
 namespace cminus::memory{
 	class reference;
@@ -22,9 +23,9 @@ namespace cminus::runtime::exception{
 		not_supported,
 	};
 
-	class base : public std::exception{
+	class base : public exception_base{
 	public:
-		using exception::exception;
+		using exception_base::exception_base;
 
 		virtual ~base() = default;
 

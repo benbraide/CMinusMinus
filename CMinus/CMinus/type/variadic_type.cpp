@@ -65,19 +65,17 @@ std::shared_ptr<cminus::memory::reference> cminus::type::in_memory_variadic::get
 	if (count_ <= index)
 		return nullptr;
 
-	if (base_type_->is(query_type::ref)){
+	/*if (base_type_->is(query_type::ref)){
 		return std::make_shared<memory::indirect_reference>(
 			(data->get_address() + (base_type_->get_memory_size() * index)),
 			base_type_,
-			data->get_attributes().get_list(),
 			nullptr
 		);
-	}
+	}*/
 
 	return std::make_shared<memory::reference>(
 		(data->get_address() + (base_type_->get_memory_size() * index)),
 		base_type_,
-		data->get_attributes().get_list(),
 		nullptr
 	);
 }

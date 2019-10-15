@@ -50,9 +50,6 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::strin
 			break;
 		}
 
-		attribute::read_guard left_read_guard(left_value, nullptr);
-		attribute::read_guard right_read_guard(right_value, nullptr);
-
 		declaration::string::helper::data_address_size_value_info info{};
 		declaration::string::helper::retrieve_info(info, left_value);
 
@@ -62,7 +59,6 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::strin
 		return std::make_shared<memory::reference>(
 			(info.data + index),
 			runtime::object::global_storage->get_char_ref_type(left_value->is_const()),
-			attribute::collection::list_type{},
 			nullptr
 		);
 	}
@@ -70,9 +66,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::strin
 	std::string right_str;
 	std::string_view temp_right_str;
 
-	attribute::read_guard right_read_guard(right_value, nullptr);
 	auto compatible_value = right_type->cast(right_value, left_type->convert(type::object::conversion_type::remove_ref_const, left_type), type::cast_type::rval_static);
-
 	if (compatible_value == nullptr){//Try character
 		if (op != operators::id::compound_plus && op != operators::id::plus)
 			throw exception::unsupported_op();
@@ -87,12 +81,10 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::strin
 	else
 		temp_right_str = runtime::object::global_storage->get_string_value(compatible_value);
 
-	attribute::read_guard left_read_guard(left_value, nullptr);
 	if (op == operators::id::assignment || op == operators::id::compound_plus){
 		if (left_value->is_const())
 			throw exception::const_assignment();
 
-		attribute::write_guard left_write_guard(left_value, nullptr);
 		if (op == operators::id::assignment){
 			declaration::string::helper::assign(
 				temp_right_str.data(),

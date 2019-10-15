@@ -54,7 +54,7 @@ namespace cminus::evaluator{
 			else//Decrement
 				value = (old_value - multiplier);
 
-			target->write_scalar(value);
+			target->write(std::make_shared<memory::scalar_reference<target_type>>(target->get_type(), value));
 			if (is_left)
 				return target;
 
