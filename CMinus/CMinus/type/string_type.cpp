@@ -94,57 +94,68 @@ cminus::type::string::~string(){
 	destroy_entries_();
 }
 
-bool cminus::type::string::is_constructible(std::shared_ptr<memory::reference> target) const{
-	return target->get_type()->is(query_type::numeric);
-}
-
 void cminus::type::string::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
 	auto str_data = runtime::object::global_storage->get_string_value(data);
 	writer.write_buffer(str_data.data(), str_data.size());
 }
 
-int cminus::type::string::get_score(const type_base &target) const{
-	return (target.is(query_type::numeric) ? get_score_value(score_result_type::assignable) : class_::get_score(target));
+int cminus::type::string::get_score(const type_base &target, bool is_lval, bool is_const) const{
+	if (auto result = class_::get_score(target, is_lval, is_const); result != get_score_value(score_result_type::not_handled))
+		return result;
+
+	return get_score_value(target.is<number_primitive>() ? score_result_type::assignable : score_result_type::nil);
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::string::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const{
-	if (type != cast_type::static_ && type != cast_type::rval_static)
+	if (!is_static_rval_cast(type))
 		return nullptr;
 
-	auto number_target_type = dynamic_cast<const number_primitive *>(target_type->convert(conversion_type::remove_ref_const, target_type)->get_non_proxy());
+	auto number_target_type = target_type->as<number_primitive>();
 	if (number_target_type != nullptr){
-		if (target_type->is(query_type::ref) && !target_type->is(query_type::const_))
-			return nullptr;//Same type required
-
 		switch (number_target_type->get_state()){
+		case number_primitive::state_type::small_integer:
+			return std::make_shared<memory::scalar_reference<__int16>>(
+				runtime::object::global_storage->get_cached_type(storage::global::cached_type::small_integer),
+				static_cast<__int16>(std::atoi(runtime::object::global_storage->get_string_value(data).data()))
+			);
 		case number_primitive::state_type::integer:
 			return std::make_shared<memory::scalar_reference<__int32>>(
 				runtime::object::global_storage->get_cached_type(storage::global::cached_type::integer),
 				std::atoi(runtime::object::global_storage->get_string_value(data).data())
 			);
-		case number_primitive::state_type::long_integer:
+		case number_primitive::state_type::big_integer:
 			return std::make_shared<memory::scalar_reference<__int64>>(
-				runtime::object::global_storage->get_cached_type(storage::global::cached_type::long_integer),
+				runtime::object::global_storage->get_cached_type(storage::global::cached_type::big_integer),
 				std::strtoll(runtime::object::global_storage->get_string_value(data).data(), nullptr, 10)
+			);
+		case number_primitive::state_type::unsigned_small_integer:
+			return std::make_shared<memory::scalar_reference<unsigned __int16>>(
+				runtime::object::global_storage->get_cached_type(storage::global::cached_type::unsigned_small_integer),
+				static_cast<unsigned __int16>(std::strtoul(runtime::object::global_storage->get_string_value(data).data(), nullptr, 10))
 			);
 		case number_primitive::state_type::unsigned_integer:
 			return std::make_shared<memory::scalar_reference<unsigned __int32>>(
 				runtime::object::global_storage->get_cached_type(storage::global::cached_type::unsigned_integer),
 				static_cast<unsigned __int32>(std::strtoul(runtime::object::global_storage->get_string_value(data).data(), nullptr, 10))
 			);
-		case number_primitive::state_type::unsigned_long_integer:
+		case number_primitive::state_type::unsigned_big_integer:
 			return std::make_shared<memory::scalar_reference<unsigned __int64>>(
-				runtime::object::global_storage->get_cached_type(storage::global::cached_type::unsigned_long_integer),
+				runtime::object::global_storage->get_cached_type(storage::global::cached_type::unsigned_big_integer),
 				std::strtoull(runtime::object::global_storage->get_string_value(data).data(), nullptr, 10)
 			);
-		case number_primitive::state_type::real:
+		case number_primitive::state_type::small_float:
 			return std::make_shared<memory::scalar_reference<float>>(
-				runtime::object::global_storage->get_cached_type(storage::global::cached_type::real),
+				runtime::object::global_storage->get_cached_type(storage::global::cached_type::small_float),
 				std::strtof(runtime::object::global_storage->get_string_value(data).data(), nullptr)
 			);
-		case number_primitive::state_type::long_real:
+		case number_primitive::state_type::float_:
+			return std::make_shared<memory::scalar_reference<double>>(
+				runtime::object::global_storage->get_cached_type(storage::global::cached_type::float_),
+				std::strtod(runtime::object::global_storage->get_string_value(data).data(), nullptr)
+			);
+		case number_primitive::state_type::big_float:
 			return std::make_shared<memory::scalar_reference<long double>>(
-				runtime::object::global_storage->get_cached_type(storage::global::cached_type::long_real),
+				runtime::object::global_storage->get_cached_type(storage::global::cached_type::big_float),
 				std::strtold(runtime::object::global_storage->get_string_value(data).data(), nullptr)
 			);
 		default:
@@ -161,6 +172,6 @@ std::shared_ptr<cminus::evaluator::object> cminus::type::string::get_evaluator()
 	return runtime::object::global_storage->get_evaluator(evaluator::object::id_type::string);
 }
 
-bool cminus::type::string::is(query_type type, const type_base *arg) const{
-	return (type == query_type::string || type == query_type::primitive || class_::is(type, arg));
+bool cminus::type::string::is_constructible_from(const type_base &target_type, bool is_lval, bool is_const) const{
+	return (target_type.is<number_primitive>() || class_::is_constructible_from(target_type, is_lval, is_const));
 }

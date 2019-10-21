@@ -21,9 +21,9 @@ namespace cminus::declaration{
 
 		virtual std::shared_ptr<callable> find(const type::object &target_type) const = 0;
 
-		virtual std::shared_ptr<callable> find(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const = 0;
+		virtual std::shared_ptr<callable> find(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const = 0;
 
-		virtual std::shared_ptr<memory::reference> call(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const;
+		virtual std::shared_ptr<memory::reference> call(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const;
 
 		virtual void traverse_list(const std::function<void(std::shared_ptr<callable>)> &callback) = 0;
 

@@ -33,23 +33,11 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::strin
 		throw exception::invalid_type();
 
 	if (op == operators::id::index){
-		auto right_number_type = dynamic_cast<type::number_primitive *>(right_type->convert(type::object::conversion_type::remove_ref_const, right_type)->get_non_proxy());
-		if (right_number_type == nullptr)
+		auto right_number_type = right_type->as<type::number_primitive>();
+		if (right_number_type == nullptr || !right_number_type->is_integral())
 			throw exception::unsupported_op();
 
-		std::size_t index = 0u;
-		switch (right_number_type->get_state()){
-		case type::number_primitive::state_type::integer:
-		case type::number_primitive::state_type::long_integer:
-		case type::number_primitive::state_type::unsigned_integer:
-		case type::number_primitive::state_type::unsigned_long_integer:
-			index = right_number_type->read_value<std::size_t>(right_value);
-			break;
-		default:
-			throw exception::unsupported_op();
-			break;
-		}
-
+		auto index = right_number_type->read_value<std::size_t>(right_value);
 		declaration::string::helper::data_address_size_value_info info{};
 		declaration::string::helper::retrieve_info(info, left_value);
 
@@ -66,12 +54,12 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::strin
 	std::string right_str;
 	std::string_view temp_right_str;
 
-	auto compatible_value = right_type->cast(right_value, left_type->convert(type::object::conversion_type::remove_ref_const, left_type), type::cast_type::rval_static);
+	auto compatible_value = right_type->cast(right_value, left_type->remove_const_ref(left_type), type::cast_type::static_rval);
 	if (compatible_value == nullptr){//Try character
 		if (op != operators::id::compound_plus && op != operators::id::plus)
 			throw exception::unsupported_op();
 
-		if (auto char_value = right_type->cast(right_value, runtime::object::global_storage->get_char_type(), type::cast_type::rval_static); char_value != nullptr){
+		if (auto char_value = right_type->cast(right_value, runtime::object::global_storage->get_char_type(), type::cast_type::static_rval); char_value != nullptr){
 			right_str.assign(1u, char_value->read_scalar<char>());
 			temp_right_str = right_str;
 		}

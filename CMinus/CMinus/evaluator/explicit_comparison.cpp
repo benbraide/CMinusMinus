@@ -27,10 +27,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::expli
 	if (left_type == nullptr || right_type == nullptr)
 		throw exception::invalid_type();
 
-	auto non_ref_const_left_type = left_type->convert(type::object::conversion_type::remove_ref_const, left_type);
-	auto non_ref_const_right_type = right_type->convert(type::object::conversion_type::remove_ref_const, right_type);
-
-	if (!non_ref_const_left_type->is_exact(*non_ref_const_right_type))
+	if (!left_type->remove_const_ref()->is_exact(*right_type->remove_const_ref()))
 		return runtime::object::global_storage->get_boolean_value(!is_explicit_equal);
 
 	auto evaluator = dynamic_cast<const object *>(this);

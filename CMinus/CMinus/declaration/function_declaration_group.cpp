@@ -43,7 +43,7 @@ std::shared_ptr<cminus::declaration::callable> cminus::declaration::function_gro
 	return nullptr;
 }
 
-std::shared_ptr<cminus::declaration::callable> cminus::declaration::function_group::find(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{
+std::shared_ptr<cminus::declaration::callable> cminus::declaration::function_group::find(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const{
 	auto highest_rank_score = type::object::get_score_value(type::object::score_result_type::nil), current_rank_score = highest_rank_score;
 
 	std::size_t match_count = 0u;
@@ -87,11 +87,11 @@ void cminus::declaration::function_group::add_(std::shared_ptr<callable> entry){
 			return;//Existing takes priority
 
 		auto existing_entry_type_parent = dynamic_cast<type::object *>(existing_entry_parent), entry_type_parent = dynamic_cast<type::object *>(entry_parent);
-		if (entry_parent == parent_ || existing_entry_type_parent->compute_base_offset(*entry_type_parent) == static_cast<std::size_t>(-1)){//New takes priority
+		/*if (entry_parent == parent_ || existing_entry_type_parent->compute_base_offset(*entry_type_parent) == static_cast<std::size_t>(-1)){//New takes priority
 			entries_.erase(it);
 			entries_.push_back(entry);
 			return;
-		}
+		}*/
 	}
 	else if (auto existing_entry_is_defined = (*it)->is_defined(); !existing_entry_is_defined && entry->is_defined())
 		(*it)->define(entry->get_definition());
@@ -102,10 +102,10 @@ void cminus::declaration::function_group::add_(std::shared_ptr<callable> entry){
 }
 
 cminus::declaration::function_group::list_type::const_iterator cminus::declaration::function_group::find_(const type::object &target_type) const{
-	for (auto it = entries_.begin(); it != entries_.end(); ++it){
+	/*for (auto it = entries_.begin(); it != entries_.end(); ++it){
 		if ((*it)->get_type()->is(type::object::query_type::exact_parameter_types, &target_type))
 			return it;
-	}
+	}*/
 
 	return entries_.end();
 }

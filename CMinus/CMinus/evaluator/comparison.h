@@ -95,11 +95,11 @@ namespace cminus::evaluator{
 			if (left_type == nullptr || right_type == nullptr)
 				throw exception::invalid_type();
 
-			auto left_number_type = dynamic_cast<type::number_primitive *>(left_type->get_non_proxy());
+			auto left_number_type = left_type->as<type::number_primitive>();
 			if (left_number_type == nullptr)
 				throw exception::unsupported_op();
 
-			auto compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::rval_static);
+			auto compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::static_rval);
 			if (compatible_right_value == nullptr)
 				throw exception::incompatible_rval();
 

@@ -36,21 +36,27 @@ cminus::storage::global::global()
 	cached_types_[cached_type::auto_] = std::make_shared<type::auto_primitive>();
 	cached_types_[cached_type::void_] = std::make_shared<type::void_primitive>();
 
-	cached_types_[cached_type::bool_] = std::make_shared<type::bool_primitive>();
+	cached_types_[cached_type::bool_] = std::make_shared<type::boolean_primitive>();
 	cached_types_[cached_type::byte_] = std::make_shared<type::byte_primitive>();
 
 	cached_types_[cached_type::char_] = std::make_shared<type::char_primitive>();
 	cached_types_[cached_type::wchar_] = std::make_shared<type::wchar_primitive>();
 
-	cached_types_[cached_type::number] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::nil);
+	cached_types_[cached_type::small_number] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::small_number);
+	cached_types_[cached_type::number] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::number);
+	cached_types_[cached_type::big_number] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::big_number);
+
+	cached_types_[cached_type::small_integer] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::small_integer);
 	cached_types_[cached_type::integer] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::integer);
-	cached_types_[cached_type::long_integer] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::long_integer);
+	cached_types_[cached_type::big_integer] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::big_integer);
 
+	cached_types_[cached_type::unsigned_small_integer] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::unsigned_small_integer);
 	cached_types_[cached_type::unsigned_integer] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::unsigned_integer);
-	cached_types_[cached_type::unsigned_long_integer] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::unsigned_long_integer);
+	cached_types_[cached_type::unsigned_big_integer] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::unsigned_big_integer);
 
-	cached_types_[cached_type::real] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::real);
-	cached_types_[cached_type::long_real] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::long_real);
+	cached_types_[cached_type::small_float] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::small_float);
+	cached_types_[cached_type::float_] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::float_);
+	cached_types_[cached_type::big_float] = std::make_shared<type::number_primitive>(type::number_primitive::state_type::big_float);
 
 	cached_types_[cached_type::function] = std::make_shared<type::function_primitive>();
 	cached_types_[cached_type::nullptr_] = std::make_shared<type::pointer_primitive>(nullptr);
@@ -152,7 +158,7 @@ std::shared_ptr<cminus::type::object> cminus::storage::global::get_int_type() co
 }
 
 std::shared_ptr<cminus::type::object> cminus::storage::global::get_size_type() const{
-	return get_cached_type(cached_type::unsigned_long_integer);
+	return get_cached_type(cached_type::unsigned_big_integer);
 }
 
 std::shared_ptr<cminus::type::object> cminus::storage::global::get_string_type() const{

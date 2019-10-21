@@ -2,37 +2,36 @@
 
 #include "proxy_type.h"
 #include "modified_type.h"
+
+#include "pointer_type.h"
 #include "function_type.h"
+
+#include "string_type.h"
 #include "primitive_type.h"
 
 cminus::type::primitive::primitive(const std::string &name)
-	: object(name, nullptr){}
+	: primitive(name, nullptr){}
+
+cminus::type::primitive::primitive(const std::string &name, storage::object *parent)
+	: object(name, parent){}
 
 cminus::type::primitive::~primitive() = default;
 
-bool cminus::type::primitive::is_exact(const object &target) const{
-	return (dynamic_cast<const primitive *>(target.get_non_proxy()) != nullptr && object::is_exact(target));
-}
-
-int cminus::type::primitive::get_score(const object &target) const{
-	if (target.is(query_type::explicit_auto))
-		return get_score_value(score_result_type::auto_assignable);
-	return get_score_value(is_exact(target) ? score_result_type::exact : score_result_type::nil);
+int cminus::type::primitive::get_score(const object &target, bool is_lval, bool is_const) const{
+	if (auto result = object::get_score(target, is_lval, is_const); result != get_score_value(score_result_type::not_handled))
+		return result;
+	return get_score_value(score_result_type::nil);
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
-	if ((type != cast_type::static_ && type != cast_type::rval_static) || !target_type->convert(conversion_type::remove_ref_const, target_type)->is_exact(*this))
+	auto data_is_lval = data->is_lvalue();
+	if (!is_valid_static_cast(type, data_is_lval, data->is_const()))
 		return nullptr;
 
-	auto is_ref = target_type->is(query_type::ref);
-	if (is_ref && !target_type->is(query_type::const_) && !data->is_lvalue())
+	if (!is_exact(*target_type->remove_const_ref()))
 		return nullptr;
 
-	return ((!is_ref && type == cast_type::static_) ? runtime::object::global_storage->copy(data) : data);
-}
-
-bool cminus::type::primitive::is(query_type type, const object *arg) const{
-	return (type == query_type::primitive || object::is(type, arg));
+	return ((!data_is_lval || type != cast_type::static_) ? data : copy_data(data, target_type));
 }
 
 std::shared_ptr<cminus::evaluator::object> cminus::type::primitive::get_evaluator() const{
@@ -43,80 +42,170 @@ cminus::evaluator::object::id_type cminus::type::primitive::get_evaluator_id() c
 	return evaluator::object::id_type::nil;
 }
 
-std::string cminus::type::primitive::convert_id_to_string(id_type value){
-	switch (value){
-	case id_type::void_:
-		return "Void";
-	case id_type::bool_:
-		return "Boolean";
-	case id_type::byte_:
-		return "Byte";
-	case id_type::char_:
-		return "Char";
-	case id_type::wchar_:
-		return "WideChar";
-	default:
-		break;
-	}
+cminus::type::no_storage_primitive::~no_storage_primitive() = default;
 
-	return "";
+std::shared_ptr<cminus::memory::reference> cminus::type::no_storage_primitive::get_default_value() const{
+	return nullptr;
+}
+
+void cminus::type::no_storage_primitive::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	throw runtime::exception::not_supported();
+}
+
+std::size_t cminus::type::no_storage_primitive::get_size() const{
+	return 0u;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::no_storage_primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
+	if ((type != cast_type::static_ && type != cast_type::static_rval) || !is_exact(*target_type->remove_const_ref()))
+		return nullptr;
+
+	return ((type == cast_type::static_rval) ? data : std::make_shared<memory::rval_reference>(0u, target_type->remove_const_ref(target_type)));
 }
 
 cminus::type::undefined_primitive::undefined_primitive()
-	: primitive("UndefinedType"){}
+	: no_storage_primitive("UndefinedType"){}
 
 cminus::type::undefined_primitive::~undefined_primitive() = default;
 
 void cminus::type::undefined_primitive::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
-	writer.write_buffer("undefined");
+	writer.write_buffer("Undefined");
 }
 
-std::size_t cminus::type::undefined_primitive::get_size() const{
-	return 0u;
+cminus::evaluator::object::id_type cminus::type::undefined_primitive::get_evaluator_id() const{
+	return evaluator::object::id_type::undefined;
 }
 
-bool cminus::type::undefined_primitive::is_exact(const object &target) const{
-	return target.is(query_type::undefined);
+cminus::type::void_primitive::void_primitive()
+	: no_storage_primitive("Void"){}
+
+cminus::type::void_primitive::~void_primitive() = default;
+
+cminus::type::boolean_primitive::boolean_primitive()
+	: primitive("Boolean"){}
+
+cminus::type::boolean_primitive::~boolean_primitive() = default;
+
+void cminus::type::boolean_primitive::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
+	switch (data->read_scalar<boolean_constant>()){
+	case boolean_constant::false_:
+		writer.write_buffer("false");
+		break;
+	case boolean_constant::true_:
+		writer.write_buffer("true");
+		break;
+	default:
+		writer.write_buffer("indeterminate");
+		break;
+	}
 }
 
-int cminus::type::undefined_primitive::get_score(const object &target) const{
-	return 0u;
+std::size_t cminus::type::boolean_primitive::get_size() const{
+	return sizeof(boolean_constant);
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::type::undefined_primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
-	return nullptr;
+cminus::evaluator::object::id_type cminus::type::boolean_primitive::get_evaluator_id() const{
+	return evaluator::object::id_type::boolean;
 }
 
-bool cminus::type::undefined_primitive::is(query_type type, const object *arg) const{
-	return (type == query_type::undefined || primitive::is(type, arg));
+cminus::type::byte_primitive::byte_primitive()
+	: primitive("Byte"){}
+
+cminus::type::byte_primitive::~byte_primitive() = default;
+
+void cminus::type::byte_primitive::print_value(io::writer & writer, std::shared_ptr<memory::reference> data) const{
+	auto str = runtime::to_hex_string<int>::get(static_cast<int>(data->read_scalar<std::byte>()), 2);
+	writer.write_buffer(str.data(), str.size());
+}
+
+std::size_t cminus::type::byte_primitive::get_size() const{
+	return sizeof(std::byte);
+}
+
+cminus::evaluator::object::id_type cminus::type::byte_primitive::get_evaluator_id() const{
+	return evaluator::object::id_type::byte;
+}
+
+cminus::type::char_primitive::char_primitive()
+	: primitive("Char"){}
+
+cminus::type::char_primitive::~char_primitive() = default;
+
+void cminus::type::char_primitive::print_value(io::writer & writer, std::shared_ptr<memory::reference> data) const{
+	writer.write_scalar(data->read_scalar<char>());
+}
+
+std::size_t cminus::type::char_primitive::get_size() const{
+	return sizeof(char);
+}
+
+cminus::evaluator::object::id_type cminus::type::char_primitive::get_evaluator_id() const{
+	return evaluator::object::id_type::byte;
+}
+
+cminus::type::wchar_primitive::wchar_primitive()
+	: primitive("WideChar"){}
+
+cminus::type::wchar_primitive::~wchar_primitive() = default;
+
+void cminus::type::wchar_primitive::print_value(io::writer & writer, std::shared_ptr<memory::reference> data) const{
+	writer.write_scalar(data->read_scalar<wchar_t>());
+}
+
+std::size_t cminus::type::wchar_primitive::get_size() const{
+	return sizeof(wchar_t);
+}
+
+cminus::evaluator::object::id_type cminus::type::wchar_primitive::get_evaluator_id() const{
+	return evaluator::object::id_type::byte;
 }
 
 cminus::type::number_primitive::number_primitive(state_type state)
 	: primitive(""), state_(state){
 	switch (state_){
+	case state_type::small_integer:
+		name_ = "SmallInteger";
+		size_ = sizeof(__int16);
+		break;
 	case state_type::integer:
 		name_ = "Integer";
 		size_ = sizeof(__int32);
 		break;
-	case state_type::long_integer:
-		name_ = "LongInteger";
+	case state_type::big_integer:
+		name_ = "BigInteger";
 		size_ = sizeof(__int64);
+		break;
+	case state_type::unsigned_small_integer:
+		name_ = "UnsignedSmallInteger";
+		size_ = sizeof(unsigned __int16);
 		break;
 	case state_type::unsigned_integer:
 		name_ = "UnsignedInteger";
 		size_ = sizeof(unsigned __int32);
 		break;
-	case state_type::unsigned_long_integer:
-		name_ = "UnsignedLongInteger";
+	case state_type::unsigned_big_integer:
+		name_ = "UnsignedBigInteger";
 		size_ = sizeof(unsigned __int64);
 		break;
-	case state_type::real:
-		name_ = "Float";
+	case state_type::small_float:
+		name_ = "SmallFloat";
 		size_ = sizeof(float);
 		break;
-	case state_type::long_real:
-		name_ = "LongFloat";
+	case state_type::float_:
+		name_ = "Float";
+		size_ = sizeof(double);
+		break;
+	case state_type::big_float:
+		name_ = "BigFloat";
 		size_ = sizeof(long double);
+		break;
+	case state_type::small_number:
+		name_ = "SmallNumber";
+		size_ = 0u;
+		break;
+	case state_type::big_number:
+		name_ = "BigNumber";
+		size_ = 0u;
 		break;
 	default:
 		name_ = "Number";
@@ -127,28 +216,47 @@ cminus::type::number_primitive::number_primitive(state_type state)
 
 cminus::type::number_primitive::~number_primitive() = default;
 
-std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::get_default_value(std::shared_ptr<object> self) const{
-	if (state_ == state_type::nil){//Return a NaN value
-		if (self.get() == this)
-			return std::make_shared<memory::scalar_reference<__int32>>(self, type::get_nan<__int32>::value());
-		return std::make_shared<memory::scalar_reference<__int32>>(std::make_shared<proxy>(*const_cast<number_primitive *>(this)), type::get_nan<__int32>::value());
+std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::get_default_value() const{
+	switch (state_){
+	case state_type::small_number:
+		return std::make_shared<memory::scalar_reference<__int16>>(storage::get_cached_type<__int16>::type(), type::get_nan<__int16>::value());
+	case state_type::number:
+		return std::make_shared<memory::scalar_reference<__int32>>(storage::get_cached_type<__int32>::type(), type::get_nan<__int32>::value());
+	case state_type::big_number:
+		return std::make_shared<memory::scalar_reference<__int64>>(storage::get_cached_type<__int64>::type(), type::get_nan<__int64>::value());
+	default:
+		break;
 	}
 
-	return primitive::get_default_value(self);
+	return primitive::get_default_value();
 }
 
 void cminus::type::number_primitive::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
 	switch (state_){
+	case state_type::small_integer:
+		if (is_nan_<__int16>(*data))
+			writer.write_buffer("NaN");
+		else
+			writer.write_scalar(data->read_scalar<__int16>());
+		break;
 	case state_type::integer:
 		if (is_nan_<__int32>(*data))
 			writer.write_buffer("NaN");
 		else
 			writer.write_scalar(data->read_scalar<__int32>());
 		break;
-	case state_type::long_integer:
+	case state_type::big_integer:
 		if (!is_nan_<__int64>(*data)){
 			writer.write_scalar(data->read_scalar<__int64>());
 			writer.write_scalar('L');
+		}
+		else
+			writer.write_buffer("NaN");
+		break;
+	case state_type::unsigned_small_integer:
+		if (!is_nan_<unsigned __int16>(*data)){
+			writer.write_scalar(data->read_scalar<unsigned __int16>());
+			writer.write_buffer("U");
 		}
 		else
 			writer.write_buffer("NaN");
@@ -161,7 +269,7 @@ void cminus::type::number_primitive::print_value(io::writer &writer, std::shared
 		else
 			writer.write_buffer("NaN");
 		break;
-	case state_type::unsigned_long_integer:
+	case state_type::unsigned_big_integer:
 		if (!is_nan_<unsigned __int64>(*data)){
 			writer.write_scalar(data->read_scalar<unsigned __int64>());
 			writer.write_buffer("UL");
@@ -169,13 +277,21 @@ void cminus::type::number_primitive::print_value(io::writer &writer, std::shared
 		else
 			writer.write_buffer("NaN");
 		break;
-	case state_type::real:
-		if (is_nan_<float>(*data))
+	case state_type::small_float:
+		if (!is_nan_<float>(*data)){
+			writer.write_scalar(data->read_scalar<float>());
+			writer.write_scalar('F');
+		}
+		else
+			writer.write_buffer("NaN");
+		break;
+	case state_type::float_:
+		if (is_nan_<double>(*data))
 			writer.write_buffer("NaN");
 		else
-			writer.write_scalar(data->read_scalar<float>());
+			writer.write_scalar(data->read_scalar<double>());
 		break;
-	case state_type::long_real:
+	case state_type::big_float:
 		if (!is_nan_<long double>(*data)){
 			writer.write_scalar(data->read_scalar<long double>());
 			writer.write_scalar('L');
@@ -193,16 +309,11 @@ std::size_t cminus::type::number_primitive::get_size() const{
 	return size_;
 }
 
-bool cminus::type::number_primitive::is_exact(const object &target) const{
-	auto number_target = dynamic_cast<number_primitive *>(target.get_non_proxy());
-	return (number_target != nullptr && number_target->state_ == state_);
-}
+int cminus::type::number_primitive::get_score(const object &target, bool is_lval, bool is_const) const{
+	if (auto result = object::get_score(target, is_lval, is_const); result != get_score_value(score_result_type::not_handled))
+		return result;
 
-int cminus::type::number_primitive::get_score(const object &target) const{
-	if (target.is(query_type::explicit_auto) || target.is(query_type::string))
-		return get_score_value(score_result_type::auto_assignable);
-
-	auto number_target = dynamic_cast<number_primitive *>(target.get_non_proxy());
+	auto number_target = dynamic_cast<const number_primitive *>(target.remove_const_ref());
 	if (number_target == nullptr)
 		return get_score_value(score_result_type::nil);
 
@@ -210,54 +321,55 @@ int cminus::type::number_primitive::get_score(const object &target) const{
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
-	auto number_target_type = dynamic_cast<const number_primitive *>(target_type->convert(conversion_type::remove_ref_const, target_type)->get_non_proxy());
+	auto base_target_type = target_type->remove_const_ref();
+	auto number_target_type = dynamic_cast<const number_primitive *>(base_target_type);
+
 	if (number_target_type == nullptr){
 		if (type == cast_type::reinterpret){
-			if (target_type->is(query_type::ref))
+			if (!is_integral())
 				return nullptr;
 
-			if (target_type->is(query_type::pointer) && (state_ == state_type::integer || state_ == state_type::unsigned_integer))
-				return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->convert(conversion_type::remove_ref_const, target_type), read_value<std::size_t>(data));
-
-			if (target_type->is(query_type::function) && (state_ == state_type::integer || state_ == state_type::unsigned_integer))
-				return std::make_shared<memory::function_reference>(read_value<std::size_t>(data), target_type, nullptr);
+			if (dynamic_cast<const pointer_primitive *>(base_target_type) != nullptr || dynamic_cast<const function *>(base_target_type) != nullptr)
+				return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->remove_const_ref(target_type), read_value<std::size_t>(data));
 
 			return nullptr;
 		}
 
-		if ((type != cast_type::static_ && type != cast_type::rval_static) || !target_type->is(query_type::string))
-			return nullptr;
+		if (is_static_rval_cast(type) && dynamic_cast<const string *>(base_target_type) != nullptr)
+			return runtime::object::global_storage->create_string(get_string_value(data));
 
-		return runtime::object::global_storage->create_string(get_string_value(data));
+		return nullptr;
 	}
 
-	if (type != cast_type::static_ && type != cast_type::rval_static)
+	if (!is_static_cast(type) || is_inferred() || number_target_type->is_inferred())
 		return nullptr;
 
-	auto is_lval = data->is_lvalue();
-	auto is_ref = target_type->is(query_type::ref);
+	auto data_is_lval = data->is_lvalue();
+	if (is_non_const_ref_cast(type) && (state_ != number_target_type->state_ || !data_is_lval || data->is_const()))
+		return nullptr;
 
-	if (!is_lval && is_ref && !target_type->is(query_type::const_))
-		return nullptr;//L-value required
+	if (state_ == number_target_type->state_)//Duplicate
+		return ((!data_is_lval || type != cast_type::static_) ? data : copy_data(data, target_type));
 
-	if (number_target_type->state_ == state_type::nil || number_target_type->state_ == state_){//Exact
-		if (type == cast_type::rval_static || !is_lval || is_ref)
-			return data;//No copy needed
-	}
-
-	auto converted_target_type = target_type->convert(conversion_type::remove_ref_const, target_type);
+	auto converted_target_type = target_type->remove_const_ref(target_type);
 	switch (number_target_type->state_){
+	case state_type::small_integer:
+		return std::make_shared<memory::scalar_reference<__int16>>(converted_target_type, read_value<__int16>(data));
 	case state_type::integer:
 		return std::make_shared<memory::scalar_reference<__int32>>(converted_target_type, read_value<__int32>(data));
-	case state_type::long_integer:
+	case state_type::big_integer:
 		return std::make_shared<memory::scalar_reference<__int64>>(converted_target_type, read_value<__int64>(data));
+	case state_type::unsigned_small_integer:
+		return std::make_shared<memory::scalar_reference<unsigned __int16>>(converted_target_type, read_value<unsigned __int16>(data));
 	case state_type::unsigned_integer:
 		return std::make_shared<memory::scalar_reference<unsigned __int32>>(converted_target_type, read_value<unsigned __int32>(data));
-	case state_type::unsigned_long_integer:
+	case state_type::unsigned_big_integer:
 		return std::make_shared<memory::scalar_reference<unsigned __int64>>(converted_target_type, read_value<unsigned __int64>(data));
-	case state_type::real:
+	case state_type::small_float:
 		return std::make_shared<memory::scalar_reference<float>>(converted_target_type, read_value<float>(data));
-	case state_type::long_real:
+	case state_type::float_:
+		return std::make_shared<memory::scalar_reference<double>>(converted_target_type, read_value<double>(data));
+	case state_type::big_float:
 		return std::make_shared<memory::scalar_reference<long double>>(converted_target_type, read_value<long double>(data));
 	default:
 		break;
@@ -266,31 +378,82 @@ std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::cast(
 	return nullptr;
 }
 
-std::shared_ptr<cminus::type::object> cminus::type::number_primitive::convert(conversion_type type, std::shared_ptr<object> self_or_other) const{
-	if (type != conversion_type::infer || state_ != state_type::nil)
-		return primitive::convert(type, self_or_other);
-
-	auto number_other = dynamic_cast<number_primitive *>(self_or_other->get_non_proxy());
-	if (number_other == nullptr || number_other->state_ == state_type::nil)
-		return std::make_shared<number_primitive>(state_type::integer);
-
-	return std::make_shared<number_primitive>(number_other->state_);
-}
-
-bool cminus::type::number_primitive::is(query_type type, const object *arg) const{
-	if (type == query_type::numeric || type == query_type::updatable || primitive::is(type, arg))
-		return true;
+std::shared_ptr<cminus::type::object> cminus::type::number_primitive::get_inferred(std::shared_ptr<object> target) const{
+	auto number_target = dynamic_cast<const number_primitive *>(target->remove_const_ref());
+	if (number_target == nullptr || number_target->is_inferred())
+		return nullptr;
 
 	switch (state_){
-	case state_type::integer:
-	case state_type::long_integer:
-		return (type == query_type::integral);
-	case state_type::unsigned_integer:
-	case state_type::unsigned_long_integer:
-		return (type == query_type::integral || type == query_type::unsigned_integral);
-	case state_type::real:
-	case state_type::long_real:
-		return (type == query_type::floating_point);
+	case state_type::small_number:
+		switch (number_target->state_){
+		case state_type::small_integer:
+		case state_type::unsigned_small_integer:
+		case state_type::small_float:
+			break;
+		default:
+			return nullptr;
+		}
+		break;
+	case state_type::big_number:
+		switch (number_target->state_){
+		case state_type::big_integer:
+		case state_type::unsigned_big_integer:
+		case state_type::big_float:
+			break;
+		default:
+			return nullptr;
+		}
+		break;
+	case state_type::number:
+		break;
+	default:
+		return nullptr;
+	}
+
+	return target->remove_const_ref(target);
+}
+
+bool cminus::type::number_primitive::can_be_inferred_from(const object &target) const{
+	auto number_target = dynamic_cast<const number_primitive *>(target.remove_const_ref());
+	if (number_target == nullptr)
+		return false;
+
+	switch (state_){
+	case state_type::small_number:
+		switch (number_target->state_){
+		case state_type::small_integer:
+		case state_type::unsigned_small_integer:
+		case state_type::small_float:
+			return true;
+		default:
+			break;
+		}
+		break;
+	case state_type::big_number:
+		switch (number_target->state_){
+		case state_type::big_integer:
+		case state_type::unsigned_big_integer:
+		case state_type::big_float:
+			return true;
+		default:
+			break;
+		}
+		break;
+	case state_type::number:
+		return !number_target->is_inferred();
+	default:
+		break;
+	}
+
+	return false;
+}
+
+bool cminus::type::number_primitive::is_inferred() const{
+	switch (state_){
+	case state_type::small_number:
+	case state_type::number:
+	case state_type::big_number:
+		return true;
 	default:
 		break;
 	}
@@ -299,22 +462,57 @@ bool cminus::type::number_primitive::is(query_type type, const object *arg) cons
 }
 
 cminus::evaluator::object::id_type cminus::type::number_primitive::get_evaluator_id() const{
-	return evaluator::object::id_type::number;
+	return (is_inferred() ? evaluator::object::id_type::nil : evaluator::object::id_type::number);
+}
+
+bool cminus::type::number_primitive::is_integral() const{
+	switch (state_){
+	case state_type::small_integer:
+	case state_type::integer:
+	case state_type::big_integer:
+	case state_type::unsigned_small_integer:
+	case state_type::unsigned_integer:
+	case state_type::unsigned_big_integer:
+		return true;
+	default:
+		break;
+	}
+
+	return false;
+}
+
+bool cminus::type::number_primitive::is_unsigned_integral() const{
+	switch (state_){
+	case state_type::unsigned_small_integer:
+	case state_type::unsigned_integer:
+	case state_type::unsigned_big_integer:
+		return true;
+	default:
+		break;
+	}
+
+	return false;
 }
 
 bool cminus::type::number_primitive::is_nan(const memory::reference &data) const{
 	switch (state_){
+	case state_type::small_integer:
+		return is_nan_<__int16>(data);
 	case state_type::integer:
 		return is_nan_<__int32>(data);
-	case state_type::long_integer:
+	case state_type::big_integer:
 		return is_nan_<__int64>(data);
+	case state_type::unsigned_small_integer:
+		return is_nan_<unsigned __int16>(data);
 	case state_type::unsigned_integer:
 		return is_nan_<unsigned __int32>(data);
-	case state_type::unsigned_long_integer:
+	case state_type::unsigned_big_integer:
 		return is_nan_<unsigned __int64>(data);
-	case state_type::real:
+	case state_type::small_float:
 		return is_nan_<float>(data);
-	case state_type::long_real:
+	case state_type::float_:
+		return is_nan_<double>(data);
+	case state_type::big_float:
 		return is_nan_<long double>(data);
 	default:
 		break;
@@ -325,132 +523,105 @@ bool cminus::type::number_primitive::is_nan(const memory::reference &data) const
 
 std::string cminus::type::number_primitive::get_string_value(std::shared_ptr<memory::reference> data) const{
 	switch (state_){
+	case state_type::small_integer:
+		return get_string_value_(data->read_scalar<__int16>());
 	case state_type::integer:
 		return get_string_value_(data->read_scalar<__int32>());
-	case state_type::long_integer:
+	case state_type::big_integer:
 		return get_string_value_(data->read_scalar<__int64>());
+	case state_type::unsigned_small_integer:
+		return get_string_value_(data->read_scalar<unsigned __int16>());
 	case state_type::unsigned_integer:
 		return get_string_value_(data->read_scalar<unsigned __int32>());
-	case state_type::unsigned_long_integer:
+	case state_type::unsigned_big_integer:
 		return get_string_value_(data->read_scalar<unsigned __int64>());
-	case state_type::real:
+	case state_type::small_float:
 		return get_string_value_(data->read_scalar<float>());
-	case state_type::long_real:
+	case state_type::float_:
+		return get_string_value_(data->read_scalar<double>());
+	case state_type::big_float:
 		return get_string_value_(data->read_scalar<long double>());
 	default:
 		break;
 	}
 
-	return "";
+	return "NaN";
 }
 
 cminus::type::number_primitive::state_type cminus::type::number_primitive::get_state() const{
 	return state_;
 }
 
-bool cminus::type::number_primitive::has_precedence_over(const number_primitive &target) const{
-	if (state_ == state_type::long_real)
-		return true;
+cminus::type::number_primitive::state_type cminus::type::number_primitive::get_precedence(const number_primitive &target) const{
+	if (state_ == target.state_)
+		return state_;
 
-	if (state_ == state_type::real)
-		return (target.state_ != state_type::long_real);
+	if (state_ == state_type::big_float)
+		return state_;
 
-	if (target.state_ == state_type::long_real || target.state_ == state_type::real)
-		return false;
+	if (state_ == state_type::float_)
+		return ((target.state_ != state_type::big_float) ? state_ : target.state_);
+
+	if (state_ == state_type::small_float)
+		return ((target.state_ != state_type::float_ && target.state_ != state_type::big_float) ? state_ : target.state_);
+
+	if (target.state_ == state_type::small_float || target.state_ == state_type::float_ || target.state_ == state_type::big_float)
+		return target.state_;
 
 	if (size_ != target.size_)
-		return (target.size_ < size_);
+		return ((target.size_ < size_) ? state_ : target.state_);
 
-	if (state_ == state_type::unsigned_long_integer)
-		return true;
+	if (state_ == state_type::unsigned_big_integer)
+		return state_;
 
 	if (state_ == state_type::unsigned_integer)
-		return (target.state_ != state_type::unsigned_long_integer);
+		return ((target.state_ != state_type::unsigned_big_integer && target.state_ != state_type::big_integer) ? state_ : target.state_);
 
-	if (state_ == state_type::long_integer)
-		return (target.state_ == state_type::long_integer || target.state_ == state_type::integer);
+	if (state_ == state_type::unsigned_small_integer)
+		return ((target.state_ == state_type::small_integer) ? state_ : target.state_);
 
-	return (target.state_ == state_type::integer);
+	if (state_ == state_type::big_integer)
+		return ((target.state_ != state_type::unsigned_big_integer) ? state_ : target.state_);
+
+	if (state_ == state_type::integer)
+		return ((target.state_ == state_type::small_integer) ? state_ : target.state_);
+
+	return target.state_;
 }
 
-const float cminus::type::numeric_constants::real_nan_value = std::numeric_limits<float>::min();
+const float cminus::type::numeric_constants::small_float_nan_value = std::numeric_limits<float>::min();
 
-const long double cminus::type::numeric_constants::long_real_nan_value = std::numeric_limits<long double>::min();
+const double cminus::type::numeric_constants::float_nan_value = std::numeric_limits<double>::min();
+
+const long double cminus::type::numeric_constants::big_float_nan_value = std::numeric_limits<long double>::min();
 
 cminus::type::function_primitive::function_primitive()
-	: primitive("FunctionType"){}
+	: base_type("FunctionType"){}
 
 cminus::type::function_primitive::~function_primitive() = default;
 
-void cminus::type::function_primitive::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
-	throw runtime::exception::not_supported();
+std::shared_ptr<cminus::type::object> cminus::type::function_primitive::get_inferred(std::shared_ptr<object> target) const{
+	return ((dynamic_cast<const function *>(target->remove_const_ref()) == nullptr) ? nullptr : target->remove_const_ref(target));
 }
 
-std::size_t cminus::type::function_primitive::get_size() const{
-	return sizeof(void *);
+bool cminus::type::function_primitive::can_be_inferred_from(const object &target) const{
+	return target.is<function>();
 }
 
-bool cminus::type::function_primitive::is_exact(const object &target) const{
-	return (dynamic_cast<function_primitive *>(target.get_non_proxy()) != nullptr);
-}
+cminus::type::function_return_primitive::function_return_primitive()
+	: primitive("FunctionReturnType"){}
 
-std::shared_ptr<cminus::memory::reference> cminus::type::function_primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
-	if (target_type->is(query_type::generic_function))
-		return ((type == cast_type::rval_static || type == cast_type::static_) ? data : nullptr);
-
-	if (type != cast_type::rval_static && type != cast_type::static_)
-		return ((type == cast_type::reinterpret && !target_type->is(query_type::ref)) ? convert_value_to_number(data->read_scalar<std::size_t>(), target_type) : nullptr);
-
-	auto function_target_type = dynamic_cast<function *>(target_type->convert(conversion_type::remove_ref_const, target_type)->get_non_proxy());
-	if (function_target_type == nullptr)
-		return nullptr;
-
-	auto function_group = data->read_scalar<declaration::callable_group *>();
-	if (function_group == nullptr || function_group->find(*function_target_type) == nullptr)
-		return nullptr;
-
-	return ((type == cast_type::rval_static) ? data : std::make_shared<memory::function_reference>(function_group->get_address(), target_type, data->get_context()));
-}
-
-bool cminus::type::function_primitive::is(query_type type, const object *arg) const{
-	return (type == query_type::function || type == query_type::generic_function || primitive::is(type, arg));
-}
-
-cminus::evaluator::object::id_type cminus::type::function_primitive::get_evaluator_id() const{
-	return evaluator::object::id_type::function;
-}
+cminus::type::function_return_primitive::~function_return_primitive() = default;
 
 cminus::type::auto_primitive::auto_primitive()
-	: primitive("Auto"){}
+	: base_type("Auto"){}
 
 cminus::type::auto_primitive::~auto_primitive() = default;
 
-void cminus::type::auto_primitive::print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const{
-	throw runtime::exception::not_supported();
+std::shared_ptr<cminus::type::object> cminus::type::auto_primitive::get_inferred(std::shared_ptr<object> target) const{
+	return target->remove_const_ref(target);
 }
 
-std::size_t cminus::type::auto_primitive::get_size() const{
-	return 0u;
-}
-
-bool cminus::type::auto_primitive::is_exact(const object &target) const{
-	return (dynamic_cast<auto_primitive *>(target.get_non_proxy()) != nullptr);
-}
-
-int cminus::type::auto_primitive::get_score(const object &target) const{
-	return 0;
-}
-
-std::shared_ptr<cminus::memory::reference> cminus::type::auto_primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
-	return nullptr;
-}
-
-std::shared_ptr<cminus::type::object> cminus::type::auto_primitive::convert(conversion_type type, std::shared_ptr<object> self_or_other) const{
-	if (type == conversion_type::infer)
-		return ((self_or_other == nullptr) ? nullptr : self_or_other->convert(conversion_type::remove_ref_const, self_or_other));
-	return primitive::convert(type, self_or_other);
-}
-
-bool cminus::type::auto_primitive::is(query_type type, const object *arg) const{
-	return (type == query_type::auto_ || type == query_type::explicit_auto || type == query_type::inferred || primitive::is(type, arg));
+bool cminus::type::auto_primitive::can_be_inferred_from(const object &target) const{
+	return true;
 }

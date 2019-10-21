@@ -39,7 +39,7 @@ void cminus::declaration::function::add_parameter(std::shared_ptr<variable> valu
 	if (max_arg_count_ == static_cast<std::size_t>(-1))//Variadic declaration must be last in list
 		throw exception::bad_parameter_list();
 
-	auto is_variadic = value->get_type()->is(type::object::query_type::variadic);
+	auto is_variadic = value->get_type()->is<type::variadic>();
 	auto has_initialization = (!is_variadic && value->get_initialization() != nullptr);
 
 	if (min_arg_count_ != max_arg_count_ && !is_variadic && !has_initialization)
@@ -59,7 +59,7 @@ bool cminus::declaration::function::is_defined() const{
 	return (get_definition() != nullptr);
 }
 
-int cminus::declaration::function::get_score(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{
+int cminus::declaration::function::get_score(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const{
 	if (auto args_count = get_args_count_(context, args); args_count < min_arg_count_ || max_arg_count_ < args_count)
 		return type::object::get_score_value(type::object::score_result_type::nil);
 
@@ -78,7 +78,7 @@ int cminus::declaration::function::get_score(std::shared_ptr<memory::reference> 
 				break;
 
 			param_type = (*param_it)->get_type();
-			if (auto variadic_type = dynamic_cast<type::variadic *>(param_type->get_non_proxy()); variadic_type != nullptr)
+			if (auto variadic_type = param_type->as<type::variadic>(); variadic_type != nullptr)
 				param_type = variadic_base_type = variadic_type->get_base_type();
 
 			++param_it;
@@ -91,7 +91,7 @@ int cminus::declaration::function::get_score(std::shared_ptr<memory::reference> 
 	return ((arg_it == args.end()) ? lowest_rank_score : type::object::get_score_value(type::object::score_result_type::nil));
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::declaration::function::call_(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{
+std::shared_ptr<cminus::memory::reference> cminus::declaration::function::call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const{
 	if (!is_defined())
 		throw exception::function_not_defined();
 
@@ -122,7 +122,7 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::function::call_(
 
 void cminus::declaration::function::init_(std::shared_ptr<type::object> return_type){
 	type_ = std::make_shared<type::function>(((flags_ & flags::const_) != 0u), return_type);
-	if (return_type != nullptr && !return_type->is(type::object::query_type::undefined)){
+	if (return_type != nullptr && !return_type->is<type::undefined_primitive>()){
 		return_declaration_ = std::make_shared<variable>(
 			"",											//Name
 			return_type,								//Type
@@ -150,7 +150,7 @@ void cminus::declaration::function::copy_context_(std::shared_ptr<memory::refere
 	++it;
 }
 
-void cminus::declaration::function::copy_args_(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{
+void cminus::declaration::function::copy_args_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const{
 	auto arg_it = args.begin();
 	auto param_it = parameter_list_.begin();
 
@@ -167,7 +167,7 @@ void cminus::declaration::function::copy_args_(std::shared_ptr<memory::reference
 			if (param_it == parameter_list_.end())
 				break;
 
-			if (dynamic_cast<type::variadic *>((*param_it)->get_type()->get_non_proxy()) == nullptr){
+			if (!(*param_it)->get_type()->is<type::variadic>()){
 				param_name = &(*param_it)->get_name();
 				if (runtime::object::current_storage->exists(*param_name, storage::object::entry_type::mem_ref))
 					throw exception::bad_parameter_list();
@@ -193,7 +193,7 @@ void cminus::declaration::function::copy_args_(std::shared_ptr<memory::reference
 
 	for (; param_it != parameter_list_.end(); ++param_it){//Evaluate parameters with default values
 		if (variadic_declaration == nullptr){
-			if (dynamic_cast<type::variadic *>((*param_it)->get_type()->get_non_proxy()) == nullptr){
+			if (!(*param_it)->get_type()->is<type::variadic>()){
 				if ((*param_it)->get_initialization() != nullptr){
 					param_name = &(*param_it)->get_name();
 					if (runtime::object::current_storage->exists(*param_name, storage::object::entry_type::mem_ref))
@@ -218,7 +218,7 @@ void cminus::declaration::function::copy_args_(std::shared_ptr<memory::reference
 		return;//No variadic declaration
 
 	auto variadic_type = std::make_shared<type::in_memory_variadic>(
-		dynamic_cast<type::variadic *>(variadic_declaration->get_type()->get_non_proxy())->get_base_type(),
+		variadic_declaration->get_type()->as<type::variadic>()->get_base_type(),
 		variadic_args.size()
 	);
 
@@ -248,7 +248,7 @@ void cminus::declaration::function::evaluate_body_() const{
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::declaration::function::copy_return_value_(std::shared_ptr<memory::reference> value) const{
-	if (return_declaration_->get_type()->is(type::object::query_type::void_)){
+	if (return_declaration_->get_type()->is<type::void_primitive>()){
 		if (value != nullptr)
 			throw exception::void_function_value_return();
 		return nullptr;
@@ -261,37 +261,10 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::function::copy_r
 }
 
 int cminus::declaration::function::get_arg_score_(std::shared_ptr<type::object> param_type, std::shared_ptr<memory::reference> arg) const{
-	auto arg_type = arg->get_type();
-	auto arg_class_type = dynamic_cast<type::class_ *>(arg_type.get());
-
-	auto non_ref_const_param_type = param_type->convert(type::object::conversion_type::remove_ref_const, param_type);
-	auto param_is_const = param_type->is(type::object::query_type::const_);
-	auto param_is_ref = param_type->is(type::object::query_type::ref);
-
-	auto arg_is_lval = arg->is_lvalue();
-	auto arg_is_const = arg->is_const();
-
-	if (arg_class_type != nullptr && arg_class_type->is_assignable_to(param_type)){
-		auto score = type::object::get_score_value(type::object::score_result_type::class_compatible);
-		return (score - ((param_is_const == arg_is_const && param_is_ref == arg_is_lval) ? 0 : 1));
-	}
-
-	int score;
-	if (param_is_ref && !param_is_const && (!arg_is_lval || arg_is_const))//Reference parameter
-		score = type::object::get_score_value(type::object::score_result_type::nil);
-	else
-		score = arg_type->get_score(*non_ref_const_param_type);
-
-	if (score != type::object::get_score_value(type::object::score_result_type::nil))
-		return (score - ((param_is_const == arg_is_const && param_is_ref == arg_is_lval) ? 0 : 1));
-	
-	if (param_type->convert(type::object::conversion_type::remove_ref, param_type)->is_constructible(arg))
-		return type::object::get_score_value(type::object::score_result_type::class_compatible);
-
-	return score;
+	return arg->get_type()->get_score(*param_type, arg->is_lvalue(), arg->is_const());
 }
 
-std::size_t cminus::declaration::function::get_args_count_(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{
+std::size_t cminus::declaration::function::get_args_count_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const{
 	return ((context == nullptr) ? args.size() : (args.size() + 1u));
 }
 

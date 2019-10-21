@@ -7,16 +7,22 @@ void cminus::evaluator::initializer::initialize(std::shared_ptr<memory::referenc
 	if (target_type == nullptr)
 		throw exception::invalid_type();
 
-	auto is_ref = target_type->is(type::object::query_type::ref);
-	if (is_ref && !target_type->is(type::object::query_type::const_)){//Non-constant reference target
+	auto cast_type = type::cast_type::static_rval;
+	auto is_ref = target_type->is_ref();
+
+	if (is_ref && !target_type->is_const()){//Non-constant reference target
 		if (!value->is_lvalue())
 			throw exception::rval_ref_assignment();
 
-		if (target_type->is(type::object::query_type::const_))
+		if (value->is_const())
 			throw exception::const_ref_assignment();
-	}
 
-	if (auto compatible_value = target_type->cast(value, target_type, type::cast_type::rval_static); compatible_value != nullptr)
+		cast_type = type::cast_type::static_ref;
+	}
+	else if (is_ref)
+		cast_type = type::cast_type::static_const_ref;
+
+	if (auto compatible_value = target_type->cast(value, target_type, cast_type); compatible_value != nullptr)
 		target->initialize(compatible_value);
 	else
 		throw exception::incompatible_rval();

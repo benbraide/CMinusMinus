@@ -9,7 +9,7 @@ cminus::evaluator::object::id_type cminus::evaluator::byte::get_id() const{
 }
 
 cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::byte::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
-	if (op == operators::id::bitwise_inverse)
+	if (op == operators::id::bitwise_inverse && target->get_type()->is<type::byte_primitive>())
 		return std::make_shared<memory::scalar_reference<std::byte>>(target->get_type(), ~target->read_scalar<std::byte>());
 	return nullptr;
 }
@@ -29,7 +29,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::byte:
 	if (left_type == nullptr)
 		throw exception::invalid_type();
 
-	if (op != operators::id::index || !left_type->is(type::object::query_type::byte))
+	if (op != operators::id::index || !left_type->is<type::byte_primitive>())
 		return nullptr;
 
 	auto right_value = right->evaluate();
@@ -40,8 +40,8 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::byte:
 	if (right_type == nullptr)
 		throw exception::invalid_type();
 
-	auto right_number_type = dynamic_cast<type::number_primitive *>(right_type->get_non_proxy());
-	if (right_number_type == nullptr || !right_type->is(type::object::query_type::integral))
+	auto right_number_type = right_type->as<type::number_primitive>();
+	if (right_number_type == nullptr || !right_number_type->is_integral())
 		throw exception::unsupported_op();
 
 	auto index = right_number_type->read_value<std::size_t>(right_value);

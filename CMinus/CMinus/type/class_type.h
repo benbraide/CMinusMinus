@@ -35,27 +35,19 @@ namespace cminus::type{
 
 		virtual storage::object *get_parent() const override;
 
-		virtual bool is_constructible(std::shared_ptr<memory::reference> target) const override;
-
 		virtual void destruct(std::shared_ptr<memory::reference> target) const override;
 
-		virtual std::shared_ptr<memory::reference> get_default_value(std::shared_ptr<type_base> self) const override;
+		virtual std::shared_ptr<memory::reference> get_default_value() const override;
 
 		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 
 		virtual std::size_t get_size() const override;
 
-		virtual bool is_exact(const type_base &target) const override;
-
-		virtual int get_score(const type_base &target) const override;
-
-		virtual std::size_t compute_base_offset(const type_base &base_type) const override;
-
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const override;
 
-		virtual bool is(query_type type, const type_base *arg = nullptr) const override;
-
 		virtual bool is_accessible(unsigned int access) const override;
+
+		virtual std::size_t compute_base_offset(const class_ &base_type) const;
 
 		virtual void add_base(unsigned int access, std::shared_ptr<class_> value);
 
@@ -81,6 +73,8 @@ namespace cminus::type{
 
 		virtual declaration::callable_group *find_function(const std::string &name) const;
 
+		virtual bool is_constructible_from(const type_base &target_type, bool is_lval, bool is_const) const;
+
 		virtual bool is_assignable_to(std::shared_ptr<type_base> target_type) const;
 
 		virtual bool is_base_type(const class_ &target, bool search_hierarchy) const;
@@ -92,7 +86,7 @@ namespace cminus::type{
 		virtual void compile();
 
 	protected:
-		virtual void construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const override;
+		virtual void construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const override;
 
 		using storage_base::exists_;
 		using storage_base::find_;

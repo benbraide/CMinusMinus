@@ -8,15 +8,13 @@
 namespace cminus::type{
 	class proxy : public object{
 	public:
-		proxy(object &target);
+		proxy(const object &target);
 
 		virtual ~proxy();
 
-		virtual bool is_constructible(std::shared_ptr<memory::reference> target) const override;
-
 		virtual void construct(std::shared_ptr<memory::reference> target, std::shared_ptr<node::object> initialization) const override;
 
-		virtual void construct(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &initialization) const override;
+		virtual void construct(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &initialization) const override;
 
 		virtual void construct(std::shared_ptr<memory::reference> target, std::shared_ptr<memory::reference> initialization) const override;
 
@@ -24,7 +22,7 @@ namespace cminus::type{
 
 		virtual void destruct(std::shared_ptr<memory::reference> target) const override;
 
-		virtual std::shared_ptr<memory::reference> get_default_value(std::shared_ptr<object> self) const override;
+		virtual std::shared_ptr<memory::reference> get_default_value() const override;
 
 		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 
@@ -34,9 +32,7 @@ namespace cminus::type{
 
 		virtual bool is_exact(const object &target) const override;
 
-		virtual int get_score(const object &target) const override;
-
-		virtual std::size_t compute_base_offset(const object &base_type) const override;
+		virtual int get_score(const object &target, bool is_lval, bool is_const) const override;
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 
@@ -44,13 +40,19 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<evaluator::initializer> get_initializer() const override;
 
-		virtual object *get_non_proxy() const override;
+		virtual const object *remove_proxy() const override;
 
-		virtual std::shared_ptr<object> convert(conversion_type type, std::shared_ptr<object> self_or_other = nullptr) const override;
+		virtual const object *remove_const_ref() const override;
 
-		virtual bool is(query_type type, const object *arg = nullptr) const override;
+		virtual std::shared_ptr<object> remove_const_ref(std::shared_ptr<object> self) const override;
+
+		virtual bool is_inferred() const override;
+
+		virtual bool is_const() const override;
+
+		virtual bool is_ref() const override;
 
 	protected:
-		object *target_;
+		const object *target_;
 	};
 }

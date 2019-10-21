@@ -23,13 +23,18 @@ namespace cminus::storage{
 			byte_,
 			char_,
 			wchar_,
+			small_number,
 			number,
+			big_number,
+			small_integer,
+			unsigned_small_integer,
 			integer,
-			long_integer,
 			unsigned_integer,
-			unsigned_long_integer,
-			real,
-			long_real,
+			big_integer,
+			unsigned_big_integer,
+			small_float,
+			float_,
+			big_float,
 			function,
 			nullptr_,
 			string,
@@ -170,6 +175,13 @@ namespace cminus::storage{
 	};
 
 	template <>
+	struct get_cached_type<__int16>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::small_integer);
+		}
+	};
+
+	template <>
 	struct get_cached_type<__int32>{
 		static std::shared_ptr<type::object> type(){
 			return runtime::object::global_storage->get_cached_type(global::cached_type::integer);
@@ -179,7 +191,14 @@ namespace cminus::storage{
 	template <>
 	struct get_cached_type<__int64>{
 		static std::shared_ptr<type::object> type(){
-			return runtime::object::global_storage->get_cached_type(global::cached_type::long_integer);
+			return runtime::object::global_storage->get_cached_type(global::cached_type::big_integer);
+		}
+	};
+
+	template <>
+	struct get_cached_type<unsigned __int16>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::unsigned_small_integer);
 		}
 	};
 
@@ -193,21 +212,28 @@ namespace cminus::storage{
 	template <>
 	struct get_cached_type<unsigned __int64>{
 		static std::shared_ptr<type::object> type(){
-			return runtime::object::global_storage->get_cached_type(global::cached_type::unsigned_long_integer);
+			return runtime::object::global_storage->get_cached_type(global::cached_type::unsigned_big_integer);
 		}
 	};
 
 	template <>
 	struct get_cached_type<float>{
 		static std::shared_ptr<type::object> type(){
-			return runtime::object::global_storage->get_cached_type(global::cached_type::real);
+			return runtime::object::global_storage->get_cached_type(global::cached_type::small_float);
+		}
+	};
+
+	template <>
+	struct get_cached_type<double>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::float_);
 		}
 	};
 
 	template <>
 	struct get_cached_type<long double>{
 		static std::shared_ptr<type::object> type(){
-			return runtime::object::global_storage->get_cached_type(global::cached_type::long_real);
+			return runtime::object::global_storage->get_cached_type(global::cached_type::big_float);
 		}
 	};
 }

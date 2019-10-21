@@ -14,32 +14,19 @@ namespace cminus::type{
 
 	class primitive : public object{
 	public:
-		enum class id_type : char{
-			nil,
-			void_,
-			bool_,
-			byte_,
-			char_,
-			wchar_,
-		};
-
 		explicit primitive(const std::string &name);
+
+		primitive(const std::string &name, storage::object *parent);
 
 		virtual ~primitive();
 
-		virtual bool is_exact(const object &target) const override;
-
-		virtual int get_score(const object &target) const override;
+		virtual int get_score(const object &target, bool is_lval, bool is_const) const override;
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
-
-		virtual bool is(query_type type, const object *arg = nullptr) const override;
 
 		virtual std::shared_ptr<evaluator::object> get_evaluator() const override;
 
 		virtual evaluator::object::id_type get_evaluator_id() const;
-
-		static std::string convert_id_to_string(id_type value);
 
 		template <typename value_type>
 		static std::shared_ptr<memory::reference> convert_value_to_number(value_type value, std::shared_ptr<object> target_type){
@@ -78,7 +65,22 @@ namespace cminus::type{
 		}
 	};
 
-	class undefined_primitive : public primitive{
+	class no_storage_primitive : public primitive{
+	public:
+		using primitive::primitive;
+
+		virtual ~no_storage_primitive();
+
+		virtual std::shared_ptr<memory::reference> get_default_value() const override;
+
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
+		virtual std::size_t get_size() const override;
+
+		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
+	};
+
+	class undefined_primitive : public no_storage_primitive{
 	public:
 		undefined_primitive();
 
@@ -86,104 +88,103 @@ namespace cminus::type{
 
 		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 
+		virtual evaluator::object::id_type get_evaluator_id() const override;
+	};
+
+	class void_primitive : public no_storage_primitive{
+	public:
+		void_primitive();
+
+		virtual ~void_primitive();
+	};
+
+	class boolean_primitive : public primitive{
+	public:
+		boolean_primitive();
+
+		virtual ~boolean_primitive();
+
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
 		virtual std::size_t get_size() const override;
 
-		virtual bool is_exact(const object &target) const override;
-
-		virtual int get_score(const object &target) const override;
-
-		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
-
-		virtual bool is(query_type type, const object *arg = nullptr) const override;
+		virtual evaluator::object::id_type get_evaluator_id() const override;
 	};
 
-	template <primitive::id_type id, object::query_type query, std::size_t size, evaluator::object::id_type evaluator_id>
-	class strict_primitive : public primitive{
+	class byte_primitive : public primitive{
 	public:
-		strict_primitive()
-			: primitive(convert_id_to_string(id)){}
+		byte_primitive();
 
-		virtual ~strict_primitive() = default;
+		virtual ~byte_primitive();
 
-		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override{
-			switch (id){
-			case primitive::id_type::bool_:
-				switch (data->read_scalar<boolean_constant>()){
-				case boolean_constant::false_:
-					writer.write_buffer("false");
-					break;
-				case boolean_constant::true_:
-					writer.write_buffer("true");
-					break;
-				default:
-					writer.write_buffer("indeterminate");
-					break;
-				}
-				break;
-			case primitive::id_type::byte_:
-				runtime::to_hex_string<int>::get(static_cast<int>(data->read_scalar<std::byte>()), 2);
-				break;
-			case primitive::id_type::char_:
-				writer.write_scalar(data->read_scalar<char>());
-				break;
-			case primitive::id_type::wchar_:
-				writer.write_scalar(data->read_scalar<wchar_t>());
-				break;
-			default:
-				throw runtime::exception::not_supported();
-				break;
-			}
-		}
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 
-		virtual std::size_t get_size() const override{
-			return size;
-		}
+		virtual std::size_t get_size() const override;
 
-		virtual bool is_exact(const object &target) const override{
-			return (dynamic_cast<const strict_primitive *>(&target) != nullptr);
-		}
-
-		virtual bool is(query_type type, const object *arg = nullptr) const override{
-			return (type == query || primitive::is(type, arg));
-		}
-
-		virtual evaluator::object::id_type get_evaluator_id() const override{
-			return evaluator_id;
-		}
+		virtual evaluator::object::id_type get_evaluator_id() const override;
 	};
 
-	using void_primitive = strict_primitive<primitive::id_type::void_, object::query_type::void_, 0u, evaluator::object::id_type::nil>;
-	using bool_primitive = strict_primitive<primitive::id_type::bool_, object::query_type::boolean, sizeof(boolean_constant), evaluator::object::id_type::boolean>;
-	using byte_primitive = strict_primitive<primitive::id_type::byte_, object::query_type::byte, 1u, evaluator::object::id_type::byte>;
+	class char_primitive : public primitive{
+	public:
+		char_primitive();
 
-	using char_primitive = strict_primitive<primitive::id_type::char_, object::query_type::character, sizeof(char), evaluator::object::id_type::byte>;
-	using wchar_primitive = strict_primitive<primitive::id_type::wchar_, object::query_type::character, sizeof(wchar_t), evaluator::object::id_type::byte>;
+		virtual ~char_primitive();
+
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
+		virtual std::size_t get_size() const override;
+
+		virtual evaluator::object::id_type get_evaluator_id() const override;
+	};
+
+	class wchar_primitive : public primitive{
+	public:
+		wchar_primitive();
+
+		virtual ~wchar_primitive();
+
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
+		virtual std::size_t get_size() const override;
+
+		virtual evaluator::object::id_type get_evaluator_id() const override;
+	};
 
 	struct numeric_constants{
+		static const __int64 small_integer_nan_value = std::numeric_limits<__int16>::min();
 		static const __int32 integer_nan_value = std::numeric_limits<__int32>::min();
-		static const __int64 long_integer_nan_value = std::numeric_limits<__int64>::min();
+		static const __int64 big_integer_nan_value = std::numeric_limits<__int64>::min();
 
+		static const unsigned __int64 unsigned_small_integer_nan_value = std::numeric_limits<unsigned __int16>::max();
 		static const unsigned __int32 unsigned_integer_nan_value = std::numeric_limits<unsigned __int32>::max();
-		static const unsigned __int64 unsigned_long_integer_nan_value = std::numeric_limits<unsigned __int64>::max();
+		static const unsigned __int64 unsigned_big_integer_nan_value = std::numeric_limits<unsigned __int64>::max();
 
-		static const float real_nan_value;
-		static const long double long_real_nan_value;
+		static const float small_float_nan_value;
+		static const double float_nan_value;
+		static const long double big_float_nan_value;
 	};
 
 	template <class target_type>
 	struct get_nan;
 
 	template <>
-	struct get_nan<__int32>{
-		static constexpr __int32 value(){
-			return numeric_constants::integer_nan_value;
+	struct get_nan<__int16>{
+		static constexpr __int16 value(){
+			return numeric_constants::small_integer_nan_value;
 		}
 	};
 
 	template <>
-	struct get_nan<__int64>{
-		static constexpr __int64 value(){
-			return numeric_constants::long_integer_nan_value;
+	struct get_nan<unsigned __int16>{
+		static constexpr unsigned __int16 value(){
+			return numeric_constants::unsigned_small_integer_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<__int32>{
+		static constexpr __int32 value(){
+			return numeric_constants::integer_nan_value;
 		}
 	};
 
@@ -195,28 +196,49 @@ namespace cminus::type{
 	};
 
 	template <>
+	struct get_nan<__int64>{
+		static constexpr __int64 value(){
+			return numeric_constants::big_integer_nan_value;
+		}
+	};
+
+	template <>
 	struct get_nan<unsigned __int64>{
 		static constexpr unsigned __int64 value(){
-			return numeric_constants::unsigned_long_integer_nan_value;
+			return numeric_constants::unsigned_big_integer_nan_value;
 		}
 	};
 
 	template <>
 	struct get_nan<float>{
 		static constexpr float value(){
-			return numeric_constants::real_nan_value;
+			return numeric_constants::small_float_nan_value;
+		}
+	};
+
+	template <>
+	struct get_nan<double>{
+		static constexpr double value(){
+			return numeric_constants::float_nan_value;
 		}
 	};
 
 	template <>
 	struct get_nan<long double>{
 		static constexpr long double value(){
-			return numeric_constants::long_real_nan_value;
+			return numeric_constants::big_float_nan_value;
 		}
 	};
 
 	template <class target_type>
 	struct get_max_non_nan;
+
+	template <>
+	struct get_max_non_nan<__int16>{
+		static constexpr __int16 value(){
+			return std::numeric_limits<__int16>::max();
+		}
+	};
 
 	template <>
 	struct get_max_non_nan<__int32>{
@@ -233,6 +255,13 @@ namespace cminus::type{
 	};
 
 	template <>
+	struct get_max_non_nan<unsigned __int16>{
+		static constexpr unsigned __int16 value(){
+			return static_cast<unsigned __int16>(numeric_constants::unsigned_small_integer_nan_value - 1ui16);
+		}
+	};
+
+	template <>
 	struct get_max_non_nan<unsigned __int32>{
 		static constexpr unsigned __int32 value(){
 			return (numeric_constants::unsigned_integer_nan_value - 1ui32);
@@ -242,7 +271,7 @@ namespace cminus::type{
 	template <>
 	struct get_max_non_nan<unsigned __int64>{
 		static constexpr unsigned __int64 value(){
-			return (numeric_constants::unsigned_long_integer_nan_value - 1ui64);
+			return (numeric_constants::unsigned_big_integer_nan_value - 1ui64);
 		}
 	};
 
@@ -250,6 +279,13 @@ namespace cminus::type{
 	struct get_max_non_nan<float>{
 		static constexpr float value(){
 			return std::numeric_limits<float>::max();
+		}
+	};
+
+	template <>
+	struct get_max_non_nan<double>{
+		static constexpr double value(){
+			return std::numeric_limits<double>::max();
 		}
 	};
 
@@ -264,6 +300,13 @@ namespace cminus::type{
 	struct get_min_non_nan;
 
 	template <>
+	struct get_min_non_nan<__int16>{
+		static constexpr __int16 value(){
+			return static_cast<__int16>(numeric_constants::small_integer_nan_value + 1i16);
+		}
+	};
+
+	template <>
 	struct get_min_non_nan<__int32>{
 		static constexpr __int32 value(){
 			return (numeric_constants::integer_nan_value + 1i32);
@@ -273,7 +316,14 @@ namespace cminus::type{
 	template <>
 	struct get_min_non_nan<__int64>{
 		static constexpr __int64 value(){
-			return (numeric_constants::long_integer_nan_value + 1i64);
+			return (numeric_constants::big_integer_nan_value + 1i64);
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<unsigned __int16>{
+		static constexpr unsigned __int16 value(){
+			return std::numeric_limits<__int16>::min();
 		}
 	};
 
@@ -294,112 +344,143 @@ namespace cminus::type{
 	template <>
 	struct get_min_non_nan<float>{
 		static constexpr float value(){
-			return (numeric_constants::real_nan_value + 1.0f);
+			return (numeric_constants::small_float_nan_value + 1.0f);
+		}
+	};
+
+	template <>
+	struct get_min_non_nan<double>{
+		static constexpr double value(){
+			return (numeric_constants::float_nan_value + 1.0);
 		}
 	};
 
 	template <>
 	struct get_min_non_nan<long double>{
 		static constexpr long double value(){
-			return (numeric_constants::long_real_nan_value + 1.0l);
+			return (numeric_constants::big_float_nan_value + 1.0l);
+		}
+	};
+
+	template <class target_type>
+	struct numeric_cast{
+		template <typename value_type>
+		static constexpr target_type get(value_type value){
+			return ((value == get_nan<value_type>::template value()) ? get_nan<target_type>::template value() : static_cast<target_type>(value));
 		}
 	};
 
 	class number_primitive : public primitive{
 	public:
 		enum class state_type{
-			nil,
+			small_number,
+			number,
+			big_number,
+			small_integer,
+			unsigned_small_integer,
 			integer,
-			long_integer,
 			unsigned_integer,
-			unsigned_long_integer,
-			real,
-			long_real,
+			big_integer,
+			unsigned_big_integer,
+			small_float,
+			float_,
+			big_float,
 		};
 
 		explicit number_primitive(state_type state);
 
 		virtual ~number_primitive();
 
-		virtual std::shared_ptr<memory::reference> get_default_value(std::shared_ptr<object> self) const override;
+		virtual std::shared_ptr<memory::reference> get_default_value() const override;
 
 		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 
 		virtual std::size_t get_size() const override;
 
-		virtual bool is_exact(const object &target) const override;
-
-		virtual int get_score(const object &target) const override;
+		virtual int get_score(const object &target, bool is_lval, bool is_const) const override;
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 
-		virtual std::shared_ptr<object> convert(conversion_type type, std::shared_ptr<object> self_or_other = nullptr) const override;
+		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
 
-		virtual bool is(query_type type, const object *arg = nullptr) const override;
+		virtual bool can_be_inferred_from(const object &target) const override;
+
+		virtual bool is_inferred() const override;
 
 		virtual evaluator::object::id_type get_evaluator_id() const override;
+
+		virtual bool is_integral() const;
+
+		virtual bool is_unsigned_integral() const;
 
 		virtual bool is_nan(const memory::reference &data) const;
 
 		template <typename target_type>
 		target_type get_nan() const{
 			switch (state_){
+			case state_type::small_integer:
+				return static_cast<target_type>(type::get_nan<__int16>::value());
 			case state_type::integer:
 				return static_cast<target_type>(type::get_nan<__int32>::value());
-			case state_type::long_integer:
+			case state_type::big_integer:
 				return static_cast<target_type>(type::get_nan<__int64>::value());
+			case state_type::unsigned_small_integer:
+				return static_cast<target_type>(type::get_nan<unsigned __int16>::value());
 			case state_type::unsigned_integer:
 				return static_cast<target_type>(type::get_nan<unsigned __int32>::value());
-			case state_type::unsigned_long_integer:
+			case state_type::unsigned_big_integer:
 				return static_cast<target_type>(type::get_nan<unsigned __int64>::value());
-			case state_type::real:
+			case state_type::small_float:
 				return static_cast<target_type>(type::get_nan<float>::value());
-			case state_type::long_real:
+			case state_type::float_:
+				return static_cast<target_type>(type::get_nan<double>::value());
+			case state_type::big_float:
 				return static_cast<target_type>(type::get_nan<long double>::value());
 			default:
 				break;
 			}
 
-			return target_type();
+			return type::get_nan<target_type>::template value();
 		}
 
 		template <typename target_type>
 		target_type read_value(std::shared_ptr<memory::reference> data) const{
 			switch (state_){
+			case state_type::small_integer:
+				return numeric_cast<target_type>::template get(data->read_scalar<__int16>());
 			case state_type::integer:
-				return cast_value<target_type>(data->read_scalar<__int32>());
-			case state_type::long_integer:
-				return cast_value<target_type>(data->read_scalar<__int64>());
+				return numeric_cast<target_type>::template get(data->read_scalar<__int32>());
+			case state_type::big_integer:
+				return numeric_cast<target_type>::template get(data->read_scalar<__int64>());
+			case state_type::unsigned_small_integer:
+				return numeric_cast<target_type>::template get(data->read_scalar<unsigned __int16>());
 			case state_type::unsigned_integer:
-				return cast_value<target_type>(data->read_scalar<unsigned __int32>());
-			case state_type::unsigned_long_integer:
-				return cast_value<target_type>(data->read_scalar<unsigned __int64>());
-			case state_type::real:
-				return cast_value<target_type>(data->read_scalar<float>());
-			case state_type::long_real:
-				return cast_value<target_type>(data->read_scalar<long double>());
+				return numeric_cast<target_type>::template get(data->read_scalar<unsigned __int32>());
+			case state_type::unsigned_big_integer:
+				return numeric_cast<target_type>::template get(data->read_scalar<unsigned __int64>());
+			case state_type::small_float:
+				return numeric_cast<target_type>::template get(data->read_scalar<float>());
+			case state_type::float_:
+				return numeric_cast<target_type>::template get(data->read_scalar<double>());
+			case state_type::big_float:
+				return numeric_cast<target_type>::template get(data->read_scalar<long double>());
 			default:
 				break;
 			}
 
-			return target_type();
-		}
-
-		template <typename target_type, typename value_type>
-		target_type cast_value(value_type from) const{
-			return ((from == type::get_nan<value_type>::template value()) ? type::get_nan<target_type>::template value() : static_cast<target_type>(from));
+			return type::get_nan<target_type>::template value();
 		}
 
 		virtual std::string get_string_value(std::shared_ptr<memory::reference> data) const;
 
 		virtual state_type get_state() const;
 
-		virtual bool has_precedence_over(const number_primitive &target) const;
+		virtual state_type get_precedence(const number_primitive &target) const;
 
 	protected:
 		template <typename target_type>
 		bool is_nan_(const memory::reference &data) const{
-			return (data.read_scalar<__int32>() == type::get_nan<target_type>::template value());
+			return (data.read_scalar<target_type>() == type::get_nan<target_type>::template value());
 		}
 
 		template <typename value_type>
@@ -411,43 +492,36 @@ namespace cminus::type{
 		std::size_t size_;
 	};
 
-	class function_primitive : public primitive{
+	class function_primitive : public inferred<primitive>{
 	public:
+		using base_type = inferred<primitive>;
+
 		function_primitive();
 
 		virtual ~function_primitive();
 
-		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
 
-		virtual std::size_t get_size() const override;
-
-		virtual bool is_exact(const object &target) const override;
-
-		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
-
-		virtual bool is(query_type type, const object *arg = nullptr) const override;
-
-		virtual evaluator::object::id_type get_evaluator_id() const override;
+		virtual bool can_be_inferred_from(const object &target) const override;
 	};
 
-	class auto_primitive : public primitive{
+	class function_return_primitive : public primitive{
 	public:
+		function_return_primitive();
+
+		virtual ~function_return_primitive();
+	};
+
+	class auto_primitive : public inferred<primitive>{
+	public:
+		using base_type = inferred<primitive>;
+
 		auto_primitive();
 
 		virtual ~auto_primitive();
 
-		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
 
-		virtual std::size_t get_size() const override;
-
-		virtual bool is_exact(const object &target) const override;
-
-		virtual int get_score(const object &target) const override;
-
-		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
-
-		virtual std::shared_ptr<object> convert(conversion_type type, std::shared_ptr<object> self_or_other = nullptr) const override;
-
-		virtual bool is(query_type type, const object *arg = nullptr) const override;
+		virtual bool can_be_inferred_from(const object &target) const override;
 	};
 }

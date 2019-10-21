@@ -11,15 +11,15 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::numeric_comparison
 	if (left_type == nullptr || right_type == nullptr)
 		throw exception::invalid_type();
 
-	auto left_number_type = dynamic_cast<type::number_primitive *>(left_type->get_non_proxy());
+	auto left_number_type = left_type->as<type::number_primitive>();
 	if (left_number_type == nullptr)
 		throw exception::unsupported_op();
 
 	auto compatible_left_value = left_value, compatible_right_value = right_value;
-	auto right_number_type = dynamic_cast<type::number_primitive *>(right_type->get_non_proxy());
+	auto right_number_type = right_type->as<type::number_primitive>();
 
 	if (right_number_type == nullptr){
-		if (right_type->is(type::object::query_type::string)){
+		if (right_type->is<type::string>()){
 			auto left_string_value = left_number_type->get_string_value(left_value);
 			auto right_string_value = runtime::object::global_storage->get_string_value(right_value);
 
@@ -29,18 +29,18 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::numeric_comparison
 			return create_value_(evaluate_string_(op, left_string_value, right_string_value));
 		}
 
-		if ((compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::rval_static)) != nullptr){
+		if ((compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::static_rval)) != nullptr){
 			right_type = left_type;
 			right_number_type = left_number_type;
 		}
 	}
-	else if (left_number_type->has_precedence_over(*right_number_type)){
-		compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::rval_static);
+	else if (left_number_type->get_precedence(*right_number_type) == left_number_type->get_state()){
+		compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::static_rval);
 		right_type = left_type;
 		right_number_type = left_number_type;
 	}
 	else{//Convert left
-		compatible_left_value = left_type->cast(left_value, right_type, type::cast_type::rval_static);
+		compatible_left_value = left_type->cast(left_value, right_type, type::cast_type::static_rval);
 		left_type = right_type;
 		left_number_type = right_number_type;
 	}
@@ -49,27 +49,39 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::numeric_comparison
 		throw exception::incompatible_rval();
 
 	switch (left_number_type->get_state()){
+	case type::number_primitive::state_type::small_integer:
+		if (op == operators::id::spaceship)
+			return create_compare_value_(compare_numeric_<__int16>(compatible_left_value, compatible_right_value));
+		return create_value_(evaluate_numeric_<__int16>(op, compatible_left_value, compatible_right_value));
 	case type::number_primitive::state_type::integer:
 		if (op == operators::id::spaceship)
 			return create_compare_value_(compare_numeric_<__int32>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<__int32>(op, compatible_left_value, compatible_right_value));
-	case type::number_primitive::state_type::long_integer:
+	case type::number_primitive::state_type::big_integer:
 		if (op == operators::id::spaceship)
 			return create_compare_value_(compare_numeric_<__int64>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<__int64>(op, compatible_left_value, compatible_right_value));
+	case type::number_primitive::state_type::unsigned_small_integer:
+		if (op == operators::id::spaceship)
+			return create_compare_value_(compare_numeric_<unsigned __int16>(compatible_left_value, compatible_right_value));
+		return create_value_(evaluate_numeric_<unsigned __int16>(op, compatible_left_value, compatible_right_value));
 	case type::number_primitive::state_type::unsigned_integer:
 		if (op == operators::id::spaceship)
 			return create_compare_value_(compare_numeric_<unsigned __int32>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<unsigned __int32>(op, compatible_left_value, compatible_right_value));
-	case type::number_primitive::state_type::unsigned_long_integer:
+	case type::number_primitive::state_type::unsigned_big_integer:
 		if (op == operators::id::spaceship)
 			return create_compare_value_(compare_numeric_<unsigned __int64>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<unsigned __int64>(op, compatible_left_value, compatible_right_value));
-	case type::number_primitive::state_type::real:
+	case type::number_primitive::state_type::small_float:
 		if (op == operators::id::spaceship)
 			return create_compare_value_(compare_numeric_<float>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<float>(op, compatible_left_value, compatible_right_value));
-	case type::number_primitive::state_type::long_real:
+	case type::number_primitive::state_type::float_:
+		if (op == operators::id::spaceship)
+			return create_compare_value_(compare_numeric_<double>(compatible_left_value, compatible_right_value));
+		return create_value_(evaluate_numeric_<double>(op, compatible_left_value, compatible_right_value));
+	case type::number_primitive::state_type::big_float:
 		if (op == operators::id::spaceship)
 			return create_compare_value_(compare_numeric_<long double>(compatible_left_value, compatible_right_value));
 		return create_value_(evaluate_numeric_<long double>(op, compatible_left_value, compatible_right_value));
@@ -151,8 +163,8 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer_comparison
 		throw exception::invalid_type();
 
 	auto compatible_left_value = left_value, compatible_right_value = right_value;
-	if ((compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::rval_static)) == nullptr){//Try casting left value
-		if ((compatible_left_value = left_type->cast(left_value, right_type, type::cast_type::rval_static)) != nullptr)
+	if ((compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::static_rval)) == nullptr){//Try casting left value
+		if ((compatible_left_value = left_type->cast(left_value, right_type, type::cast_type::static_rval)) != nullptr)
 			compatible_right_value = right_value;
 		else//Failed both conversions
 			throw exception::unsupported_op();

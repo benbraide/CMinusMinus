@@ -31,7 +31,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::enum_
 	if (left_type == nullptr || right_type == nullptr)
 		throw exception::invalid_type();
 
-	auto compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::rval_static);
+	auto compatible_right_value = right_type->cast(right_value, left_type, type::cast_type::static_rval);
 	if (compatible_right_value == nullptr)
 		throw exception::unsupported_op();
 

@@ -23,12 +23,20 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::point
 	if (target_type == nullptr)
 		throw exception::invalid_type();
 
-	auto base_type = target_type->convert(type::object::conversion_type::remove_pointer, target_type);
+	auto pointer_target_type = target_type->as<type::pointer_primitive>();
+	if (pointer_target_type == nullptr)
+		throw exception::unsupported_op();
+
+	auto base_type = pointer_target_type->get_base_type();
 	if (base_type == nullptr)
 		throw exception::unsupported_op();
 
+	auto base_size = base_type->get_size();
+	if (base_size == 0u)
+		throw exception::unsupported_op();
+
 	if (is_lval)//Increment | Decrement
-		return evaluate_integral_<std::size_t>(op, target, true, base_type->get_size());
+		return evaluate_integral_<std::size_t>(op, target, true, base_size);
 
 	return std::make_shared<memory::reference>(target->read_scalar<std::size_t>(), base_type, nullptr);
 }

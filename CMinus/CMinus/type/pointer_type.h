@@ -17,15 +17,19 @@ namespace cminus::type{
 
 		virtual bool is_exact(const object &target) const override;
 
-		virtual int get_score(const object &target) const override;
+		virtual int get_score(const object &target, bool is_lval, bool is_const) const override;
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 
-		virtual std::shared_ptr<object> convert(conversion_type type, std::shared_ptr<object> self_or_other = nullptr) const override;
-
-		virtual bool is(query_type type, const object *arg = nullptr) const override;
-
 		virtual evaluator::object::id_type get_evaluator_id() const override;
+
+		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
+
+		virtual bool can_be_inferred_from(const object &target) const override;
+
+		virtual bool is_inferred() const override;
+
+		virtual std::shared_ptr<object> get_base_type() const;
 
 	protected:
 		std::shared_ptr<object> base_type_;

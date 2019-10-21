@@ -15,11 +15,9 @@ namespace cminus::type{
 
 		virtual bool is_exact(const object &target) const override;
 
-		virtual int get_score(const object &target) const override;
+		virtual int get_score(const object &target, bool is_lval, bool is_const) const override;
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
-
-		virtual bool is(query_type type, const object *arg = nullptr) const override;
 
 		virtual std::shared_ptr<object> get_base_type() const;
 
@@ -44,7 +42,7 @@ namespace cminus::type{
 		virtual std::shared_ptr<memory::reference> get_indexed(std::shared_ptr<memory::reference> data, std::size_t index) const;
 
 	protected:
-		virtual void construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const override;
+		virtual void construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const override;
 
 		std::size_t count_;
 	};
@@ -55,7 +53,7 @@ namespace cminus::type{
 
 		virtual ~expansion_variadic();
 
-		virtual void extend_argument_list(std::shared_ptr<memory::reference> data, std::list<std::shared_ptr<memory::reference>> &list) const override;
+		virtual void extend_argument_list(std::shared_ptr<memory::reference> data, std::vector<std::shared_ptr<memory::reference>> &list) const;
 
 		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 	};

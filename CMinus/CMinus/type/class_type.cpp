@@ -40,19 +40,6 @@ cminus::storage::object *cminus::type::class_::get_parent() const{
 	return type_base::get_parent();
 }
 
-bool cminus::type::class_::is_constructible(std::shared_ptr<memory::reference> target) const{
-	auto constructor = find_function_(get_name());
-	if (constructor == nullptr || constructor->get_id() != declaration::callable::id_type::constructor)
-		return false;
-
-	try{
-		return (constructor->find(dummy_context_, std::list<std::shared_ptr<memory::reference>>{ target }) != nullptr);
-	}
-	catch (const declaration::exception::ambiguous_function_call &){}
-
-	return false;
-}
-
 void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) const{
 	auto destructor = find_function_(("~" + get_name()));
 	if (destructor == nullptr)
@@ -64,7 +51,7 @@ void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) c
 		throw runtime::exception::bad_destructor();
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::type::class_::get_default_value(std::shared_ptr<type_base> self) const{
+std::shared_ptr<cminus::memory::reference> cminus::type::class_::get_default_value() const{
 	return nullptr;
 }
 
@@ -77,7 +64,7 @@ void cminus::type::class_::print_value(io::writer &writer, std::shared_ptr<memor
 	if (value == nullptr)
 		throw runtime::exception::not_supported();
 
-	auto str_value = value->get_type()->cast(value, runtime::object::global_storage->get_string_type(), cast_type::rval_static);
+	auto str_value = value->get_type()->cast(value, runtime::object::global_storage->get_string_type(), cast_type::static_rval);
 	if (str_value == nullptr)
 		throw runtime::exception::not_supported();
 
@@ -89,62 +76,18 @@ std::size_t cminus::type::class_::get_size() const{
 	return std::max(size_, static_cast<std::size_t>(1));
 }
 
-bool cminus::type::class_::is_exact(const type_base &target) const{
-	return (target.get_non_proxy() == this);
-}
-
-int cminus::type::class_::get_score(const type_base &target) const{
-	if (target.is(query_type::explicit_auto))
-		return get_score_value(score_result_type::auto_assignable);
-
-	auto class_target = dynamic_cast<class_ *>(target.get_non_proxy());
-	if (class_target == nullptr)
-		return get_score_value(score_result_type::nil);
-
-	if (class_target == this)
-		return get_score_value(score_result_type::exact);
-
-	return get_score_value((compute_base_offset_(*class_target, 0u) == static_cast<std::size_t>(-1)) ? score_result_type::nil : score_result_type::ancestor);
-}
-
-std::size_t cminus::type::class_::compute_base_offset(const type_base &base_type) const{
-	if (auto class_base_type = dynamic_cast<const class_ *>(base_type.get_non_proxy()); class_base_type != nullptr)
-		return compute_base_offset_(*class_base_type, 0u);
-	return static_cast<std::size_t>(-1);
+std::size_t cminus::type::class_::compute_base_offset(const class_ &base_type) const{
+	return compute_base_offset_(base_type, 0u);
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const{
-	if (type != cast_type::static_ && type != cast_type::rval_static)
+	if (!is_static_cast(type))
 		return nullptr;
 
 	if (auto callable = find_operator(*target_type); callable != nullptr)
-		return callable->call(data, std::list<std::shared_ptr<memory::reference>>{});
+		return callable->call(data, std::vector<std::shared_ptr<memory::reference>>{});
 
-	auto is_ref = target_type->is(query_type::ref);
-	if (is_ref && !target_type->is(query_type::const_) && !data->is_lvalue())
-		return nullptr;
-
-	auto class_target_type = dynamic_cast<class_ *>(target_type->convert(conversion_type::remove_ref_const, target_type)->get_non_proxy());
-	if (class_target_type == nullptr)
-		return nullptr;
-
-	std::size_t base_offset = 0u;
-	if (class_target_type != this && (base_offset = compute_base_offset_(*class_target_type, 0u)) == static_cast<std::size_t>(-1))
-		return nullptr;
-
-	if (is_ref || type == cast_type::rval_static)//No copying
-		return ((base_offset == 0u) ? data : data->apply_offset(base_offset, target_type->convert(conversion_type::remove_ref, target_type)));
-
-	return runtime::object::global_storage->copy(data, target_type->convert(conversion_type::remove_ref, target_type));
-}
-
-bool cminus::type::class_::is(query_type type, const type_base *arg) const{
-	if (type == query_type::offspring_of || type == query_type::child_of){
-		if (auto class_arg = dynamic_cast<const class_ *>(arg); class_arg != nullptr)
-			return is_base_type_(*class_arg, (type == query_type::offspring_of));
-	}
-
-	return (type == query_type::class_);
+	return nullptr;
 }
 
 bool cminus::type::class_::is_accessible(unsigned int access) const{
@@ -216,11 +159,7 @@ bool cminus::type::class_::exists(const type::object &target_type) const{
 std::shared_ptr<cminus::memory::reference> cminus::type::class_::find(const std::string &name, std::shared_ptr<memory::reference> context, bool search_tree) const{
 	{//Scoped lock
 		std::lock_guard<std::mutex> guard(lock_);
-
-		auto context_type = context->get_type();
-		auto non_const_ref_context_type = context_type->convert(conversion_type::remove_ref_const, context_type);
-
-		if (auto entry = find_(name, ((non_const_ref_context_type->get_non_proxy() == this) ? context : nullptr), 0u); entry != nullptr || !search_tree)
+		if (auto entry = find_(name, ((context->get_type()->remove_const_ref() == this) ? context : nullptr), 0u); entry != nullptr || !search_tree)
 			return entry;
 	}
 
@@ -278,6 +217,10 @@ cminus::declaration::callable_group *cminus::type::class_::find_function(const s
 	return find_function_(name);
 }
 
+bool cminus::type::class_::is_constructible_from(const type_base &target_type, bool is_lval, bool is_const) const{
+	return false;
+}
+
 bool cminus::type::class_::is_assignable_to(std::shared_ptr<type_base> target_type) const{
 	return (find_operator(*target_type, false) != nullptr);
 }
@@ -299,7 +242,7 @@ void cminus::type::class_::compile(){
 	compile_();
 }
 
-void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const{
+void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const{
 	auto constructor = find_function_(get_name());
 	if (constructor == nullptr)
 		throw declaration::exception::function_not_found();
@@ -347,7 +290,7 @@ bool cminus::type::class_::add_(std::shared_ptr<declaration::object> entry, std:
 void cminus::type::class_::add_variable_(std::shared_ptr<declaration::variable> entry, std::size_t address){
 	auto entry_type = entry->get_type();
 	auto entry_memory_size = entry_type->get_memory_size();
-	if (entry_memory_size == 0u && !entry_type->is(query_type::class_))
+	if (entry_memory_size == 0u && !entry_type->is<class_>())
 		throw declaration::exception::bad_declaration();
 
 	if (!entry->is(declaration::flags::static_)){
@@ -474,7 +417,7 @@ cminus::declaration::callable_group *cminus::type::class_::find_operator_(const 
 		if (exact && entry.key->is_exact(target_type))
 			return entry.group.get();
 
-		if (!exact && entry.key->get_score(target_type) != get_score_value(score_result_type::nil))
+		if (!exact && entry.key->get_score(target_type, false, false) != get_score_value(score_result_type::nil))
 			return entry.group.get();
 	}
 

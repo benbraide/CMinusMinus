@@ -5,7 +5,7 @@
 namespace cminus::declaration{
 	class function_group : public callable_group{
 	public:
-		using list_type = std::list<std::shared_ptr<callable>>;
+		using list_type = std::vector<std::shared_ptr<callable>>;
 
 		function_group(callable::id_type id, const std::string &name, storage::object *parent, std::size_t address);
 
@@ -23,7 +23,7 @@ namespace cminus::declaration{
 
 		virtual std::shared_ptr<callable> find(const type::object &target_type) const override;
 
-		virtual std::shared_ptr<callable> find(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const override;
+		virtual std::shared_ptr<callable> find(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const override;
 
 		virtual void traverse_list(const std::function<void(std::shared_ptr<callable>)> &callback) override;
 

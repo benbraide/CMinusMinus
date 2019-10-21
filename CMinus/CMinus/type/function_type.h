@@ -1,9 +1,9 @@
 #pragma once
 
-#include "type_object.h"
+#include "primitive_type.h"
 
 namespace cminus::type{
-	class function : public object{
+	class function : public primitive{
 	public:
 		function(bool is_constant, std::shared_ptr<object> return_type);
 
@@ -21,20 +21,16 @@ namespace cminus::type{
 
 		virtual bool is_exact(const object &target) const override;
 
-		virtual int get_score(const object &target) const override;
-
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
-
-		virtual bool is(query_type type, const object *arg = nullptr) const override;
 
 		virtual void add_parameter_type(std::shared_ptr<object> value);
 
+		virtual bool is_exact_parameter_types(const function &target) const;
+
+		virtual bool is_exact_return_type(const function &function_target) const;
+
 	protected:
 		virtual void compute_name_();
-
-		virtual bool is_exact_return_type_(const function &function_target) const;
-
-		virtual bool is_exact_parameter_types_(const function &function_target) const;
 
 		bool is_constant_;
 		std::shared_ptr<object> return_type_;

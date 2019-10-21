@@ -39,29 +39,35 @@ bool cminus::evaluator::compound_assignment::assign(operators::id op, object::me
 	if (left_type == nullptr || right_type == nullptr)
 		throw exception::invalid_type();
 
-	if (is_integral && !left_type->is(type::object::query_type::integral))
-		throw exception::unsupported_op();
-
-	auto left_number_type = dynamic_cast<type::number_primitive *>(left_type->get_non_proxy());
+	auto left_number_type = left_type->as<type::number_primitive>();
 	if (left_number_type == nullptr)
 		throw exception::unsupported_op();
 
-	auto compatible_value = right_type->cast(right_value, right_type, type::cast_type::rval_static);
+	if (is_integral && !left_number_type->is_integral())
+		throw exception::unsupported_op();
+
+	auto compatible_value = right_type->cast(right_value, right_type, type::cast_type::static_rval);
 	if (compatible_value == nullptr)
 		throw exception::incompatible_rval();
 
 	switch (left_number_type->get_state()){
+	case type::number_primitive::state_type::small_integer:
+		return evaluate_and_assign_integral_<__int16>(op, left_value, right_value);
 	case type::number_primitive::state_type::integer:
 		return evaluate_and_assign_integral_<__int32>(op, left_value, right_value);
-	case type::number_primitive::state_type::long_integer:
+	case type::number_primitive::state_type::big_integer:
 		return evaluate_and_assign_integral_<__int64>(op, left_value, right_value);
+	case type::number_primitive::state_type::unsigned_small_integer:
+		return evaluate_and_assign_integral_<unsigned __int16>(op, left_value, right_value);
 	case type::number_primitive::state_type::unsigned_integer:
 		return evaluate_and_assign_integral_<unsigned __int32>(op, left_value, right_value);
-	case type::number_primitive::state_type::unsigned_long_integer:
+	case type::number_primitive::state_type::unsigned_big_integer:
 		return evaluate_and_assign_integral_<unsigned __int64>(op, left_value, right_value);
-	case type::number_primitive::state_type::real:
+	case type::number_primitive::state_type::small_float:
 		return evaluate_and_assign_<float>(op, left_value, right_value);
-	case type::number_primitive::state_type::long_real:
+	case type::number_primitive::state_type::float_:
+		return evaluate_and_assign_<double>(op, left_value, right_value);
+	case type::number_primitive::state_type::big_float:
 		return evaluate_and_assign_<long double>(op, left_value, right_value);
 	default:
 		break;

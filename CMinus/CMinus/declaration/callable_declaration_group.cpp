@@ -11,7 +11,7 @@ void cminus::declaration::callable_group::add(std::shared_ptr<callable> entry){
 		throw exception::function_expected();
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::declaration::callable_group::call(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{
+std::shared_ptr<cminus::memory::reference> cminus::declaration::callable_group::call(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const{
 	auto entry = find(context, args);
 	if (entry == nullptr)
 		throw exception::function_not_found();

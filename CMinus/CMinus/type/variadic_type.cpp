@@ -14,20 +14,19 @@ void cminus::type::variadic::print_value(io::writer &writer, std::shared_ptr<mem
 }
 
 bool cminus::type::variadic::is_exact(const object &target) const{
-	auto variadic_target = dynamic_cast<variadic *>(target.get_non_proxy());
+	if (object::is_exact(target))
+		return true;
+
+	auto variadic_target = target.as<variadic>(false);
 	return (variadic_target != nullptr && base_type_->is_exact(*variadic_target->base_type_));
 }
 
-int cminus::type::variadic::get_score(const object &target) const{
+int cminus::type::variadic::get_score(const object &target, bool is_lval, bool is_const) const{
 	return get_score_value(score_result_type::nil);
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::variadic::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
 	return nullptr;
-}
-
-bool cminus::type::variadic::is(query_type type, const object *arg) const{
-	return (type == query_type::variadic);
 }
 
 std::shared_ptr<cminus::type::object> cminus::type::variadic::get_base_type() const{
@@ -80,7 +79,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::in_memory_variadic::get
 	);
 }
 
-void cminus::type::in_memory_variadic::construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const{
+void cminus::type::in_memory_variadic::construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const{
 	std::size_t index = 0u;
 	for (auto arg : args){//Construct entries
 		if (auto entry = get_indexed(target, index); entry != nullptr)
@@ -92,7 +91,11 @@ void cminus::type::in_memory_variadic::construct_(std::shared_ptr<memory::refere
 
 cminus::type::expansion_variadic::~expansion_variadic() = default;
 
-void cminus::type::expansion_variadic::extend_argument_list(std::shared_ptr<memory::reference> data, std::list<std::shared_ptr<memory::reference>> &list) const{
+void cminus::type::expansion_variadic::extend_argument_list(std::shared_ptr<memory::reference> data, std::vector<std::shared_ptr<memory::reference>> &list) const{
+	if (count_ == 0u)
+		return;
+
+	list.reserve(list.size() + count_);
 	for (std::size_t index = 0u; index < count_; ++index)
 		list.push_back(get_indexed(data, index));
 }

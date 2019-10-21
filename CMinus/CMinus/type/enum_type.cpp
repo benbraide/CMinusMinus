@@ -4,7 +4,7 @@
 #include "enum_type.h"
 
 cminus::type::enum_::enum_(const std::string &name, storage_base *parent)
-	: type_base(name, parent){}
+	: primitive(name, parent){}
 
 cminus::type::enum_::~enum_(){
 	destroy_entries_();
@@ -46,51 +46,8 @@ std::size_t cminus::type::enum_::get_size() const{
 	return size_;
 }
 
-bool cminus::type::enum_::is_exact(const type_base &target) const{
-	return (target.get_non_proxy() == this);
-}
-
-int cminus::type::enum_::get_score(const type_base &target) const{
-	if (target.is(query_type::explicit_auto))
-		return get_score_value(score_result_type::auto_assignable);
-	return get_score_value(is_exact(target) ? score_result_type::exact : score_result_type::nil);
-}
-
-std::shared_ptr<cminus::memory::reference> cminus::type::enum_::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const{
-	if (type != cast_type::static_ && type != cast_type::rval_static)
-		return nullptr;
-
-	auto is_ref = target_type->is(query_type::ref);
-	auto is_lval = data->is_lvalue();
-
-	if (is_ref && !target_type->is(query_type::const_) && !is_lval)
-		return nullptr;
-
-	if (type == cast_type::rval_static || !is_lval || is_ref)
-		return data;//No copy needed
-
-	switch (size_){
-	case sizeof(unsigned __int8):
-		return std::make_shared<memory::scalar_reference<unsigned __int8>>(target_type, data->read_scalar<unsigned __int8>());
-	case sizeof(unsigned __int16):
-		return std::make_shared<memory::scalar_reference<unsigned __int16>>(target_type, data->read_scalar<unsigned __int16>());
-	case sizeof(unsigned __int32):
-		return std::make_shared<memory::scalar_reference<unsigned __int32>>(target_type, data->read_scalar<unsigned __int32>());
-	case sizeof(unsigned __int64):
-		return std::make_shared<memory::scalar_reference<unsigned __int64>>(target_type, data->read_scalar<unsigned __int64>());
-	default:
-		break;
-	}
-
-	return nullptr;
-}
-
-std::shared_ptr<cminus::evaluator::object> cminus::type::enum_::get_evaluator() const{
-	return runtime::object::global_storage->get_evaluator(evaluator::object::id_type::enum_);
-}
-
-bool cminus::type::enum_::is(query_type type, const type_base *arg) const{
-	return (type == query_type::enum_ || type == query_type::primitive || type_base::is(type, arg));
+cminus::evaluator::object::id_type cminus::type::enum_::get_evaluator_id() const{
+	return evaluator::object::id_type::enum_;
 }
 
 void cminus::type::enum_::add(std::shared_ptr<declaration::object> entry, std::size_t address){
@@ -131,10 +88,6 @@ std::size_t cminus::type::enum_::get_item_index(const std::string &name) const{
 void cminus::type::enum_::compile(){
 	std::lock_guard<std::mutex> guard(lock_);
 	compile_();
-}
-
-void cminus::type::enum_::construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const{
-	throw declaration::exception::bad_declaration();
 }
 
 void cminus::type::enum_::del_(const std::string &name){

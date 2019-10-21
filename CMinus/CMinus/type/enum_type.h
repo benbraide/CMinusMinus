@@ -3,8 +3,10 @@
 #include "../storage/storage_object.h"
 #include "../declaration/declaration_object.h"
 
+#include "primitive_type.h"
+
 namespace cminus::type{
-	class enum_ : public type::object, public storage::unnamed_object{
+	class enum_ : public primitive, public storage::unnamed_object{
 	public:
 		using type_base = type::object;
 		using storage_base = storage::unnamed_object;
@@ -23,15 +25,7 @@ namespace cminus::type{
 
 		virtual std::size_t get_size() const override;
 
-		virtual bool is_exact(const type_base &target) const override;
-
-		virtual int get_score(const type_base &target) const override;
-
-		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const override;
-
-		virtual std::shared_ptr<evaluator::object> get_evaluator() const override;
-
-		virtual bool is(query_type type, const type_base *arg = nullptr) const override;
+		virtual evaluator::object::id_type get_evaluator_id() const override;
 
 		virtual void add(std::shared_ptr<declaration::object> entry, std::size_t address) override;
 
@@ -46,8 +40,6 @@ namespace cminus::type{
 		virtual void compile();
 
 	protected:
-		virtual void construct_(std::shared_ptr<memory::reference> target, const std::list<std::shared_ptr<memory::reference>> &args) const override;
-
 		virtual void del_(const std::string &name) override;
 
 		virtual bool exists_(const std::string &name, entry_type type) const override;
