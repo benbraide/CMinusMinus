@@ -17,12 +17,6 @@ cminus::type::primitive::primitive(const std::string &name, storage::object *par
 
 cminus::type::primitive::~primitive() = default;
 
-int cminus::type::primitive::get_score(const object &target, bool is_lval, bool is_const) const{
-	if (auto result = object::get_score(target, is_lval, is_const); result != get_score_value(score_result_type::not_handled))
-		return result;
-	return get_score_value(score_result_type::nil);
-}
-
 std::shared_ptr<cminus::memory::reference> cminus::type::primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
 	auto data_is_lval = data->is_lvalue();
 	if (!is_valid_static_cast(type, data_is_lval, data->is_const()))
@@ -309,17 +303,6 @@ std::size_t cminus::type::number_primitive::get_size() const{
 	return size_;
 }
 
-int cminus::type::number_primitive::get_score(const object &target, bool is_lval, bool is_const) const{
-	if (auto result = object::get_score(target, is_lval, is_const); result != get_score_value(score_result_type::not_handled))
-		return result;
-
-	auto number_target = dynamic_cast<const number_primitive *>(target.remove_const_ref());
-	if (number_target == nullptr)
-		return get_score_value(score_result_type::nil);
-
-	return get_score_value((number_target->state_ == state_ && number_target->size_ == size_) ? score_result_type::exact : score_result_type::assignable);
-}
-
 std::shared_ptr<cminus::memory::reference> cminus::type::number_primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
 	auto base_target_type = target_type->remove_const_ref();
 	auto number_target_type = dynamic_cast<const number_primitive *>(base_target_type);
@@ -589,11 +572,13 @@ cminus::type::number_primitive::state_type cminus::type::number_primitive::get_p
 	return target.state_;
 }
 
-const float cminus::type::numeric_constants::small_float_nan_value = std::numeric_limits<float>::min();
+int cminus::type::number_primitive::get_score_(const object &target, bool is_lval, bool is_const) const{
+	auto number_target = dynamic_cast<const number_primitive *>(target.remove_const_ref());
+	if (number_target == nullptr)
+		return get_score_value(score_result_type::nil);
 
-const double cminus::type::numeric_constants::float_nan_value = std::numeric_limits<double>::min();
-
-const long double cminus::type::numeric_constants::big_float_nan_value = std::numeric_limits<long double>::min();
+	return get_score_value((number_target->state_ == state_ && number_target->size_ == size_) ? score_result_type::exact : score_result_type::assignable);
+}
 
 cminus::type::function_primitive::function_primitive()
 	: base_type("FunctionType"){}

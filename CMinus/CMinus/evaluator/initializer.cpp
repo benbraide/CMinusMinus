@@ -14,7 +14,7 @@ void cminus::evaluator::initializer::initialize(std::shared_ptr<memory::referenc
 		if (!value->is_lvalue())
 			throw exception::rval_ref_assignment();
 
-		if (value->is_const())
+		if ((runtime::object::state & runtime::flags::ignore_const_ref) == 0u && value->is_const())
 			throw exception::const_ref_assignment();
 
 		cast_type = type::cast_type::static_ref;

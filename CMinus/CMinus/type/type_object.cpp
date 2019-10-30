@@ -76,34 +76,30 @@ bool cminus::type::object::is_exact(const object &target) const{
 }
 
 int cminus::type::object::get_score(const object &target, bool is_lval, bool is_const) const{
-	auto target_is_ref = target.is_ref();
-	auto target_is_const = target.is_const();
+	auto is_ref_target = target.is_ref();
+	auto is_const_target = target.is_const();
 
-	if (target_is_ref && !target_is_const && (!is_lval && is_const))
+	if (is_ref_target && !is_const_target && (!is_lval && is_const))
 		return get_score_value(score_result_type::nil);
 
 	auto base_target = target.remove_const_ref();
 	if (target.is<auto_primitive>() || base_target->can_be_inferred_from(*this))
-		return get_score_value(score_result_type::inferable, ((target_is_const == is_const) ? 0 : -1));
+		return get_score_value(score_result_type::inferable, ((is_const_target == is_const) ? 0 : -1));
 
-	auto base_self = remove_const_ref();
-	if (base_self->is_exact(*base_target))
-		return get_score_value(score_result_type::exact, ((target_is_const == is_const) ? 0 : -1));
+	if (remove_const_ref()->is_exact(*base_target))
+		return get_score_value(score_result_type::exact, ((is_const_target == is_const) ? 0 : -1));
 
-	auto class_target = target.as<class_>();
-	if (class_target == nullptr)
-		return get_score_value(score_result_type::not_handled);
+	if (is_ref_target && !is_const_target)//No conversions
+		return get_no_conversion_score_(target, is_lval, is_const);
 
-	if (auto class_self = as<class_>(); class_self != nullptr && class_self->is_base_type(*class_target, true))
-		return get_score_value(score_result_type::class_compatible, ((target_is_const == is_const) ? 0 : -1));
+	if (auto class_target = target.as<class_>(); class_target != nullptr && class_target->is_constructible_from(*this, is_lval, is_const))
+		return get_score_value(score_result_type::class_compatible, ((is_const_target == is_const) ? 0 : -1));
 
-	if (target_is_ref && !target_is_const)//No conversion allowed
-		return get_score_value(score_result_type::nil);
+	auto result = get_score_(target, is_lval, is_const);
+	if (result == get_score_value(score_result_type::nil))
+		return result;
 
-	if (class_target->is_constructible_from(*base_self, is_lval, is_const))
-		return get_score_value(score_result_type::class_compatible);
-
-	return get_score_value(score_result_type::not_handled);
+	return (result + ((is_const_target == is_const) ? 0 : -1));
 }
 
 std::shared_ptr<cminus::evaluator::object> cminus::type::object::get_evaluator() const{
@@ -170,8 +166,6 @@ int cminus::type::object::get_score_value(score_result_type score, int offset){
 	case score_result_type::ancestor:
 	case score_result_type::class_compatible:
 		return (20 + offset);
-	case score_result_type::not_handled:
-		return -1;
 	default:
 		break;
 	}
@@ -241,4 +235,12 @@ void cminus::type::object::construct_(std::shared_ptr<memory::reference> target,
 		get_initializer()->initialize(target, *args.rbegin());
 	else
 		throw declaration::exception::initialization_required();
+}
+
+int cminus::type::object::get_score_(const object &target, bool is_lval, bool is_const) const{
+	return get_score_value(score_result_type::nil);
+}
+
+int cminus::type::object::get_no_conversion_score_(const object &target, bool is_lval, bool is_const) const{
+	return get_score_value(score_result_type::nil);
 }

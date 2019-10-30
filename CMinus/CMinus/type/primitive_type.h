@@ -20,8 +20,6 @@ namespace cminus::type{
 
 		virtual ~primitive();
 
-		virtual int get_score(const object &target, bool is_lval, bool is_const) const override;
-
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 
 		virtual std::shared_ptr<evaluator::object> get_evaluator() const override;
@@ -150,83 +148,69 @@ namespace cminus::type{
 		virtual evaluator::object::id_type get_evaluator_id() const override;
 	};
 
-	struct numeric_constants{
-		static const __int64 small_integer_nan_value = std::numeric_limits<__int16>::min();
-		static const __int32 integer_nan_value = std::numeric_limits<__int32>::min();
-		static const __int64 big_integer_nan_value = std::numeric_limits<__int64>::min();
-
-		static const unsigned __int64 unsigned_small_integer_nan_value = std::numeric_limits<unsigned __int16>::max();
-		static const unsigned __int32 unsigned_integer_nan_value = std::numeric_limits<unsigned __int32>::max();
-		static const unsigned __int64 unsigned_big_integer_nan_value = std::numeric_limits<unsigned __int64>::max();
-
-		static const float small_float_nan_value;
-		static const double float_nan_value;
-		static const long double big_float_nan_value;
-	};
-
 	template <class target_type>
 	struct get_nan;
 
 	template <>
 	struct get_nan<__int16>{
 		static constexpr __int16 value(){
-			return numeric_constants::small_integer_nan_value;
-		}
-	};
-
-	template <>
-	struct get_nan<unsigned __int16>{
-		static constexpr unsigned __int16 value(){
-			return numeric_constants::unsigned_small_integer_nan_value;
+			return std::numeric_limits<__int16>::min();
 		}
 	};
 
 	template <>
 	struct get_nan<__int32>{
 		static constexpr __int32 value(){
-			return numeric_constants::integer_nan_value;
-		}
-	};
-
-	template <>
-	struct get_nan<unsigned __int32>{
-		static constexpr unsigned __int32 value(){
-			return numeric_constants::unsigned_integer_nan_value;
+			return std::numeric_limits<__int32>::min();
 		}
 	};
 
 	template <>
 	struct get_nan<__int64>{
 		static constexpr __int64 value(){
-			return numeric_constants::big_integer_nan_value;
+			return std::numeric_limits<__int64>::min();
+		}
+	};
+
+	template <>
+	struct get_nan<unsigned __int16>{
+		static constexpr unsigned __int16 value(){
+			return std::numeric_limits<unsigned __int16>::max();
+		}
+	};
+
+	template <>
+	struct get_nan<unsigned __int32>{
+		static constexpr unsigned __int32 value(){
+			return std::numeric_limits<unsigned __int32>::max();
 		}
 	};
 
 	template <>
 	struct get_nan<unsigned __int64>{
 		static constexpr unsigned __int64 value(){
-			return numeric_constants::unsigned_big_integer_nan_value;
+			return std::numeric_limits<unsigned __int64>::max();
 		}
 	};
 
 	template <>
 	struct get_nan<float>{
 		static constexpr float value(){
-			return numeric_constants::small_float_nan_value;
+			return std::numeric_limits<float>::min();
 		}
 	};
 
 	template <>
 	struct get_nan<double>{
 		static constexpr double value(){
-			return numeric_constants::float_nan_value;
+			return std::numeric_limits<double>::min();
 		}
 	};
 
 	template <>
 	struct get_nan<long double>{
 		static constexpr long double value(){
-			return numeric_constants::big_float_nan_value;
+			return std::numeric_limits<long double>::min();
 		}
 	};
 
@@ -257,21 +241,21 @@ namespace cminus::type{
 	template <>
 	struct get_max_non_nan<unsigned __int16>{
 		static constexpr unsigned __int16 value(){
-			return static_cast<unsigned __int16>(numeric_constants::unsigned_small_integer_nan_value - 1ui16);
+			return static_cast<unsigned __int16>(get_nan<unsigned __int16>::value() - 1ui16);
 		}
 	};
 
 	template <>
 	struct get_max_non_nan<unsigned __int32>{
 		static constexpr unsigned __int32 value(){
-			return (numeric_constants::unsigned_integer_nan_value - 1ui32);
+			return (get_nan<unsigned __int32>::value() - 1ui32);
 		}
 	};
 
 	template <>
 	struct get_max_non_nan<unsigned __int64>{
 		static constexpr unsigned __int64 value(){
-			return (numeric_constants::unsigned_big_integer_nan_value - 1ui64);
+			return (get_nan<unsigned __int64>::value() - 1ui64);
 		}
 	};
 
@@ -302,21 +286,21 @@ namespace cminus::type{
 	template <>
 	struct get_min_non_nan<__int16>{
 		static constexpr __int16 value(){
-			return static_cast<__int16>(numeric_constants::small_integer_nan_value + 1i16);
+			return static_cast<__int16>(get_nan<__int16>::value() + 1i16);
 		}
 	};
 
 	template <>
 	struct get_min_non_nan<__int32>{
 		static constexpr __int32 value(){
-			return (numeric_constants::integer_nan_value + 1i32);
+			return (get_nan<__int32>::value() + 1i32);
 		}
 	};
 
 	template <>
 	struct get_min_non_nan<__int64>{
 		static constexpr __int64 value(){
-			return (numeric_constants::big_integer_nan_value + 1i64);
+			return (get_nan<__int64>::value() + 1i64);
 		}
 	};
 
@@ -344,21 +328,21 @@ namespace cminus::type{
 	template <>
 	struct get_min_non_nan<float>{
 		static constexpr float value(){
-			return (numeric_constants::small_float_nan_value + 1.0f);
+			return (get_nan<float>::value() + 1.0f);
 		}
 	};
 
 	template <>
 	struct get_min_non_nan<double>{
 		static constexpr double value(){
-			return (numeric_constants::float_nan_value + 1.0);
+			return (get_nan<double>::value() + 1.0);
 		}
 	};
 
 	template <>
 	struct get_min_non_nan<long double>{
 		static constexpr long double value(){
-			return (numeric_constants::big_float_nan_value + 1.0l);
+			return (get_nan<long double>::value() + 1.0l);
 		}
 	};
 
@@ -396,8 +380,6 @@ namespace cminus::type{
 		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 
 		virtual std::size_t get_size() const override;
-
-		virtual int get_score(const object &target, bool is_lval, bool is_const) const override;
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 
@@ -478,6 +460,8 @@ namespace cminus::type{
 		virtual state_type get_precedence(const number_primitive &target) const;
 
 	protected:
+		virtual int get_score_(const object &target, bool is_lval, bool is_const) const override;
+
 		template <typename target_type>
 		bool is_nan_(const memory::reference &data) const{
 			return (data.read_scalar<target_type>() == type::get_nan<target_type>::template value());

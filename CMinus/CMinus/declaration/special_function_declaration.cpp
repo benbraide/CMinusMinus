@@ -13,44 +13,27 @@ int cminus::declaration::member_function::get_context_score_(std::shared_ptr<mem
 	if (is(flags::static_) || context_declaration_ == nullptr)
 		return type::object::get_score_value(type::object::score_result_type::exact);
 
-	if (context == nullptr)
-		return type::object::get_score_value(is(flags::static_) ? type::object::score_result_type::exact : type::object::score_result_type::nil);
-
 	auto context_type = context->get_type();
-	auto context_class_type = dynamic_cast<type::class_ *>(context_type->get_non_proxy());
-
-	if (context_class_type == nullptr)
-		return type::object::get_score_value(type::object::score_result_type::nil);
-
-	auto this_context_type = context_declaration_->get_type();
-	auto context_is_const = context->is_const();
-	auto this_context_is_const = this_context_type->is(type::object::query_type::const_);
-
-	if (context_is_const && !this_context_is_const)
-		return type::object::get_score_value(type::object::score_result_type::nil);
-
-	auto non_const_ref_this_context_type = this_context_type->convert(type::object::conversion_type::remove_ref_const, this_context_type);
-	auto base_offset = context_class_type->compute_base_offset(*non_const_ref_this_context_type);
-
-	if (base_offset == static_cast<std::size_t>(-1))
-		return type::object::get_score_value(type::object::score_result_type::nil);
-
-	auto score = type::object::get_score_value((base_offset == 0u) ? type::object::score_result_type::exact : type::object::score_result_type::ancestor);
-	return ((context_is_const == this_context_is_const) ? score : (score - 1));
+	return get_arg_score_(context_declaration_->get_type(), arg_info{
+		context_type->remove_const_ref(),
+		true,
+		context->is_const()
+	});
 }
 
 void cminus::declaration::member_function::copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const{
 	if (context_declaration_ == nullptr)
 		return;
 
-	if (auto entry = context_declaration_->evaluate(0u); entry != nullptr)
+	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::ignore_rval_ref));
+	if (auto entry = context_declaration_->evaluate(0u, context); entry != nullptr)
 		runtime::object::current_storage->get_first_of<storage::class_member>()->set_context(entry);
 	else
 		throw memory::exception::allocation_failure();
 }
 
-std::size_t cminus::declaration::member_function::get_args_count_(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const{
-	return args.size();
+std::size_t cminus::declaration::member_function::get_args_count_(std::shared_ptr<memory::reference> context, std::size_t args_count) const{
+	return args_count;
 }
 
 void cminus::declaration::member_function::init_context_(type::class_ &parent){
@@ -65,7 +48,7 @@ void cminus::declaration::member_function::init_context_(type::class_ &parent){
 		std::shared_ptr<node::object>()
 	);
 
-	type_->add_parameter_type(context_declaration_->get_type());
+	dynamic_cast<type::function *>(type_.get())->add_parameter_type(context_declaration_->get_type());
 }
 
 cminus::declaration::defined_member_function::~defined_member_function() = default;
@@ -105,6 +88,11 @@ void cminus::declaration::constructor::add_init(std::shared_ptr<node::object> ke
 	init_list_.push_back(init_info{ key, initialization });
 }
 
+void cminus::declaration::constructor::copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const{
+	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::ignore_const_ref));
+	member_function::copy_context_(context, it);
+}
+
 void cminus::declaration::constructor::evaluate_body_() const{
 	auto class_parent = reinterpret_cast<type::class_ *>(parent_);
 	std::unordered_map<std::string, std::shared_ptr<node::object>> init_list;
@@ -139,19 +127,24 @@ void cminus::declaration::constructor::evaluate_body_() const{
 		}
 	}
 
-	for (auto &member_variable : reinterpret_cast<type::class_ *>(parent_)->get_member_variables()){
-		if (auto it = init_list.find(member_variable.value->get_name()); it != init_list.end()){
-			member_variable.value->get_type()->construct(
-				class_parent->find(member_variable.value->get_name(), self, false),
-				it->second
-			);
-		}
-		else{//Construct default
-			member_variable.value->get_type()->construct(
-				class_parent->find(member_variable.value->get_name(), self, false)
-			);
-		}
-	}
+	parent_->traverse_declarations([&](const storage::object::declaration_info &info){//Initialize members
+		if (info.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.resolved))
+			return;
+
+		std::shared_ptr<memory::reference> instance;
+		if (info.value->get_type()->is_ref())
+			instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
+		else
+			instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
+
+		if (instance == nullptr)
+			throw memory::exception::allocation_failure();
+
+		if (auto it = init_list.find(info.value->get_name()); it != init_list.end())
+			info.value->get_type()->construct(instance, it->second);
+		else//Construct default
+			info.value->get_type()->construct(instance);
+	});
 
 	function::evaluate_body_();
 }
@@ -185,23 +178,6 @@ bool cminus::declaration::external_constructor::is_defined() const{
 
 cminus::declaration::default_constructor::~default_constructor() = default;
 
-void cminus::declaration::default_constructor::evaluate_body_() const{
-	auto self = runtime::object::current_storage->find("self", false);
-	auto class_parent = reinterpret_cast<type::class_ *>(parent_);
-
-	for (auto &base_type : class_parent->get_base_types()){//Default construct base types
-		base_type.value->construct(
-			self->apply_offset(base_type.address_offset, base_type.value)
-		);
-	}
-
-	for (auto &member_variable : class_parent->get_member_variables()){//Default construct member variables
-		member_variable.value->get_type()->construct(
-			class_parent->find(member_variable.value->get_name(), self, false)
-		);
-	}
-}
-
 cminus::declaration::copy_constructor::~copy_constructor() = default;
 
 void cminus::declaration::copy_constructor::evaluate_body_() const{
@@ -216,12 +192,25 @@ void cminus::declaration::copy_constructor::evaluate_body_() const{
 		);
 	}
 
-	for (auto &member_variable : class_parent->get_member_variables()){//Copy construct member variables
-		member_variable.value->get_type()->construct(
-			class_parent->find(member_variable.value->get_name(), self, false),
-			class_parent->find(member_variable.value->get_name(), other, false)
-		);
-	}
+	parent_->traverse_declarations([&](const storage::object::declaration_info &info){//Initialize members
+		if (info.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.resolved))
+			return;
+
+		std::shared_ptr<memory::reference> instance, other_instance;
+		if (info.value->get_type()->is_ref()){
+			instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
+			other_instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.resolved), *info.value, other);
+		}
+		else{
+			instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
+			other_instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.resolved), *info.value, other);
+		}
+
+		if (instance != nullptr || other_instance == nullptr)
+			info.value->get_type()->construct(instance, other);
+		else
+			throw memory::exception::allocation_failure();
+	});
 }
 
 cminus::declaration::destructor::~destructor() = default;
@@ -230,20 +219,27 @@ cminus::declaration::callable::id_type cminus::declaration::destructor::get_id()
 	return id_type::destructor;
 }
 
+void cminus::declaration::destructor::copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const{
+	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::ignore_const_ref));
+	member_function::copy_context_(context, it);
+}
+
 void cminus::declaration::destructor::evaluate_body_() const{
 	function::evaluate_body_();
 
 	auto self = runtime::object::current_storage->find("self", false);
-	auto class_parent = dynamic_cast<type::class_ *>(parent_);
+	parent_->traverse_entries([&](const storage::object::entry_info &info){//Destruct members
+		if (info.decl == nullptr || info.decl->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.value) || !info.decl->get_type()->is<type::class_>())
+			return;
 
-	auto &member_variables = class_parent->get_member_variables();
-	for (auto it = member_variables.rbegin(); it != member_variables.rend(); ++it){
-		it->value->get_type()->destruct(
-			class_parent->find(it->value->get_name(), self, false)
-		);
-	}
+		auto instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.value), *info.decl, self);
+		if (instance == nullptr)
+			throw memory::exception::allocation_failure();
 
-	auto &base_types = class_parent->get_base_types();
+		info.decl->get_type()->destruct(instance);
+	}, true);
+
+	auto &base_types = dynamic_cast<type::class_ *>(parent_)->get_base_types();
 	for (auto it = base_types.rbegin(); it != base_types.rend(); ++it)
 		it->value->destruct(self->apply_offset(it->address_offset, it->value));
 }
@@ -354,11 +350,15 @@ bool cminus::declaration::external_member_operator::is_defined() const{
 cminus::declaration::type_operator::~type_operator() = default;
 
 cminus::declaration::callable::id_type cminus::declaration::type_operator::get_id() const{
-	return id_type::operator_;
+	return id_type::type_operator;
 }
 
 std::shared_ptr<cminus::type::object> cminus::declaration::type_operator::get_target_type() const{
 	return target_type_;
+}
+
+void cminus::declaration::type_operator::insert_target_type_(){
+	dynamic_cast<type::function *>(type_.get())->add_parameter_type(target_type_);
 }
 
 cminus::declaration::defined_type_operator::~defined_type_operator() = default;

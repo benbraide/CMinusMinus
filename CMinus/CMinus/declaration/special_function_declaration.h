@@ -25,7 +25,7 @@ namespace cminus::declaration{
 
 		virtual void copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const override;
 
-		virtual std::size_t get_args_count_(std::shared_ptr<memory::reference> context, const std::list<std::shared_ptr<memory::reference>> &args) const override;
+		virtual std::size_t get_args_count_(std::shared_ptr<memory::reference> context, std::size_t args_count) const override;
 
 		virtual void init_context_(type::class_ &parent);
 
@@ -77,6 +77,8 @@ namespace cminus::declaration{
 		virtual void add_init(std::shared_ptr<node::object> key, std::shared_ptr<node::object> initialization);
 
 	protected:
+		virtual void copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const override;
+
 		virtual void evaluate_body_() const override;
 
 		std::list<init_info> init_list_;
@@ -114,9 +116,6 @@ namespace cminus::declaration{
 		using external_constructor::external_constructor;
 
 		virtual ~default_constructor();
-
-	protected:
-		virtual void evaluate_body_() const override;
 	};
 
 	class copy_constructor : public external_constructor{
@@ -156,6 +155,8 @@ namespace cminus::declaration{
 		virtual id_type get_id() const override;
 
 	protected:
+		virtual void copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const override;
+
 		virtual void evaluate_body_() const override;
 	};
 
@@ -283,7 +284,9 @@ namespace cminus::declaration{
 	public:
 		template <typename attributes_type>
 		type_operator(std::shared_ptr<type::object> target_type, type::class_ &parent, const attributes_type &attributes, unsigned int flags)
-			: member_function(target_type_->get_qname(), parent, attributes, flags, target_type_), target_type_(target_type){}
+			: member_function("#TypeOperator#", parent, attributes, flags, target_type_), target_type_(target_type){
+			insert_target_type_();
+		}
 
 		virtual ~type_operator();
 
@@ -292,6 +295,8 @@ namespace cminus::declaration{
 		virtual std::shared_ptr<type::object> get_target_type() const;
 
 	protected:
+		virtual void insert_target_type_();
+
 		std::shared_ptr<type::object> target_type_;
 	};
 

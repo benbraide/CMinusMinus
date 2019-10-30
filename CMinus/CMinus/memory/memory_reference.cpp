@@ -2,23 +2,18 @@
 #include "../type/modified_type.h"
 
 #include "../storage/global_storage.h"
+#include "../declaration/variable_declaration.h"
 #include "../declaration/callable_declaration_group.h"
 
 #include "memory_reference.h"
 
-cminus::memory::reference::reference(std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
-	: type_(type), context_(context){
+cminus::memory::reference::reference(std::shared_ptr<type::object> type)
+	: type_(type){
 	allocate_memory_();
 }
 
-cminus::memory::reference::reference(std::shared_ptr<type::object> type)
-	: reference(type, nullptr){}
-
-cminus::memory::reference::reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
-	: type_(type), context_(context), address_(address){}
-
 cminus::memory::reference::reference(std::size_t address, std::shared_ptr<type::object> type)
-	: reference(address, type, nullptr){}
+	: type_(type), address_(address){}
 
 cminus::memory::reference::~reference(){
 	destruct_();
@@ -67,8 +62,7 @@ std::shared_ptr<cminus::memory::reference> cminus::memory::reference::apply_offs
 	auto target_type = ((type == nullptr) ? type_ : type);
 	auto entry = std::make_shared<memory::reference>(
 		(get_address() + value),
-		target_type->convert(type::object::conversion_type::remove_indirection, target_type),
-		context_
+		target_type->remove_const_ref(target_type)
 	);
 
 	if (entry != nullptr)//Copy l-value state
@@ -81,16 +75,12 @@ std::shared_ptr<cminus::memory::reference> cminus::memory::reference::clone() co
 	return apply_offset(0u, nullptr);
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::memory::reference::bound_context(std::shared_ptr<reference> value) const{
-	return std::make_shared<memory::reference>(address_, type_, value);
-}
-
 std::shared_ptr<cminus::memory::reference> cminus::memory::reference::get_context() const{
-	return context_;
+	return nullptr;
 }
 
 std::size_t cminus::memory::reference::get_address() const{
-	return address_;
+	return get_indirect_address();
 }
 
 std::size_t cminus::memory::reference::get_indirect_address() const{
@@ -102,15 +92,15 @@ std::size_t cminus::memory::reference::get_size() const{
 }
 
 bool cminus::memory::reference::is_lvalue() const{
-	return (is_lvalue_ && (context_ == nullptr || context_->is_lvalue()));
+	return is_lvalue_;
 }
 
 bool cminus::memory::reference::is_const() const{
-	return (type_->is(type::object::query_type::const_) || (context_ != nullptr && context_->is_const()));
+	return type_->is_const();
 }
 
 bool cminus::memory::reference::is_nan() const{
-	auto number_type = dynamic_cast<type::number_primitive *>(type_->convert(type::object::conversion_type::remove_ref_const, type_)->get_non_proxy());
+	auto number_type = type_->as<type::number_primitive>();
 	return (number_type != nullptr && number_type->is_nan(*this));
 }
 
@@ -155,16 +145,16 @@ void cminus::memory::reference::destruct_(){
 	}
 }
 
-cminus::memory::undefined_reference::undefined_reference(std::shared_ptr<reference> context)
-	: reference(0u, nullptr, context){}
+cminus::memory::undefined_reference::undefined_reference()
+	: reference(0u, runtime::object::global_storage->get_cached_type(storage::global::cached_type::undefined)){}
 
 cminus::memory::undefined_reference::~undefined_reference() = default;
 
-cminus::memory::declared_reference::declared_reference(const declaration::object &declaration, std::shared_ptr<reference> context)
-	: reference(declaration.get_type(), context), declaration_(&declaration){}
+cminus::memory::declared_reference::declared_reference(const declaration::object &declaration)
+	: reference(declaration.get_type()), declaration_(&declaration){}
 
-cminus::memory::declared_reference::declared_reference(std::size_t address, const declaration::object &declaration, std::shared_ptr<reference> context)
-	: reference(address, declaration.get_type(), context), declaration_(&declaration){}
+cminus::memory::declared_reference::declared_reference(std::size_t address, const declaration::object &declaration)
+	: reference(address, declaration.get_type()), declaration_(&declaration){}
 
 cminus::memory::declared_reference::~declared_reference(){
 	destruct_();
@@ -190,28 +180,46 @@ void cminus::memory::declared_reference::after_read_() const{
 
 }
 
-cminus::memory::function_reference::function_reference(declaration::callable_group &entry, std::shared_ptr<reference> context)
-	: reference(entry.get_address(), entry.get_type(), context){}
+cminus::memory::member_reference::member_reference(std::size_t address, const declaration::object &declaration, std::shared_ptr<reference> context)
+	: declared_reference(address, declaration), context_(context){}
 
-cminus::memory::function_reference::function_reference(declaration::callable_group &entry, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
-	: reference(entry.get_address(), ((type == nullptr) ? entry.get_type() : type), context){}
+cminus::memory::member_reference::member_reference(const declaration::callable_group &declaration, std::shared_ptr<reference> context)
+	: member_reference(declaration.get_address(), declaration, context){}
 
-cminus::memory::function_reference::function_reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
-	: reference(address, type, context){}
-
-cminus::declaration::callable_group *cminus::memory::function_reference::get_entry() const{
-	return read_scalar<declaration::callable_group *>();
+cminus::memory::member_reference::member_reference(const declaration::callable_group &declaration, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
+	: member_reference(declaration.get_address(), declaration, context){
+	type_ = type;
 }
 
-cminus::memory::function_reference::~function_reference() = default;
+cminus::memory::member_reference::~member_reference(){
+	destruct_();
+}
 
-cminus::memory::indirect_reference::indirect_reference(const declaration::object &declaration, std::shared_ptr<reference> context)
-	: declared_reference(0u, declaration, context){
+std::size_t cminus::memory::member_reference::get_indirect_address() const{
+	if (dynamic_cast<const declaration::callable_group *>(declaration_) == nullptr)
+		return (declared_reference::get_indirect_address() + context_->get_address());
+	return declared_reference::get_indirect_address();
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::memory::member_reference::get_context() const{
+	return context_;
+}
+
+bool cminus::memory::member_reference::is_lvalue() const{
+	return (dynamic_cast<const declaration::callable_group *>(declaration_) == nullptr && context_->is_lvalue());
+}
+
+bool cminus::memory::member_reference::is_const() const{
+	return (dynamic_cast<const declaration::callable_group *>(declaration_) != nullptr || declared_reference::is_const() || context_->is_const());
+}
+
+cminus::memory::indirect_reference::indirect_reference(const declaration::object &declaration)
+	: declared_reference(0u, declaration){
 	allocate_memory_();
 }
 
-cminus::memory::indirect_reference::indirect_reference(std::size_t address, const declaration::object &declaration, std::shared_ptr<reference> context)
-	: declared_reference(address, declaration, context){}
+cminus::memory::indirect_reference::indirect_reference(std::size_t address, const declaration::object &declaration)
+	: declared_reference(address, declaration){}
 
 cminus::memory::indirect_reference::~indirect_reference(){
 	destruct_();
@@ -239,13 +247,38 @@ std::size_t cminus::memory::indirect_reference::get_memory_size_() const{
 	return ((type_ == nullptr) ? 0u : sizeof(void *));
 }
 
+cminus::memory::indirect_member_reference::indirect_member_reference(std::size_t address, const declaration::object &declaration, std::shared_ptr<reference> context)
+	: indirect_reference(address, declaration), context_(context){}
+
+cminus::memory::indirect_member_reference::~indirect_member_reference(){
+	destruct_();
+}
+
+std::size_t cminus::memory::indirect_member_reference::get_indirect_address() const{
+	if (dynamic_cast<const declaration::variable *>(declaration_) == nullptr)
+		return indirect_reference::get_indirect_address();
+	return (indirect_reference::get_indirect_address() + context_->get_address());
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::memory::indirect_member_reference::get_context() const{
+	return context_;
+}
+
+bool cminus::memory::indirect_member_reference::is_lvalue() const{
+	return context_->is_lvalue();
+}
+
+bool cminus::memory::indirect_member_reference::is_const() const{
+	return (indirect_reference::is_const() || context_->is_const());
+}
+
 cminus::memory::rval_reference::rval_reference(std::shared_ptr<type::object> type)
-	: reference(type, nullptr){
+	: reference(type){
 	is_lvalue_ = false;
 }
 
 cminus::memory::rval_reference::rval_reference(std::size_t address, std::shared_ptr<type::object> type)
-	: reference(address, type, nullptr){
+	: reference(address, type){
 	is_lvalue_ = false;
 }
 

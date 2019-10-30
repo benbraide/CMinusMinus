@@ -1,5 +1,8 @@
 #include "declaration_object.h"
 
+cminus::declaration::object::object(const std::string &name, std::shared_ptr<type::object> type)
+	: object(name, type, attribute::collection::list_type{}, flags::nil){}
+
 cminus::declaration::object::~object() = default;
 
 const std::string &cminus::declaration::object::get_name() const{

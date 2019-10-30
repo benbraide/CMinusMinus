@@ -63,7 +63,7 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> find(const type::object &target_type, std::shared_ptr<memory::reference> context, bool exact = false) const;
 
-		virtual declaration::callable_group *find_operator(const type::object &target_type, bool exact = false) const;
+		virtual declaration::callable *find_operator(const type::object &target_type, bool exact = false, declaration::callable_group **group = nullptr) const;
 
 		virtual const member_variable_info *find_non_static_member(const std::string &name) const;
 
@@ -79,8 +79,6 @@ namespace cminus::type{
 
 		virtual bool is_base_type(const class_ &target, bool search_hierarchy) const;
 
-		virtual const std::list<member_variable_info> &get_member_variables() const;
-
 		virtual const std::list<base_type_info> &get_base_types() const;
 
 		virtual void compile();
@@ -88,29 +86,29 @@ namespace cminus::type{
 	protected:
 		virtual void construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const override;
 
+		virtual int get_score_(const type_base &target, bool is_lval, bool is_const) const override;
+
+		virtual int get_no_conversion_score_(const type_base &target, bool is_lval, bool is_const) const override;
+
 		using storage_base::exists_;
 		using storage_base::find_;
 		using storage_base::find_operator_;
 
-		virtual bool add_(std::shared_ptr<declaration::object> entry, std::size_t address) override;
+		virtual void acquire_lock_() const override;
+
+		virtual void release_lock_() const override;
 
 		virtual void add_variable_(std::shared_ptr<declaration::variable> entry, std::size_t address) override;
 
 		virtual void add_callable_(std::shared_ptr<declaration::callable> entry, std::size_t address) override;
 
-		virtual void add_operator_(std::shared_ptr<declaration::operator_> entry, std::size_t address) override;
-
-		virtual bool exists_(const std::string &name, entry_type type) const override;
-
 		virtual bool exists_(const type::object &target_type) const;
 
-		virtual std::shared_ptr<memory::reference> find_(const std::string &name) const override;
-
-		virtual std::shared_ptr<memory::reference> find_(const std::string &name, std::shared_ptr<memory::reference> context, std::size_t address_offset) const;
+		virtual std::shared_ptr<memory::reference> find_(const std::string &name, std::shared_ptr<memory::reference> context, std::size_t address) const override;
 
 		virtual std::shared_ptr<memory::reference> find_(const type::object &target_type, std::shared_ptr<memory::reference> context, bool exact) const;
 
-		virtual declaration::callable_group *find_operator_(const type::object &target_type, bool exact) const;
+		virtual declaration::callable *find_operator_(const type::object &target_type, bool exact, declaration::callable_group **group) const;
 
 		virtual storage::object *find_storage_(const std::string &name) const override;
 
@@ -126,26 +124,16 @@ namespace cminus::type{
 
 		virtual void compile_();
 
-		bool is_compiling_ = false;
-		std::list<type_operator_info> type_operators_;
-
-		std::list<member_variable_info> member_variables_;
-		std::unordered_map<std::string, member_variable_info *> member_variables_map_;
-
-		std::list<std::shared_ptr<declaration::variable>> static_declarations_;
-		std::unordered_map<std::string, std::shared_ptr<declaration::variable>> static_declarations_map_;
-
-		std::list<std::shared_ptr<declaration::callable_group>> deferred_callables_;
-		std::unordered_map<std::string, std::shared_ptr<declaration::callable_group>> deferred_callables_map_;
-
 		std::list<base_type_info> base_types_;
-		std::unordered_map<std::string, base_type_info *> base_types_map_;
 
 		std::size_t size_ = 0u;
 		std::size_t member_size_ = 0u;
 
 		std::size_t static_address_ = 0u;
 		std::size_t static_size_ = 0u;
+
+		std::size_t function_address_ = 0u;
+		std::size_t function_size_ = 0u;
 
 		std::shared_ptr<memory::reference> class_context_;
 		std::shared_ptr<memory::reference> dummy_context_;

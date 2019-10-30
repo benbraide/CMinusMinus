@@ -17,6 +17,8 @@ namespace cminus::runtime{
 		static const unsigned int silent_write				= (1u << 0x0002u);
 		static const unsigned int silent_read				= (1u << 0x0003u);
 		static const unsigned int silent_io					= (1u << 0x0004u);
+		static const unsigned int ignore_rval_ref			= (1u << 0x0005u);
+		static const unsigned int ignore_const_ref			= (1u << 0x0006u);
 	};
 
 	struct object{

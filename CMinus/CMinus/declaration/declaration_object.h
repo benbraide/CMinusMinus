@@ -26,6 +26,8 @@ namespace cminus::declaration{
 		object(const std::string &name, std::shared_ptr<type::object> type, const attributes_type &attributes, unsigned int flags)
 			: name_(name), type_(type), attributes_(attributes), flags_(flags){}
 
+		object(const std::string &name, std::shared_ptr<type::object> type);
+
 		virtual ~object();
 
 		virtual const std::string &get_name() const;

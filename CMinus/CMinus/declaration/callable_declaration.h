@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../type/type_object.h"
+#include "../type/function_type.h"
 
 #include "declaration_object.h"
 
@@ -28,8 +28,15 @@ namespace cminus::declaration{
 			function,
 			member,
 			operator_,
+			type_operator,
 			constructor,
 			destructor,
+		};
+
+		struct arg_info{
+			const type::object *type;
+			bool is_lval;
+			bool is_const;
 		};
 
 		virtual ~callable();
@@ -37,8 +44,6 @@ namespace cminus::declaration{
 		virtual id_type get_id() const = 0;
 
 		virtual storage::object *get_parent() const = 0;
-
-		virtual std::shared_ptr<type::object> get_type() const = 0;
 
 		virtual void add_parameter(std::shared_ptr<variable> value) = 0;
 
@@ -48,13 +53,19 @@ namespace cminus::declaration{
 
 		virtual bool is_defined() const = 0;
 
-		virtual int get_score(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const = 0;
+		virtual int get_score(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const = 0;
 
-		virtual std::shared_ptr<memory::reference> call(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const;
+		virtual int get_score(std::shared_ptr<memory::reference> context, const std::vector<arg_info> &args, std::size_t required_size) const = 0;
+
+		virtual int get_args_score(const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const = 0;
+
+		virtual int get_args_score(const std::vector<arg_info> &args, std::size_t required_size) const = 0;
+
+		virtual std::shared_ptr<memory::reference> call(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const;
 
 	protected:
 		friend class callable_group;
 
-		virtual std::shared_ptr<memory::reference> call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const = 0;
+		virtual std::shared_ptr<memory::reference> call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const = 0;
 	};
 }

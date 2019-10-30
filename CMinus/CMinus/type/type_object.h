@@ -40,57 +40,7 @@ namespace cminus::type{
 			offspring,
 			compatible,
 			class_compatible,
-			not_handled,
 		};
-
-		/*enum class query_type{
-			nil,
-			const_,
-			ref,
-			pointer,
-			const_pointer,
-			nullptr_,
-			array_,
-			function,
-			generic_function,
-			const_function,
-			variadic,
-			primitive,
-			scalar,
-			class_,
-			struct_,
-			enum_,
-			auto_,
-			explicit_auto,
-			undefined,
-			void_,
-			numeric,
-			floating_point,
-			integral,
-			unsigned_integral,
-			string,
-			boolean,
-			byte,
-			character,
-			inferred,
-			offspring_of,
-			child_of,
-			updatable,
-			modified,
-			exact_parameter_types,
-			exact_return_type,
-		};*/
-
-		/*enum class conversion_type{
-			nil,
-			correct_ref_const,
-			remove_ref,
-			remove_const,
-			remove_ref_const,
-			remove_indirection,
-			remove_pointer,
-			infer,
-		};*/
 
 		object(const std::string &name, storage::object *parent);
 
@@ -172,6 +122,10 @@ namespace cminus::type{
 
 	protected:
 		virtual void construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const;
+
+		virtual int get_score_(const object &target, bool is_lval, bool is_const) const;
+
+		virtual int get_no_conversion_score_(const object &target, bool is_lval, bool is_const) const;
 
 		std::string name_;
 		storage::object *parent_;

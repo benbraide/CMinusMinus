@@ -14,11 +14,7 @@ namespace cminus::declaration{
 namespace cminus::memory{
 	class reference{
 	public:
-		reference(std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
-
 		explicit reference(std::shared_ptr<type::object> type);
-
-		reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
 
 		reference(std::size_t address, std::shared_ptr<type::object> type);
 
@@ -48,8 +44,6 @@ namespace cminus::memory{
 		virtual std::shared_ptr<reference> apply_offset(std::size_t value, std::shared_ptr<type::object> type) const;
 
 		virtual std::shared_ptr<reference> clone() const;
-
-		virtual std::shared_ptr<reference> bound_context(std::shared_ptr<reference> value) const;
 
 		virtual std::shared_ptr<reference> get_context() const;
 
@@ -83,8 +77,6 @@ namespace cminus::memory{
 		virtual void destruct_();
 
 		std::shared_ptr<type::object> type_;
-		std::shared_ptr<reference> context_;
-
 		std::size_t address_ = 0u;
 		std::function<void()> deallocator_;
 
@@ -94,16 +86,16 @@ namespace cminus::memory{
 
 	class undefined_reference : public reference{
 	public:
-		explicit undefined_reference(std::shared_ptr<reference> context);
+		undefined_reference();
 
 		virtual ~undefined_reference();
 	};
 
 	class declared_reference : public reference{
 	public:
-		declared_reference(const declaration::object &declaration, std::shared_ptr<reference> context);
+		explicit declared_reference(const declaration::object &declaration);
 
-		declared_reference(std::size_t address, const declaration::object &declaration, std::shared_ptr<reference> context);
+		declared_reference(std::size_t address, const declaration::object &declaration);
 
 		virtual ~declared_reference();
 
@@ -121,24 +113,33 @@ namespace cminus::memory{
 		const declaration::object *declaration_;
 	};
 
-	class function_reference : public reference{
+	class member_reference : public declared_reference{
 	public:
-		function_reference(declaration::callable_group &entry, std::shared_ptr<reference> context);
+		member_reference(std::size_t address, const declaration::object &declaration, std::shared_ptr<reference> context);
 
-		function_reference(declaration::callable_group &entry, std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
+		member_reference(const declaration::callable_group &declaration, std::shared_ptr<reference> context);
 
-		function_reference(std::size_t address, std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
+		member_reference(const declaration::callable_group &declaration, std::shared_ptr<type::object> type, std::shared_ptr<reference> context);
 
-		virtual ~function_reference();
+		virtual ~member_reference();
 
-		virtual declaration::callable_group *get_entry() const;
+		virtual std::size_t get_indirect_address() const override;
+
+		virtual std::shared_ptr<reference> get_context() const override;
+
+		virtual bool is_lvalue() const override;
+
+		virtual bool is_const() const override;
+
+	protected:
+		std::shared_ptr<reference> context_;
 	};
 
 	class indirect_reference : public declared_reference{
 	public:
-		indirect_reference(const declaration::object &declaration, std::shared_ptr<reference> context);
+		explicit indirect_reference(const declaration::object &declaration);
 
-		indirect_reference(std::size_t address, const declaration::object &declaration, std::shared_ptr<reference> context);
+		indirect_reference(std::size_t address, const declaration::object &declaration);
 
 		virtual ~indirect_reference();
 
@@ -152,6 +153,24 @@ namespace cminus::memory{
 		virtual std::size_t get_memory_size_() const override;
 
 		std::shared_ptr<reference> owned_;
+	};
+
+	class indirect_member_reference : public indirect_reference{
+	public:
+		indirect_member_reference(std::size_t address, const declaration::object &declaration, std::shared_ptr<reference> context);
+
+		virtual ~indirect_member_reference();
+
+		virtual std::size_t get_indirect_address() const override;
+
+		virtual std::shared_ptr<reference> get_context() const override;
+
+		virtual bool is_lvalue() const override;
+
+		virtual bool is_const() const override;
+
+	protected:
+		std::shared_ptr<reference> context_;
 	};
 
 	class rval_reference : public reference{
