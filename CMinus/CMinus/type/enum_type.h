@@ -29,9 +29,9 @@ namespace cminus::type{
 
 		virtual void add(std::shared_ptr<declaration::object> entry, std::size_t address) override;
 
-		virtual void add(const std::string &name) override;
+		virtual void add_entry(std::shared_ptr<declaration::object> entry, std::shared_ptr<memory::reference> value, bool check_existing = true) override;
 
-		virtual void add_entry(const std::string &name, std::shared_ptr<memory::reference> value, bool check_existing = true) override;
+		virtual void add(const std::string &name);
 
 		virtual std::shared_ptr<memory::reference> get_item(std::size_t index) const;
 
@@ -40,11 +40,9 @@ namespace cminus::type{
 		virtual void compile();
 
 	protected:
-		virtual void del_(const std::string &name) override;
+		virtual bool exists_(const std::string &name) const override;
 
-		virtual bool exists_(const std::string &name, entry_type type) const override;
-
-		virtual std::shared_ptr<memory::reference> find_(const std::string &name) const override;
+		virtual std::shared_ptr<memory::reference> find_(const std::string &name, std::shared_ptr<memory::reference> context, std::size_t address) const override;
 
 		virtual void add_(const std::string &name);
 

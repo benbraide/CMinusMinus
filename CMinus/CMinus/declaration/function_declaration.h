@@ -10,8 +10,8 @@ namespace cminus::declaration{
 		using parameter_list_type = std::vector<std::shared_ptr<variable>>;
 
 		template <typename attributes_type>
-		function(const std::string &name, storage::object *parent, std::size_t address, const attributes_type &attributes, unsigned int flags, std::shared_ptr<type::object> return_type)
-			: callable(name, nullptr, attributes, (flags & ~declaration::flags::tls)), parent_(parent), address_(address){
+		function(const std::string &name, storage::object *parent, const attributes_type &attributes, unsigned int flags, std::shared_ptr<type::object> return_type)
+			: callable(name, nullptr, attributes, (flags & ~declaration::flags::tls)), parent_(parent){
 			init_(return_type);
 		}
 
@@ -82,7 +82,7 @@ namespace cminus::declaration{
 					return type::object::get_score_value(type::object::score_result_type::nil);
 			}
 
-			return ((arg_it == args.end() || required_size <= std::distance(args.begin(), arg_it)) ? lowest_rank_score : type::object::get_score_value(type::object::score_result_type::nil));
+			return ((arg_it == args.end() || required_size <= static_cast<std::size_t>(std::distance(args.begin(), arg_it))) ? lowest_rank_score : type::object::get_score_value(type::object::score_result_type::nil));
 		}
 
 		virtual int get_arg_score_(std::shared_ptr<type::object> param_type, const arg_info &info) const;
@@ -92,8 +92,6 @@ namespace cminus::declaration{
 		virtual std::size_t get_args_count_(std::shared_ptr<memory::reference> context, std::size_t args_count) const;
 
 		storage::object *parent_;
-		std::size_t address_;
-
 		std::shared_ptr<variable> return_declaration_;
 		parameter_list_type parameter_list_;
 

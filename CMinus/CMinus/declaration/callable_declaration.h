@@ -61,6 +61,8 @@ namespace cminus::declaration{
 
 		virtual int get_args_score(const std::vector<arg_info> &args, std::size_t required_size) const = 0;
 
+		virtual std::shared_ptr<memory::reference> call(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args) const;
+
 		virtual std::shared_ptr<memory::reference> call(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const;
 
 	protected:

@@ -7,6 +7,9 @@ namespace cminus::declaration{
 	public:
 		using list_type = std::list<std::shared_ptr<callable>>;
 
+		using callable_group::find;
+		using callable_group::find_by_args;
+
 		function_group(callable::id_type id, const std::string &name, storage::object *parent, std::size_t address);
 
 		virtual ~function_group();

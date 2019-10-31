@@ -4,11 +4,9 @@
 
 #include "comparison.h"
 #include "assignment.h"
-#include "arithmetic.h"
-#include "compound_assignment.h"
 
 namespace cminus::evaluator{
-	class pointer : public object, public assignment, public compound_assignment, public arithmetic, public pointer_comparison{
+	class pointer : public object, public assignment, public pointer_comparison{
 	public:
 		virtual ~pointer();
 

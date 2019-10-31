@@ -12,8 +12,7 @@ cminus::type::class_::class_(const std::string &name, storage_base *parent)
 	class_context_ = std::make_shared<memory::rval_reference>(0u, std::make_shared<type::proxy>(*this));
 	dummy_context_ = std::make_shared<memory::reference>(
 		0u,
-		class_context_->get_type(),
-		nullptr
+		class_context_->get_type()
 	);
 }
 
@@ -190,7 +189,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::find_non_static
 	if (entry == nullptr)
 		return nullptr;
 
-	return std::make_shared<memory::declared_reference>(
+	return std::make_shared<memory::member_reference>(
 		(context->get_address() + entry->address_offset),
 		*entry->value,
 		context

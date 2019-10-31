@@ -1,3 +1,4 @@
+#include "../type/string_type.h"
 #include "../storage/global_storage.h"
 
 #include "comparison.h"

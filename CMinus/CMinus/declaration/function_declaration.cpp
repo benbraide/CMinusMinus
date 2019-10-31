@@ -148,7 +148,7 @@ void cminus::declaration::function::copy_args_(std::shared_ptr<memory::reference
 	copy_context_(context, param_it);
 
 	std::shared_ptr<variable> variadic_declaration;
-	std::list<std::shared_ptr<memory::reference>> variadic_args;
+	std::vector<std::shared_ptr<memory::reference>> variadic_args;
 
 	std::shared_ptr<memory::reference> param_ref;	
 	for (; arg_it != args.end(); ++arg_it){
@@ -176,7 +176,7 @@ void cminus::declaration::function::copy_args_(std::shared_ptr<memory::reference
 			variadic_args.push_back(*arg_it);
 	}
 
-	if (arg_it != args.end() && std::distance(args.begin(), arg_it) < required_size)
+	if (arg_it != args.end() && static_cast<std::size_t>(std::distance(args.begin(), arg_it)) < required_size)
 		throw exception::bad_parameter_list();
 
 	for (; param_it != parameter_list_.end(); ++param_it){//Evaluate parameters with default values

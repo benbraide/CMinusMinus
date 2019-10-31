@@ -17,6 +17,8 @@ namespace cminus::node{
 
 		virtual std::shared_ptr<memory::reference> lookup(std::shared_ptr<memory::reference> context, bool search_tree) const;
 
+		virtual void evaluate_as_list(std::vector<std::shared_ptr<memory::reference>> &list) const;
+
 		virtual std::string evaluate_as_name() const;
 
 		virtual std::shared_ptr<type::object> evaluate_as_type(bool search_tree) const;

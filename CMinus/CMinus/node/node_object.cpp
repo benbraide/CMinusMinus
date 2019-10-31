@@ -25,6 +25,11 @@ std::shared_ptr<cminus::memory::reference> cminus::node::object::lookup(std::sha
 	return class_storage->find(name, context, search_tree);
 }
 
+void cminus::node::object::evaluate_as_list(std::vector<std::shared_ptr<memory::reference>> &list) const{
+	if (auto value = evaluate(); value != nullptr)
+		list.push_back(value);
+}
+
 std::string cminus::node::object::evaluate_as_name() const{
 	return "";
 }

@@ -74,8 +74,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::in_memory_variadic::get
 
 	return std::make_shared<memory::reference>(
 		(data->get_address() + (base_type_->get_memory_size() * index)),
-		base_type_,
-		nullptr
+		base_type_
 	);
 }
 

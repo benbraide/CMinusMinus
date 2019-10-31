@@ -46,8 +46,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::strin
 
 		return std::make_shared<memory::reference>(
 			(info.data + index),
-			runtime::object::global_storage->get_char_ref_type(left_value->is_const()),
-			nullptr
+			runtime::object::global_storage->get_char_ref_type(left_value->is_const())
 		);
 	}
 

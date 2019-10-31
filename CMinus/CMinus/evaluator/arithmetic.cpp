@@ -195,7 +195,6 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::create
 cminus::evaluator::object::memory_ptr_type cminus::evaluator::arithmetic::create_byte_ref_(std::size_t address, bool is_const) const{
 	return std::make_shared<memory::reference>(
 		address,
-		runtime::object::global_storage->get_ref_type(runtime::object::global_storage->get_cached_type(storage::global::cached_type::byte_), is_const),
-		nullptr
+		runtime::object::global_storage->get_ref_type(runtime::object::global_storage->get_cached_type(storage::global::cached_type::byte_), is_const)
 	);
 }

@@ -54,27 +54,27 @@ void cminus::type::enum_::add(std::shared_ptr<declaration::object> entry, std::s
 	throw declaration::exception::bad_declaration();
 }
 
+void cminus::type::enum_::add_entry(std::shared_ptr<declaration::object> entry, std::shared_ptr<memory::reference> value, bool check_existing){
+	throw declaration::exception::bad_declaration();
+}
+
 void cminus::type::enum_::add(const std::string &name){
 	if (name.empty())
 		throw storage::exception::unnamed_entry();
 
-	std::lock_guard<std::mutex> guard(lock_);
+	lock_guard guard(*this);
 	add_(name);
 }
 
-void cminus::type::enum_::add_entry(const std::string &name, std::shared_ptr<memory::reference> value, bool check_existing){
-	throw declaration::exception::bad_declaration();
-}
-
 std::shared_ptr<cminus::memory::reference> cminus::type::enum_::get_item(std::size_t index) const{
-	std::lock_guard<std::mutex> guard(lock_);
+	lock_guard guard(*this);
 	if (index < items_.size())
 		return std::make_shared<memory::scalar_reference<std::size_t>>(std::make_shared<proxy>(*const_cast<enum_ *>(this)), index);
 	return nullptr;
 }
 
 std::size_t cminus::type::enum_::get_item_index(const std::string &name) const{
-	std::lock_guard<std::mutex> guard(lock_);
+	lock_guard guard(*this);
 	std::size_t index = 0u;
 	for (auto &item : items_){
 		if (item == name)
@@ -86,15 +86,11 @@ std::size_t cminus::type::enum_::get_item_index(const std::string &name) const{
 }
 
 void cminus::type::enum_::compile(){
-	std::lock_guard<std::mutex> guard(lock_);
+	lock_guard guard(*this);
 	compile_();
 }
 
-void cminus::type::enum_::del_(const std::string &name){
-	throw declaration::exception::bad_declaration();
-}
-
-bool cminus::type::enum_::exists_(const std::string &name, entry_type type) const{
+bool cminus::type::enum_::exists_(const std::string &name) const{
 	for (auto &item : items_){
 		if (item == name)
 			return true;
@@ -103,14 +99,14 @@ bool cminus::type::enum_::exists_(const std::string &name, entry_type type) cons
 	return false;
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::type::enum_::find_(const std::string &name) const{
+std::shared_ptr<cminus::memory::reference> cminus::type::enum_::find_(const std::string &name, std::shared_ptr<memory::reference> context, std::size_t address) const{
 	if (auto it = items_map_.find(name); it != items_map_.end())
 		return std::make_shared<memory::rval_reference>(it->second, std::make_shared<proxy>(*const_cast<enum_ *>(this)));
 	return nullptr;
 }
 
 void cminus::type::enum_::add_(const std::string &name){
-	if (!exists_(name, entry_type::nil))
+	if (!exists_(name))
 		items_.push_back(name);
 	else
 		throw storage::exception::duplicate_entry();
