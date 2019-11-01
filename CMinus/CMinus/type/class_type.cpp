@@ -211,6 +211,15 @@ cminus::declaration::callable_group *cminus::type::class_::find_function(const s
 }
 
 bool cminus::type::class_::is_constructible_from(const type_base &target_type, bool is_lval, bool is_const) const{
+	auto constructor = find_function_(get_name());
+	if (constructor == nullptr)
+		return false;
+
+	try{
+		return (constructor->find_by_args({ declaration::callable::arg_info{ &target_type, is_lval, is_const } }) != nullptr);
+	}
+	catch (const declaration::exception::ambiguous_function_call &){}
+
 	return false;
 }
 

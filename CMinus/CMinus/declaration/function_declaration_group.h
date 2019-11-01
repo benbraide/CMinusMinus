@@ -32,7 +32,7 @@ namespace cminus::declaration{
 
 		virtual std::shared_ptr<callable> find_by_args(const std::vector<callable::arg_info> &args, std::size_t required_size) const override;
 
-		virtual void traverse_list(const std::function<void(std::shared_ptr<callable>)> &callback) override;
+		virtual void traverse_list(const std::function<void(std::shared_ptr<callable>)> &callback) const override;
 
 		virtual std::size_t get_count() const override;
 

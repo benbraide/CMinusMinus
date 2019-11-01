@@ -184,7 +184,13 @@ cminus::memory::member_reference::member_reference(std::size_t address, const de
 	: declared_reference(address, declaration), context_(context){}
 
 cminus::memory::member_reference::member_reference(const declaration::callable_group &declaration, std::shared_ptr<reference> context)
-	: member_reference(declaration.get_address(), declaration, context){}
+	: member_reference(declaration.get_address(), declaration, context){
+	if (declaration.get_count() == 1u){//Use function type
+		declaration.traverse_list([&](std::shared_ptr<declaration::callable> entry){
+			type_ = entry->get_type();
+		});
+	}
+}
 
 cminus::memory::member_reference::member_reference(const declaration::callable_group &declaration, std::shared_ptr<type::object> type, std::shared_ptr<reference> context)
 	: member_reference(declaration.get_address(), declaration, context){

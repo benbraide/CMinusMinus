@@ -48,7 +48,7 @@ std::shared_ptr<cminus::declaration::callable> cminus::declaration::function_gro
 	return find_by_args_(args, required_size);
 }
 
-void cminus::declaration::function_group::traverse_list(const std::function<void(std::shared_ptr<callable>)> &callback){
+void cminus::declaration::function_group::traverse_list(const std::function<void(std::shared_ptr<callable>)> &callback) const{
 	for (auto &entry : entries_)
 		callback(entry);
 }
