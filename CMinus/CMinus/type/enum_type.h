@@ -52,7 +52,7 @@ namespace cminus::type{
 		void compile_(memory_type &memory){
 			size_ = sizeof(target_type);
 
-			auto block = runtime::object::memory_object->allocate_write_protected_block(size_);
+			auto block = runtime::object::memory_object->allocate_write_protected_block(size_ * items_.size());
 			if (block == nullptr || (address_ = block->get_address()) == 0u)
 				throw memory::exception::allocation_failure();
 

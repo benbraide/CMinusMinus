@@ -53,7 +53,11 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<type::object> get_pointer_type(std::shared_ptr<type::object> base_type, bool is_const) const;
 
+		virtual std::shared_ptr<type::object> get_pointer_type(cached_type base_type, bool is_const) const;
+
 		virtual std::shared_ptr<type::object> get_ref_type(std::shared_ptr<type::object> base_type, bool is_const) const;
+
+		virtual std::shared_ptr<type::object> get_ref_type(cached_type base_type, bool is_const) const;
 
 		virtual std::shared_ptr<type::object> get_auto_pointer_type(bool is_const) const;
 

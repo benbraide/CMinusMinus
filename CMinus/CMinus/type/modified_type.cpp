@@ -48,7 +48,7 @@ bool cminus::type::modified::is_ref() const{
 
 cminus::type::constant::constant(std::shared_ptr<object> base_type)
 	: modified("", base_type){
-	if (base_type_->is<pointer_primitive>() && !base_type_->is_ref())
+	if (base_type_->is<pointer_primitive>())
 		name_ = (base_type_->get_name() + "Const");
 	else
 		name_ = ("Const " + base_type_->get_name());

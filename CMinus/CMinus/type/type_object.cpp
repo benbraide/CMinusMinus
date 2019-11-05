@@ -79,7 +79,7 @@ int cminus::type::object::get_score(const object &target, bool is_lval, bool is_
 	auto is_ref_target = target.is_ref();
 	auto is_const_target = target.is_const();
 
-	if (is_ref_target && !is_const_target && (!is_lval && is_const))
+	if (is_ref_target && !is_const_target && (!is_lval || is_const))
 		return get_score_value(score_result_type::nil);
 
 	auto base_target = target.remove_const_ref();

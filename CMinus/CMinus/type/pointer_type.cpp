@@ -1,6 +1,7 @@
 #include "../storage/global_storage.h"
 
 #include "class_type.h"
+#include "modified_type.h"
 #include "pointer_type.h"
 
 cminus::type::pointer_primitive::pointer_primitive(std::shared_ptr<object> base_type)
@@ -148,8 +149,11 @@ std::shared_ptr<cminus::type::object> cminus::type::pointer_primitive::get_infer
 	if (pointer_target == nullptr || pointer_target->base_type_ == nullptr)
 		return nullptr;
 
-	if (auto inferred_base_type = base_type_->get_inferred(pointer_target->base_type_); inferred_base_type != nullptr)
+	if (auto inferred_base_type = base_type_->get_inferred(pointer_target->base_type_); inferred_base_type != nullptr){
+		if (pointer_target->base_type_->is_const() && !inferred_base_type->is_const())
+			inferred_base_type = std::make_shared<constant>(inferred_base_type);
 		return std::make_shared<pointer_primitive>(inferred_base_type);
+	}
 
 	return nullptr;
 }
@@ -175,7 +179,7 @@ bool cminus::type::pointer_primitive::is_nullptr() const{
 }
 
 int cminus::type::pointer_primitive::get_score_(const object &target, bool is_lval, bool is_const) const{
-	auto pointer_target = dynamic_cast<const pointer_primitive *>(target.remove_const_ref());
+	auto pointer_target = target.as<pointer_primitive>();
 	if (pointer_target == nullptr)
 		return get_score_value(score_result_type::nil);
 
@@ -194,7 +198,7 @@ int cminus::type::pointer_primitive::get_score_(const object &target, bool is_lv
 	if (pointer_target->base_type_->is<void_primitive>())//Any * ==> Void *
 		return get_score_value(score_result_type::assignable, ((is_const_base == is_const_target_base) ? 0 : -1));
 
-	if (base_type_->is_exact(*pointer_target->base_type_))
+	if (base_type_->is_exact(*pointer_target->base_type_->remove_const_ref()))
 		return get_score_value(score_result_type::exact, ((is_const_base == is_const_target_base) ? 0 : -1));
 
 	if (pointer_target->base_type_->can_be_inferred_from(*base_type_))
