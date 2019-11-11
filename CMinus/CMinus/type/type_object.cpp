@@ -126,6 +126,18 @@ std::shared_ptr<cminus::type::object> cminus::type::object::remove_const_ref(std
 	return self;
 }
 
+bool cminus::type::object::is_default_constructible(bool ignore_callable) const{
+	return true;
+}
+
+bool cminus::type::object::is_copy_constructible(bool ignore_callable) const{
+	return true;
+}
+
+bool cminus::type::object::is_copy_assignable(bool ignore_callable) const{
+	return true;
+}
+
 bool cminus::type::object::can_be_inferred_from(const object &target) const{
 	return false;
 }

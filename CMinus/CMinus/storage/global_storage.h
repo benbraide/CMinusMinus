@@ -107,6 +107,8 @@ namespace cminus::storage{
 
 		virtual std::size_t read_enum_value(std::shared_ptr<memory::reference> value) const;
 
+		virtual std::shared_ptr<memory::reference> get_enum_value(std::shared_ptr<type::object> target_type, std::size_t value) const;
+
 		virtual std::shared_ptr<memory::reference> get_enum_value(cached_type type, std::size_t value) const;
 
 		virtual std::shared_ptr<memory::reference> get_compare_value(int value) const;
@@ -238,6 +240,20 @@ namespace cminus::storage{
 	struct get_cached_type<long double>{
 		static std::shared_ptr<type::object> type(){
 			return runtime::object::global_storage->get_cached_type(global::cached_type::big_float);
+		}
+	};
+
+	template <>
+	struct get_cached_type<attribute::stage_type>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::attribute_stage);
+		}
+	};
+
+	template <>
+	struct get_cached_type<attribute::query_result>{
+		static std::shared_ptr<type::object> type(){
+			return runtime::object::global_storage->get_cached_type(global::cached_type::attribute_result);
 		}
 	};
 }

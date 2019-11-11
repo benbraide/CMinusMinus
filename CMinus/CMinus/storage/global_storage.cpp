@@ -267,8 +267,8 @@ std::size_t cminus::storage::global::read_enum_value(std::shared_ptr<memory::ref
 	return static_cast<std::size_t>(-1);
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_enum_value(cached_type type, std::size_t value) const{
-	switch (auto target_type = get_cached_type(type); ((target_type == nullptr) ? 0u : target_type->get_size())){
+std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_enum_value(std::shared_ptr<type::object> target_type, std::size_t value) const{
+	switch ((target_type == nullptr) ? 0u : target_type->get_size()){
 	case sizeof(unsigned __int8):
 		return std::make_shared<cminus::memory::scalar_reference<unsigned __int8>>(target_type, static_cast<unsigned __int8>(value));
 	case sizeof(unsigned __int16):
@@ -282,6 +282,10 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_enum_val
 	}
 
 	return nullptr;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_enum_value(cached_type type, std::size_t value) const{
+	return get_enum_value(get_cached_type(type), value);
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_compare_value(int value) const{

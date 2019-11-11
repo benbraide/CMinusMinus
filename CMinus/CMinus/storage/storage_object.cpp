@@ -192,21 +192,21 @@ void cminus::storage::unnamed_object::add_callable_(std::shared_ptr<declaration:
 			throw exception::duplicate_entry();
 	}
 
-	std::shared_ptr<memory::block> block;
-	if (address == 0u)
-		block = runtime::object::memory_object->allocate_block(sizeof(void *));
-	else
-		block = runtime::object::memory_object->find_block(address);
+	if (address == 0u){//Allocate block
+		auto block = runtime::object::memory_object->allocate_write_protected_block(sizeof(void *));
+		if (block == nullptr || (address = block->get_address()) == 0u)
+			throw memory::exception::allocation_failure();
+	}
 
-	if (block == nullptr || block->get_address() == 0u)
-		throw memory::exception::allocation_failure();
-
-	auto group = std::make_shared<declaration::function_group>(entry->get_id(), name, this, block->get_address());
+	auto group = std::make_shared<declaration::function_group>(entry->get_id(), name, this, address);
 	if (group == nullptr)
 		throw memory::exception::allocation_failure();
 
 	group->add(entry);
 	declarations_[name] = declaration_info{ group, group.get() };
+
+	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::system));
+	runtime::object::memory_object->write_scalar(address, static_cast<declaration::callable_group *>(group.get()));
 }
 
 void cminus::storage::unnamed_object::add_attribute_(std::shared_ptr<attribute::object> entry){

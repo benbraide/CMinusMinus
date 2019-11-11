@@ -45,6 +45,12 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const override;
 
+		virtual bool is_default_constructible(bool ignore_callable = false) const override;
+
+		virtual bool is_copy_constructible(bool ignore_callable = false) const override;
+
+		virtual bool is_copy_assignable(bool ignore_callable = false) const override;
+
 		virtual bool is_accessible(unsigned int access) const override;
 
 		virtual std::size_t compute_base_offset(const class_ &base_type) const;

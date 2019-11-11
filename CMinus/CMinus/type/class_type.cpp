@@ -45,7 +45,7 @@ void cminus::type::class_::destruct(std::shared_ptr<memory::reference> target) c
 		throw declaration::exception::function_not_found();
 
 	if (destructor->get_id() == declaration::callable::id_type::destructor)
-		target = destructor->call(target, {}, static_cast<std::size_t>(-1));
+		destructor->call(target, {});
 	else
 		throw runtime::exception::bad_destructor();
 }
@@ -59,7 +59,7 @@ void cminus::type::class_::print_value(io::writer &writer, std::shared_ptr<memor
 	if (callable == nullptr)
 		throw runtime::exception::not_supported();
 
-	auto value = callable->call(data, {}, static_cast<std::size_t>(-1));
+	auto value = callable->call(data, {});
 	if (value == nullptr)
 		throw runtime::exception::not_supported();
 
@@ -84,9 +84,96 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::cast(std::share
 		return nullptr;
 
 	if (auto callable = find_operator(*target_type); callable != nullptr)
-		return callable->call(data, {}, static_cast<std::size_t>(-1));
+		return callable->call(data, {});
 
 	return nullptr;
+}
+
+bool cminus::type::class_::is_default_constructible(bool ignore_callable) const{
+	if (!ignore_callable){//Search for function
+		if (auto constructor = find_function_(get_name()); constructor != nullptr && constructor->get_id() == declaration::callable::id_type::constructor){
+			try{
+				if (constructor->find_by_args(std::vector<declaration::callable::arg_info>{}) != nullptr)
+					return true;
+			}
+			catch (...){}
+		}
+
+		return false;
+	}
+
+	for (auto &base_type : base_types_){
+		if (!base_type.value->is_default_constructible(false))
+			return false;
+	}
+
+	for (auto &info : declarations_){
+		if (info.second.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.second.resolved))
+			continue;
+
+		if (!info.second.value->get_type()->is_default_constructible(false))
+			return false;
+	}
+
+	return true;
+}
+
+bool cminus::type::class_::is_copy_constructible(bool ignore_callable) const{
+	if (!ignore_callable){//Search for function
+		if (auto constructor = find_function_(get_name()); constructor != nullptr && constructor->get_id() == declaration::callable::id_type::constructor){
+			try{
+				if (constructor->find_by_args({ declaration::callable::arg_info{ this, true, false } }) != nullptr)
+					return true;
+			}
+			catch (...){}
+		}
+
+		return false;
+	}
+
+	for (auto &base_type : base_types_){
+		if (!base_type.value->is_copy_constructible(false))
+			return false;
+	}
+
+	for (auto &info : declarations_){
+		if (info.second.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.second.resolved))
+			continue;
+
+		if (!info.second.value->get_type()->is_copy_constructible(false))
+			return false;
+	}
+
+	return true;
+}
+
+bool cminus::type::class_::is_copy_assignable(bool ignore_callable) const{
+	if (!ignore_callable){//Search for function
+		if (auto constructor = find_operator_(operators::id::assignment); constructor != nullptr && constructor->get_id() == declaration::callable::id_type::operator_){
+			try{
+				if (constructor->find_by_args({ declaration::callable::arg_info{ this, true, false } }) != nullptr)
+					return true;
+			}
+			catch (...){}
+		}
+
+		return false;
+	}
+
+	for (auto &base_type : base_types_){
+		if (!base_type.value->is_copy_assignable(false))
+			return false;
+	}
+
+	for (auto &info : declarations_){
+		if (info.second.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.second.resolved))
+			continue;
+
+		if (!info.second.value->get_type()->is_copy_assignable(false))
+			return false;
+	}
+
+	return true;
 }
 
 bool cminus::type::class_::is_accessible(unsigned int access) const{
@@ -245,10 +332,10 @@ void cminus::type::class_::construct_(std::shared_ptr<memory::reference> target,
 	if (constructor == nullptr)
 		throw declaration::exception::function_not_found();
 
-	if (constructor->get_id() != declaration::callable::id_type::constructor)
+	if (constructor->get_id() == declaration::callable::id_type::constructor)
+		constructor->call(target, args);
+	else
 		throw runtime::exception::bad_constructor();
-
-	target = constructor->call(target, args, static_cast<std::size_t>(-1));
 }
 
 int cminus::type::class_::get_score_(const type_base &target, bool is_lval, bool is_const) const{
@@ -440,25 +527,51 @@ cminus::declaration::callable_group *cminus::type::class_::find_function_(const 
 }
 
 void cminus::type::class_::compile_(){
-	if (static_size_ == 0u && function_size_ == 0u)
-		return;
-
 	std::shared_ptr<memory::block> static_block;
-	std::shared_ptr<memory::block> function_block;
-
 	if (static_size_ != 0u && ((static_block = runtime::object::memory_object->allocate_block(static_size_)) == nullptr || (static_address_ = static_block->get_address()) == 0u))
 		throw memory::exception::allocation_failure();
 
-	if (function_size_ != 0u && ((function_block = runtime::object::memory_object->allocate_write_protected_block(function_size_)) == nullptr || (function_address_ = function_block->get_address()) == 0u))
+	auto has_constructor = (find_function_(get_name()) != nullptr);
+	auto has_destructor = (find_function_(("~" + get_name())) != nullptr);
+	auto has_assignment_operator = (find_operator_(operators::id::assignment) != nullptr);
+
+	std::size_t additional_function_size = 0u;
+	if (!has_constructor)
+		additional_function_size += sizeof(void *);
+
+	if (!has_destructor)
+		additional_function_size += sizeof(void *);
+
+	if (!has_assignment_operator)
+		additional_function_size += sizeof(void *);
+
+	auto function_block = runtime::object::memory_object->allocate_write_protected_block(function_size_ + additional_function_size);
+	if (function_block == nullptr || (function_address_ = function_block->get_address()) == 0u)
 		throw memory::exception::allocation_failure();
+
+	auto function_address = function_address_;
+	if (!has_constructor){//Insert default constructors
+		storage_base::add_callable_(std::make_shared<declaration::default_constructor>(*this, attribute::collection::list_type{}, declaration::flags::nil), function_address);
+		storage_base::add_callable_(std::make_shared<declaration::copy_constructor>(*this, attribute::collection::list_type{}, declaration::flags::nil), function_address);
+		function_address += sizeof(void *);
+	}
+
+	if (!has_destructor){//Insert default destructor
+		storage_base::add_callable_(std::make_shared<declaration::default_destructor>(*this, attribute::collection::list_type{}, declaration::flags::nil), function_address);
+		function_address += sizeof(void *);
+	}
+
+	if (!has_assignment_operator){//Insert default assignment operator
+		storage_base::add_callable_(std::make_shared<declaration::copy_operator>(*this, attribute::collection::list_type{}, declaration::flags::nil), function_address);
+		function_address += sizeof(void *);
+	}
 
 	declaration::variable *var_decl = nullptr;
 	declaration::callable_group *func_decl = nullptr;
 
 	auto static_address = static_address_;
-	auto function_address = function_address_;
-
 	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::system));
+
 	for (auto &decl : declarations_){//Initialize static members
 		if ((func_decl = dynamic_cast<declaration::callable_group *>(decl.second.value.get())) != nullptr){
 			func_decl->set_address(function_address);

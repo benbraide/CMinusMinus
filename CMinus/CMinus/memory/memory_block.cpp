@@ -170,6 +170,30 @@ std::shared_ptr<cminus::memory::block> cminus::memory::protected_block::get_bloc
 	return std::make_shared<memory::protected_block>(address, buffer, size);
 }
 
+cminus::memory::null_block::null_block(std::size_t address, std::byte *buffer, std::size_t size)
+	: protected_block(address, buffer, size){}
+
+cminus::memory::null_block::null_block(std::size_t address, std::size_t size)
+	: null_block(address, nullptr, size){}
+
+cminus::memory::null_block::~null_block() = default;
+
+std::shared_ptr<cminus::memory::block> cminus::memory::null_block::get_offset_block(std::size_t value) const{
+	return ((value < size_) ? std::make_shared<cminus::memory::null_block>((address_ + value), (buffer_ + value), (size_ - value)) : nullptr);
+}
+
+bool cminus::memory::null_block::is_write_protected() const{
+	return ((runtime::object::state & runtime::flags::kernel) == 0u || block::is_write_protected());
+}
+
+bool cminus::memory::null_block::is_access_protected() const{
+	return ((runtime::object::state & runtime::flags::kernel) == 0u || block::is_access_protected());
+}
+
+std::shared_ptr<cminus::memory::block> cminus::memory::null_block::get_block_(std::size_t address, std::byte * buffer, std::size_t size) const{
+	return std::make_shared<memory::null_block>(address, buffer, size);
+}
+
 cminus::memory::free_block::free_block(std::size_t address, std::byte *buffer, std::size_t size)
 	: free_block(address, size){}
 

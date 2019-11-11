@@ -121,20 +121,19 @@ namespace cminus::declaration{
 	class copy_constructor : public external_constructor{
 	public:
 		template <typename attributes_type>
-		explicit copy_constructor(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
+		copy_constructor(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
 			: external_constructor(parent, attributes, flags){
 			std::shared_ptr<type::object> other_type = std::make_shared<type::proxy>(parent);
 
 			other_type = std::make_shared<type::ref>(other_type);
 			other_type = std::make_shared<type::constant>(other_type);
 
-			std::shared_ptr<memory::reference> empty_initialization;
 			add_parameter(std::make_shared<variable>(
 				"other",								//Name
 				other_type,								//Type
 				attribute::collection::list_type{},		//Attributes
 				flags::nil,								//Flags
-				empty_initialization					//Initialization
+				std::shared_ptr<node::object>()			//Initialization
 			));
 		}
 
@@ -147,7 +146,7 @@ namespace cminus::declaration{
 	class destructor : public member_function{
 	public:
 		template <typename attributes_type>
-		explicit destructor(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
+		destructor(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
 			: member_function(("~" + parent.get_name()), parent, attributes, (flags & ~(declaration::flags::const_ | declaration::flags::static_)), nullptr){}
 
 		virtual ~destructor();
@@ -278,6 +277,32 @@ namespace cminus::declaration{
 		virtual std::shared_ptr<node::object> get_definition() const override;
 
 		virtual bool is_defined() const override;
+	};
+
+	class copy_operator : public external_member_operator{
+	public:
+		template <typename attributes_type>
+		copy_operator(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
+			: external_member_operator(operators::id::assignment, parent, attributes, flags, nullptr){
+			std::shared_ptr<type::object> other_type = std::make_shared<type::proxy>(parent);
+
+			other_type = std::make_shared<type::ref>(other_type);
+			init_(other_type);
+
+			other_type = std::make_shared<type::constant>(other_type);
+			add_parameter(std::make_shared<variable>(
+				"other",								//Name
+				other_type,								//Type
+				attribute::collection::list_type{},		//Attributes
+				flags::nil,								//Flags
+				std::shared_ptr<node::object>()			//Initialization
+			));
+		}
+
+		virtual ~copy_operator();
+
+	protected:
+		virtual void evaluate_body_() const override;
 	};
 
 	class type_operator : public member_function{

@@ -22,6 +22,10 @@ std::shared_ptr<cminus::memory::reference> cminus::type::modified::cast(std::sha
 	return base_type_->cast(data, target_type, type);
 }
 
+std::shared_ptr<cminus::evaluator::object> cminus::type::modified::get_evaluator() const{
+	return base_type_->get_evaluator();
+}
+
 const cminus::type::object *cminus::type::modified::remove_const_ref() const{
 	return base_type_->remove_const_ref();
 }
@@ -90,6 +94,10 @@ std::string cminus::type::ref::get_qname() const{
 	return (base_type_->get_qname() + "&");
 }
 
+std::shared_ptr<cminus::memory::reference> cminus::type::ref::get_default_value() const{
+	return nullptr;
+}
+
 bool cminus::type::ref::is_exact(const object &target) const{
 	if (modified::is_exact(target))
 		return true;
@@ -107,6 +115,18 @@ std::shared_ptr<cminus::type::object> cminus::type::ref::get_inferred(std::share
 		result = std::make_shared<ref>(result);
 
 	return ((target->is_const() && !result->is_const()) ? std::make_shared<constant>(result) : result);
+}
+
+bool cminus::type::ref::is_default_constructible(bool ignore_callable) const{
+	return false;
+}
+
+bool cminus::type::ref::is_copy_constructible(bool ignore_callable) const{
+	return false;
+}
+
+bool cminus::type::ref::is_copy_assignable(bool ignore_callable) const{
+	return false;
 }
 
 bool cminus::type::ref::is_ref() const{

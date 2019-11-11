@@ -11,6 +11,8 @@ namespace cminus::memory{
 	public:
 		using block_list_type = std::list<std::shared_ptr<block>>;
 
+		object();
+
 		std::shared_ptr<block> allocate_block(std::size_t size);
 
 		std::shared_ptr<block> allocate_write_protected_block(std::size_t size);
@@ -141,7 +143,7 @@ namespace cminus::memory{
 		bool advance_source_and_destination_(std::shared_ptr<block> &source, block_list_type::const_iterator &source_it, std::shared_ptr<block> &destination,
 			block_list_type::const_iterator &destination_it, std::size_t value) const;
 
-		std::size_t next_address_ = 1u;
+		std::size_t next_address_ = 0u;
 		block_list_type blocks_;
 		mutable std::shared_mutex lock_;
 	};

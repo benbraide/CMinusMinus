@@ -113,8 +113,6 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::evalua
 }
 
 void cminus::declaration::variable::initialize_memory_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &value) const{
-	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::system));
-
 	target->get_type()->construct(target, value);
 	target->set_constructed_state();
 }

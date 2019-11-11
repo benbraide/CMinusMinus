@@ -25,11 +25,16 @@ void cminus::declaration::member_function::copy_context_(std::shared_ptr<memory:
 	if (context_declaration_ == nullptr)
 		return;
 
-	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::ignore_rval_ref));
-	if (auto entry = context_declaration_->evaluate(0u, context); entry != nullptr)
-		runtime::object::current_storage->get_first_of<storage::class_member>()->set_context(entry);
-	else
+	auto reference = context_declaration_->allocate_memory(0u, nullptr);
+	if (reference == nullptr)
 		throw memory::exception::allocation_failure();
+
+	if (auto compatible_context = context->get_type()->cast(context, context_declaration_->get_type(), type::cast_type::static_rval); compatible_context != nullptr){
+		reference->initialize(compatible_context);
+		runtime::object::current_storage->get_first_of<storage::class_member>()->set_context(reference);
+	}
+	else
+		throw evaluator::exception::incompatible_rval();
 }
 
 std::size_t cminus::declaration::member_function::get_args_count_(std::shared_ptr<memory::reference> context, std::size_t args_count) const{
@@ -94,7 +99,7 @@ void cminus::declaration::constructor::copy_context_(std::shared_ptr<memory::ref
 }
 
 void cminus::declaration::constructor::evaluate_body_() const{
-	auto class_parent = reinterpret_cast<type::class_ *>(parent_);
+	auto class_parent = dynamic_cast<type::class_ *>(parent_);
 	std::unordered_map<std::string, std::shared_ptr<node::object>> init_list;
 
 	std::string computed_name;
@@ -113,7 +118,7 @@ void cminus::declaration::constructor::evaluate_body_() const{
 	}
 
 	auto self = runtime::object::current_storage->find("self", false);
-	for (auto &base_type : class_parent->get_base_types()){
+	for (auto &base_type : class_parent->get_base_types()){//Initialize base types
 		if (auto it = init_list.find(base_type.value->get_name()); it != init_list.end()){
 			base_type.value->construct(
 				self->apply_offset(base_type.address_offset, base_type.value),
@@ -184,7 +189,7 @@ void cminus::declaration::copy_constructor::evaluate_body_() const{
 	auto self = runtime::object::current_storage->find("self", false);
 	auto other = runtime::object::current_storage->find("other", false);
 
-	auto class_parent = reinterpret_cast<type::class_ *>(parent_);
+	auto class_parent = dynamic_cast<type::class_ *>(parent_);
 	for (auto &base_type : class_parent->get_base_types()){//Copy construct base types
 		base_type.value->construct(
 			self->apply_offset(base_type.address_offset, base_type.value),
@@ -206,8 +211,8 @@ void cminus::declaration::copy_constructor::evaluate_body_() const{
 			other_instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.resolved), *info.value, other);
 		}
 
-		if (instance != nullptr || other_instance == nullptr)
-			info.value->get_type()->construct(instance, other);
+		if (instance != nullptr && other_instance != nullptr)
+			info.value->get_type()->construct(instance, other_instance);
 		else
 			throw memory::exception::allocation_failure();
 	});
@@ -345,6 +350,51 @@ std::shared_ptr<cminus::node::object> cminus::declaration::external_member_opera
 
 bool cminus::declaration::external_member_operator::is_defined() const{
 	return true;
+}
+
+cminus::declaration::copy_operator::~copy_operator() = default;
+
+void cminus::declaration::copy_operator::evaluate_body_() const{
+	auto self = runtime::object::current_storage->find("self", false);
+	auto other = runtime::object::current_storage->find("other", false);
+
+	auto class_parent = dynamic_cast<type::class_ *>(parent_);
+	for (auto &base_type : class_parent->get_base_types()){//Copy construct base types
+		base_type.value->get_evaluator()->evaluate_binary(
+			operators::id::assignment,
+			self->apply_offset(base_type.address_offset, base_type.value),
+			other->apply_offset(base_type.address_offset, base_type.value)
+		);
+	}
+
+	parent_->traverse_declarations([&](const storage::object::declaration_info &info){//Initialize members
+		if (info.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.resolved))
+			return;
+
+		auto decl_type = info.value->get_type();
+		std::shared_ptr<memory::reference> instance, other_instance;
+
+		if (decl_type->is_ref()){
+			instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
+			other_instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.resolved), *info.value, other);
+		}
+		else{
+			instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
+			other_instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.resolved), *info.value, other);
+		}
+
+		if (instance != nullptr && other_instance != nullptr){
+			decl_type->get_evaluator()->evaluate_binary(
+				operators::id::assignment,
+				instance,
+				other_instance
+			);
+		}
+		else
+			throw memory::exception::allocation_failure();
+	});
+
+	throw runtime::exception::return_interrupt(self);
 }
 
 cminus::declaration::type_operator::~type_operator() = default;

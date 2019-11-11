@@ -73,6 +73,18 @@ std::shared_ptr<cminus::type::object> cminus::type::proxy::remove_const_ref(std:
 	return target_->remove_const_ref(self);
 }
 
+bool cminus::type::proxy::is_default_constructible(bool ignore_callable) const{
+	return target_->is_default_constructible(ignore_callable);
+}
+
+bool cminus::type::proxy::is_copy_constructible(bool ignore_callable) const{
+	return target_->is_copy_constructible(ignore_callable);
+}
+
+bool cminus::type::proxy::is_copy_assignable(bool ignore_callable) const{
+	return target_->is_copy_assignable(ignore_callable);
+}
+
 bool cminus::type::proxy::is_inferred() const{
 	return target_->is_inferred();
 }

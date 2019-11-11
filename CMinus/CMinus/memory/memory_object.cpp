@@ -1,5 +1,9 @@
 #include "memory_object.h"
 
+cminus::memory::object::object(){
+	allocate_block_<data_block<null_block>>(1u);
+}
+
 std::shared_ptr<cminus::memory::block> cminus::memory::object::allocate_block(std::size_t size){
 	std::lock_guard<std::shared_mutex> guard(lock_);
 	return allocate_block_<data_block<block>>(size);

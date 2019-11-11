@@ -109,6 +109,24 @@ namespace cminus::memory{
 		virtual std::shared_ptr<block> get_block_(std::size_t address, std::byte *buffer, std::size_t size) const override;
 	};
 
+	class null_block : public protected_block{
+	public:
+		null_block(std::size_t address, std::byte *buffer, std::size_t size);
+
+		null_block(std::size_t address, std::size_t size);
+
+		virtual ~null_block();
+
+		virtual std::shared_ptr<block> get_offset_block(std::size_t value) const override;
+
+		virtual bool is_write_protected() const;
+
+		virtual bool is_access_protected() const;
+
+	protected:
+		virtual std::shared_ptr<block> get_block_(std::size_t address, std::byte *buffer, std::size_t size) const override;
+	};
+
 	class free_block : public protected_block{
 	public:
 		free_block(std::size_t address, std::byte *buffer, std::size_t size);
@@ -156,4 +174,7 @@ namespace cminus::memory{
 
 	template <>
 	class data_block<free_block>;
+
+	template <class base_type>
+	class data_block<data_block<base_type>>;
 }
