@@ -59,7 +59,7 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::variable::alloca
 	else
 		reference = std::make_shared<memory::declared_reference>(address, *this);
 
-	if (reference == nullptr || reference->get_indirect_address() == 0u)
+	if (reference == nullptr)
 		throw memory::exception::allocation_failure();
 
 	if (is(flags::static_))//Update static value

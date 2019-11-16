@@ -105,10 +105,7 @@ bool cminus::memory::reference::is_nan() const{
 }
 
 void cminus::memory::reference::allocate_memory_(){
-	auto block = allocate_block_();
-	if (block == nullptr || (address_ = block->get_address()) == 0u)
-		throw memory::exception::allocation_failure();
-
+	address_ = allocate_block_();
 	deallocator_ = [this](){
 		if (address_ != 0u){
 			runtime::object::memory_object->deallocate_block(address_);
@@ -117,7 +114,7 @@ void cminus::memory::reference::allocate_memory_(){
 	};
 }
 
-std::shared_ptr<cminus::memory::block> cminus::memory::reference::allocate_block_() const{
+std::size_t cminus::memory::reference::allocate_block_() const{
 	return runtime::object::memory_object->allocate_block(get_memory_size_());
 }
 
@@ -295,7 +292,7 @@ cminus::memory::write_protected_rval_reference::write_protected_rval_reference(s
 	allocate_memory_();
 }
 
-std::shared_ptr<cminus::memory::block> cminus::memory::write_protected_rval_reference::allocate_block_() const{
+std::size_t cminus::memory::write_protected_rval_reference::allocate_block_() const{
 	return runtime::object::memory_object->allocate_write_protected_block(get_memory_size_());
 }
 

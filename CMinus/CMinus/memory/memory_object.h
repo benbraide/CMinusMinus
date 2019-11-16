@@ -13,19 +13,19 @@ namespace cminus::memory{
 
 		object();
 
-		std::shared_ptr<block> allocate_block(std::size_t size);
+		std::size_t allocate_block(std::size_t size);
 
-		std::shared_ptr<block> allocate_write_protected_block(std::size_t size);
+		std::size_t allocate_write_protected_block(std::size_t size);
 
-		std::shared_ptr<block> allocate_access_protected_block(std::size_t size);
+		std::size_t allocate_access_protected_block(std::size_t size);
 
-		std::shared_ptr<block> allocate_protected_block(std::size_t size);
+		std::size_t allocate_protected_block(std::size_t size);
 
-		std::shared_ptr<block> allocate_no_data_protected_block(std::size_t size);
+		std::size_t allocate_no_data_protected_block(std::size_t size);
 
-		std::shared_ptr<block> allocate_heap_block(std::size_t size);
+		std::size_t allocate_heap_block(std::size_t size);
 
-		std::shared_ptr<block> reallocate_heap_block(std::size_t address, std::size_t size);
+		std::size_t reallocate_heap_block(std::size_t address, std::size_t size);
 
 		void deallocate_block(std::size_t address);
 
@@ -72,9 +72,17 @@ namespace cminus::memory{
 
 		std::size_t get_next_address() const;
 
+		std::size_t get_size(std::size_t address, bool find = false) const;
+
+		bool is_write_protected(std::size_t address, bool find = false) const;
+
+		bool is_access_protected(std::size_t address, bool find = false) const;
+
+		bool is_resizable(std::size_t address, bool find = false) const;
+
 	private:
 		template <typename block_type>
-		std::shared_ptr<block> allocate_block_(std::size_t size){
+		std::size_t allocate_block_(std::size_t size){
 			if (size == 0u)
 				throw exception::invalid_size();
 
@@ -117,10 +125,10 @@ namespace cminus::memory{
 			else//Error
 				throw exception::out_of_address_space();
 
-			return block;
+			return block->address_;
 		}
 
-		std::shared_ptr<block> reallocate_heap_block_(std::size_t address, std::size_t size);
+		std::size_t reallocate_heap_block_(std::size_t address, std::size_t size);
 
 		void deallocate_block_(std::size_t address);
 

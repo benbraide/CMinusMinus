@@ -93,15 +93,9 @@ std::size_t cminus::declaration::string::helper::allocate_block(std::size_t buff
 		break;
 	}
 
-	auto new_data_block = runtime::object::memory_object->allocate_block(computed_size + 1u);
-	if (new_data_block == nullptr)
-		throw memory::exception::allocation_failure();
-
-	auto new_data_address = new_data_block->get_address();
-	if (new_data_address == 0u)
-		throw memory::exception::allocation_failure();
-
+	auto new_data_address = runtime::object::memory_object->allocate_block(computed_size + 1u);
 	runtime::object::memory_object->write_scalar((new_data_address + computed_size), '\0');//Null terminate
+
 	if (how == allocation_type::extend){//Copy previous data
 		if (split_index < info.size_value)//Copy bytes after split index
 			runtime::object::memory_object->write((new_data_address + split_index + buffer_size), (info.data_address + split_index), (info.size_value - split_index));

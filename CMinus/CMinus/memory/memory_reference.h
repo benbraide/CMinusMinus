@@ -62,7 +62,7 @@ namespace cminus::memory{
 	protected:
 		virtual void allocate_memory_();
 
-		virtual std::shared_ptr<block> allocate_block_() const;
+		virtual std::size_t allocate_block_() const;
 
 		virtual std::size_t get_memory_size_() const;
 
@@ -189,7 +189,7 @@ namespace cminus::memory{
 		virtual ~write_protected_rval_reference();
 
 	protected:
-		virtual std::shared_ptr<block> allocate_block_() const override;
+		virtual std::size_t allocate_block_() const override;
 	};
 
 	template <class value_type>

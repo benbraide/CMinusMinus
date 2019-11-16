@@ -4,37 +4,37 @@ cminus::memory::object::object(){
 	allocate_block_<data_block<null_block>>(1u);
 }
 
-std::shared_ptr<cminus::memory::block> cminus::memory::object::allocate_block(std::size_t size){
+std::size_t cminus::memory::object::allocate_block(std::size_t size){
 	std::lock_guard<std::shared_mutex> guard(lock_);
 	return allocate_block_<data_block<block>>(size);
 }
 
-std::shared_ptr<cminus::memory::block> cminus::memory::object::allocate_write_protected_block(std::size_t size){
+std::size_t cminus::memory::object::allocate_write_protected_block(std::size_t size){
 	std::lock_guard<std::shared_mutex> guard(lock_);
 	return allocate_block_<data_block<write_protected_block>>(size);
 }
 
-std::shared_ptr<cminus::memory::block> cminus::memory::object::allocate_access_protected_block(std::size_t size){
+std::size_t cminus::memory::object::allocate_access_protected_block(std::size_t size){
 	std::lock_guard<std::shared_mutex> guard(lock_);
 	return allocate_block_<data_block<access_protected_block>>(size);
 }
 
-std::shared_ptr<cminus::memory::block> cminus::memory::object::allocate_protected_block(std::size_t size){
+std::size_t cminus::memory::object::allocate_protected_block(std::size_t size){
 	std::lock_guard<std::shared_mutex> guard(lock_);
 	return allocate_block_<data_block<protected_block>>(size);
 }
 
-std::shared_ptr<cminus::memory::block> cminus::memory::object::allocate_no_data_protected_block(std::size_t size){
+std::size_t cminus::memory::object::allocate_no_data_protected_block(std::size_t size){
 	std::lock_guard<std::shared_mutex> guard(lock_);
 	return allocate_block_<protected_block>(size);
 }
 
-std::shared_ptr<cminus::memory::block> cminus::memory::object::allocate_heap_block(std::size_t size){
+std::size_t cminus::memory::object::allocate_heap_block(std::size_t size){
 	std::lock_guard<std::shared_mutex> guard(lock_);
 	return allocate_block_<data_block<heap_block>>(size);
 }
 
-std::shared_ptr<cminus::memory::block> cminus::memory::object::reallocate_heap_block(std::size_t address, std::size_t size){
+std::size_t cminus::memory::object::reallocate_heap_block(std::size_t address, std::size_t size){
 	std::lock_guard<std::shared_mutex> guard(lock_);
 	return reallocate_heap_block_(address, size);
 }
@@ -96,7 +96,31 @@ std::size_t cminus::memory::object::get_next_address() const{
 	return next_address_;
 }
 
-std::shared_ptr<cminus::memory::block> cminus::memory::object::reallocate_heap_block_(std::size_t address, std::size_t size){
+std::size_t cminus::memory::object::get_size(std::size_t address, bool find) const{
+	if (auto block = (find ? find_block(address) : get_block(address)); block != nullptr)
+		return block->get_size();
+	return 0u;
+}
+
+bool cminus::memory::object::is_write_protected(std::size_t address, bool find) const{
+	if (auto block = (find ? find_block(address) : get_block(address)); block != nullptr)
+		return block->is_write_protected();
+	return false;
+}
+
+bool cminus::memory::object::is_access_protected(std::size_t address, bool find) const{
+	if (auto block = (find ? find_block(address) : get_block(address)); block != nullptr)
+		return block->is_access_protected();
+	return false;
+}
+
+bool cminus::memory::object::is_resizable(std::size_t address, bool find) const{
+	if (auto block = (find ? find_block(address) : get_block(address)); block != nullptr)
+		return block->is_resizable();
+	return false;
+}
+
+std::size_t cminus::memory::object::reallocate_heap_block_(std::size_t address, std::size_t size){
 	if (size == 0u)
 		throw exception::invalid_size();
 
@@ -107,7 +131,7 @@ std::shared_ptr<cminus::memory::block> cminus::memory::object::reallocate_heap_b
 		throw exception::block_not_found(address);
 
 	if (block->size_ == size)//No changes
-		return block;
+		return block->address_;
 
 	if (!block->is_resizable())
 		throw exception::block_not_resizable(address);
@@ -128,7 +152,7 @@ std::shared_ptr<cminus::memory::block> cminus::memory::object::reallocate_heap_b
 			throw exception::out_of_address_space();
 
 		block->size_ = size;
-		return block;
+		return block->address_;
 	}
 
 	auto diff = (size - block->size_);
@@ -144,13 +168,13 @@ std::shared_ptr<cminus::memory::block> cminus::memory::object::reallocate_heap_b
 			diff = 0u;
 
 		if (diff == 0u)//Took sufficient bytes from next
-			return block;
+			return block->address_;
 	}
 
 	if ((next_address_ - address) <= block->size_ && next_address_ <= (std::numeric_limits<std::size_t>::max() - size)){//Take from next address
 		block->size_ += diff;
 		next_address_ += diff;
-		return block;
+		return block->address_;
 	}
 
 	if (it != blocks_.begin() && dynamic_cast<free_block *>((other_it = std::prev(it))->get()) != nullptr && diff <= (*other_it)->size_){//Take from previous
@@ -165,18 +189,14 @@ std::shared_ptr<cminus::memory::block> cminus::memory::object::reallocate_heap_b
 			diff = 0u;
 
 		if (diff == 0u)//Took sufficient bytes from previous
-			return block;
+			return block->address_;
 	}
 
 	deallocate_block_(address);
-	auto new_block = allocate_block_<data_block<heap_block>>(size);
+	auto new_block_address = allocate_block_<data_block<heap_block>>(size);
+	write_(new_block_address, *block, std::min(size, block->size_));
 
-	if (new_block != nullptr && new_block->address_ != 0u)
-		new_block->write(*block, std::min(size, block->size_));
-	else
-		throw exception::allocation_failure();
-
-	return new_block;
+	return new_block_address;
 }
 
 void cminus::memory::object::deallocate_block_(std::size_t address){

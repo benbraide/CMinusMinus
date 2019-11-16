@@ -107,11 +107,11 @@ bool cminus::type::class_::is_default_constructible(bool ignore_callable) const{
 			return false;
 	}
 
-	for (auto &info : declarations_){
-		if (info.second.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.second.resolved))
+	for (auto &info : entries_){
+		if (dynamic_cast<declaration::variable *>(info.decl.get()) == nullptr || info.decl->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.value))
 			continue;
 
-		if (!info.second.value->get_type()->is_default_constructible(false))
+		if (!info.decl->get_type()->is_default_constructible(false))
 			return false;
 	}
 
@@ -136,11 +136,11 @@ bool cminus::type::class_::is_copy_constructible(bool ignore_callable) const{
 			return false;
 	}
 
-	for (auto &info : declarations_){
-		if (info.second.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.second.resolved))
+	for (auto &info : entries_){
+		if (dynamic_cast<declaration::variable *>(info.decl.get()) == nullptr || info.decl->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.value))
 			continue;
 
-		if (!info.second.value->get_type()->is_copy_constructible(false))
+		if (!info.decl->get_type()->is_copy_constructible(false))
 			return false;
 	}
 
@@ -165,11 +165,11 @@ bool cminus::type::class_::is_copy_assignable(bool ignore_callable) const{
 			return false;
 	}
 
-	for (auto &info : declarations_){
-		if (info.second.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.second.resolved))
+	for (auto &info : entries_){
+		if (dynamic_cast<declaration::variable *>(info.decl.get()) == nullptr || info.decl->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.value))
 			continue;
 
-		if (!info.second.value->get_type()->is_copy_assignable(false))
+		if (!info.decl->get_type()->is_copy_assignable(false))
 			return false;
 	}
 
@@ -303,6 +303,7 @@ bool cminus::type::class_::is_constructible_from(const type_base &target_type, b
 		return false;
 
 	try{
+		runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::ignore_constructible));
 		return (constructor->find_by_args({ declaration::callable::arg_info{ &target_type, is_lval, is_const } }) != nullptr);
 	}
 	catch (const declaration::exception::ambiguous_function_call &){}
@@ -369,8 +370,8 @@ void cminus::type::class_::add_variable_(std::shared_ptr<declaration::variable> 
 		throw declaration::exception::bad_declaration();
 
 	if (!entry->is(declaration::flags::static_)){
-		entries_.push_back(entry_info{ entry.get(), member_size_ });
-		declarations_[name] = declaration_info{ entry, member_size_ };
+		entries_.push_back(entry_info{ entry, member_size_ });
+		mapped_entries_[name] = &entries_.back();
 
 		member_size_ += entry_memory_size;
 		size_ += entry_memory_size;
@@ -379,21 +380,24 @@ void cminus::type::class_::add_variable_(std::shared_ptr<declaration::variable> 
 			base_type.address_offset += entry_memory_size;
 	}
 	else{//Static member
-		declarations_[name] = declaration_info{ entry, static_size_ };
+		entries_.push_back(entry_info{ entry, static_size_ });
+		mapped_entries_[name] = &entries_.back();
 		static_size_ += entry_memory_size;
 	}
 }
 
 void cminus::type::class_::add_callable_(std::shared_ptr<declaration::callable> entry, std::size_t address){
 	auto &name = entry->get_name();
-	if (auto it = declarations_.find(name); it != declarations_.end()){
-		if (auto group = dynamic_cast<declaration::callable_group *>(it->second.value.get()); group != nullptr)
+	if (auto it = mapped_entries_.find(name); it != mapped_entries_.end()){
+		if (auto group = dynamic_cast<declaration::callable_group *>(it->second->decl.get()); group != nullptr)
 			group->add(entry);
 		else
 			throw storage::exception::duplicate_entry();
 	}
 	else if (auto group = std::make_shared<declaration::function_group>(entry->get_id(), name, this, 0u); group != nullptr){
 		group->add(entry);
+		entries_.push_back(entry_info{ group, group.get() });
+		mapped_entries_[name] = &entries_.back();
 		function_size_ += sizeof(void *);
 	}
 	else
@@ -430,11 +434,11 @@ cminus::declaration::callable *cminus::type::class_::find_operator_(const type::
 	declaration::type_operator *op = nullptr;
 	declaration::callable_group *op_group = nullptr;
 
-	for (auto &info : declarations_){
-		if (!std::holds_alternative<declaration::callable_group *>(info.second.resolved))
+	for (auto &info : mapped_entries_){
+		if (!std::holds_alternative<declaration::callable_group *>(info.second->value))
 			continue;
 
-		op_group = std::get<declaration::callable_group *>(info.second.resolved);
+		op_group = std::get<declaration::callable_group *>(info.second->value);
 		if (op_group->get_id() != declaration::callable::id_type::type_operator)
 			continue;
 
@@ -521,15 +525,14 @@ unsigned int cminus::type::class_::get_base_type_access_(const class_ &target, b
 }
 
 cminus::declaration::callable_group *cminus::type::class_::find_function_(const std::string &name) const{
-	if (auto it = declarations_.find(name); it != declarations_.end() && std::holds_alternative<declaration::callable_group *>(it->second.resolved))
-		return std::get<declaration::callable_group *>(it->second.resolved);
+	if (auto it = mapped_entries_.find(name); it != mapped_entries_.end() && std::holds_alternative<declaration::callable_group *>(it->second->value))
+		return std::get<declaration::callable_group *>(it->second->value);
 	return nullptr;
 }
 
 void cminus::type::class_::compile_(){
-	std::shared_ptr<memory::block> static_block;
-	if (static_size_ != 0u && ((static_block = runtime::object::memory_object->allocate_block(static_size_)) == nullptr || (static_address_ = static_block->get_address()) == 0u))
-		throw memory::exception::allocation_failure();
+	if (static_size_ != 0u)
+		static_address_ = runtime::object::memory_object->allocate_block(static_size_);
 
 	auto has_constructor = (find_function_(get_name()) != nullptr);
 	auto has_destructor = (find_function_(("~" + get_name())) != nullptr);
@@ -545,11 +548,26 @@ void cminus::type::class_::compile_(){
 	if (!has_assignment_operator)
 		additional_function_size += sizeof(void *);
 
-	auto function_block = runtime::object::memory_object->allocate_write_protected_block(function_size_ + additional_function_size);
-	if (function_block == nullptr || (function_address_ = function_block->get_address()) == 0u)
-		throw memory::exception::allocation_failure();
+	declaration::variable *var_decl;
+	declaration::callable_group *func_decl = nullptr;
 
-	auto function_address = function_address_;
+	auto static_address = static_address_;
+	auto function_address = function_address_ = runtime::object::memory_object->allocate_write_protected_block(function_size_ + additional_function_size);
+
+	for (auto &decl : mapped_entries_){//Initialize static members
+		if ((func_decl = dynamic_cast<declaration::callable_group *>(decl.second->decl.get())) != nullptr){
+			runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::system));
+			runtime::object::memory_object->write_scalar(function_address, func_decl);
+
+			func_decl->set_address(function_address);
+			function_address += sizeof(void *);
+		}
+		else if ((var_decl = dynamic_cast<declaration::variable *>(decl.second->decl.get())) != nullptr && decl.second->decl->is(declaration::flags::static_)){
+			decl.second->value = var_decl->evaluate(static_address);
+			static_address += var_decl->get_type()->get_memory_size();
+		}
+	}
+
 	if (!has_constructor){//Insert default constructors
 		storage_base::add_callable_(std::make_shared<declaration::default_constructor>(*this, attribute::collection::list_type{}, declaration::flags::nil), function_address);
 		storage_base::add_callable_(std::make_shared<declaration::copy_constructor>(*this, attribute::collection::list_type{}, declaration::flags::nil), function_address);
@@ -564,23 +582,5 @@ void cminus::type::class_::compile_(){
 	if (!has_assignment_operator){//Insert default assignment operator
 		storage_base::add_callable_(std::make_shared<declaration::copy_operator>(*this, attribute::collection::list_type{}, declaration::flags::nil), function_address);
 		function_address += sizeof(void *);
-	}
-
-	declaration::variable *var_decl = nullptr;
-	declaration::callable_group *func_decl = nullptr;
-
-	auto static_address = static_address_;
-	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::system));
-
-	for (auto &decl : declarations_){//Initialize static members
-		if ((func_decl = dynamic_cast<declaration::callable_group *>(decl.second.value.get())) != nullptr){
-			func_decl->set_address(function_address);
-			runtime::object::memory_object->write_scalar(function_address, func_decl);
-			function_address += sizeof(void *);
-		}
-		else if ((var_decl = dynamic_cast<declaration::variable *>(decl.second.value.get())) != nullptr && decl.second.value->is(declaration::flags::static_)){
-			initialize_variable_(*var_decl, static_address);
-			static_address += var_decl->get_type()->get_memory_size();
-		}
 	}
 }

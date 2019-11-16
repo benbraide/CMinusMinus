@@ -92,8 +92,10 @@ int cminus::type::object::get_score(const object &target, bool is_lval, bool is_
 	if (is_ref_target && !is_const_target)//No conversions
 		return get_no_conversion_score_(target, is_lval, is_const);
 
-	if (auto class_target = target.as<class_>(); class_target != nullptr && class_target->is_constructible_from(*this, is_lval, is_const))
-		return get_score_value(score_result_type::class_compatible, ((is_const_target == is_const) ? 0 : -1));
+	if ((runtime::object::state & runtime::flags::ignore_constructible) == 0u){
+		if (auto class_target = target.as<class_>(); class_target != nullptr && class_target->is_constructible_from(*this, is_lval, is_const))
+			return get_score_value(score_result_type::class_compatible, ((is_const_target == is_const) ? 0 : -1));
+	}
 
 	auto result = get_score_(target, is_lval, is_const);
 	if (result == get_score_value(score_result_type::nil))

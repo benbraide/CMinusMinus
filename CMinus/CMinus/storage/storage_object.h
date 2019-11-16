@@ -23,12 +23,8 @@ namespace cminus::declaration{
 namespace cminus::storage{
 	class object{
 	public:
-		using entry_type = std::variant<
-			std::size_t,
-			std::shared_ptr<memory::reference>
-		>;
-
-		using resolved_declaration_type = std::variant<
+		using entry_value_type = std::variant<
+			char,
 			std::size_t,
 			std::shared_ptr<memory::reference>,
 			declaration::callable_group *,
@@ -38,13 +34,8 @@ namespace cminus::storage{
 		>;
 
 		struct entry_info{
-			declaration::object *decl;
-			entry_type value;
-		};
-
-		struct declaration_info{
-			std::shared_ptr<declaration::object> value;
-			resolved_declaration_type resolved;
+			std::shared_ptr<declaration::object> decl;
+			entry_value_type value;
 		};
 
 		virtual ~object() = default;
@@ -81,8 +72,6 @@ namespace cminus::storage{
 
 		virtual bool is_accessible(unsigned int access) const = 0;
 
-		virtual void traverse_declarations(const std::function<void(const declaration_info &)> &callback) const = 0;
-
 		virtual void traverse_entries(const std::function<void(const entry_info &)> &callback, bool reversed = false) const = 0;
 
 		template <typename target_type>
@@ -101,7 +90,7 @@ namespace cminus::storage{
 	public:
 		class resolved_declaration_type_visitor{
 		public:
-			resolved_declaration_type_visitor(const unnamed_object &target, const declaration::object &decl, std::shared_ptr<memory::reference> context, std::size_t address);
+			resolved_declaration_type_visitor(const unnamed_object &target, std::shared_ptr<declaration::object> decl, std::shared_ptr<memory::reference> context, std::size_t address);
 
 			std::shared_ptr<memory::reference> operator ()(std::size_t val);
 
@@ -117,7 +106,7 @@ namespace cminus::storage{
 
 		private:
 			const unnamed_object &target_;
-			const declaration::object &decl_;
+			std::shared_ptr<declaration::object> decl_;
 			std::shared_ptr<memory::reference> context_;
 			std::size_t address_;
 		};
@@ -138,7 +127,7 @@ namespace cminus::storage{
 
 		virtual void add(std::shared_ptr<declaration::object> entry, std::size_t address) override;
 
-		virtual void add_entry(std::shared_ptr<declaration::object> entry, std::shared_ptr<memory::reference> value, bool check_existing = true) override;
+		virtual void add_entry(std::shared_ptr<declaration::object> decl, std::shared_ptr<memory::reference> value, bool check_existing = true) override;
 
 		virtual bool exists(const std::string &name) const override;
 
@@ -162,8 +151,6 @@ namespace cminus::storage{
 
 		virtual bool is_accessible(unsigned int access) const override;
 
-		virtual void traverse_declarations(const std::function<void(const declaration_info &)> &callback) const override;
-
 		virtual void traverse_entries(const std::function<void(const entry_info &)> &callback, bool reversed = false) const override;
 
 	protected:
@@ -175,7 +162,7 @@ namespace cminus::storage{
 
 		virtual void add_variable_(std::shared_ptr<declaration::variable> entry, std::size_t address);
 
-		virtual std::shared_ptr<memory::reference> initialize_variable_(declaration::variable &entry, std::size_t address);
+		virtual std::shared_ptr<memory::reference> initialize_variable_(std::shared_ptr<declaration::variable> entry, std::size_t address);
 
 		virtual void add_callable_(std::shared_ptr<declaration::callable> entry, std::size_t address);
 
@@ -185,7 +172,7 @@ namespace cminus::storage{
 
 		virtual void add_storage_(std::shared_ptr<object> entry);
 
-		virtual void add_entry_(std::shared_ptr<declaration::object> entry, std::shared_ptr<memory::reference> value, bool check_existing);
+		virtual void add_entry_(std::shared_ptr<declaration::object> decl, std::shared_ptr<memory::reference> value, bool check_existing);
 
 		virtual bool exists_(const std::string &name) const;
 
@@ -204,7 +191,7 @@ namespace cminus::storage{
 		virtual object *find_storage_(const std::string &name) const;
 
 		std::list<entry_info> entries_;
-		std::unordered_map<std::string, declaration_info> declarations_;
+		std::unordered_map<std::string, entry_info *> mapped_entries_;
 
 		mutable std::mutex mutex_;
 	};

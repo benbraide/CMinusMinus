@@ -132,23 +132,23 @@ void cminus::declaration::constructor::evaluate_body_() const{
 		}
 	}
 
-	parent_->traverse_declarations([&](const storage::object::declaration_info &info){//Initialize members
-		if (info.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.resolved))
+	parent_->traverse_entries([&](const storage::object::entry_info &info){//Initialize members
+		if (dynamic_cast<declaration::variable *>(info.decl.get()) == nullptr || info.decl->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.value))
 			return;
 
 		std::shared_ptr<memory::reference> instance;
-		if (info.value->get_type()->is_ref())
-			instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
+		if (info.decl->get_type()->is_ref())
+			instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.value), *info.decl, self);
 		else
-			instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
+			instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.value), *info.decl, self);
 
 		if (instance == nullptr)
 			throw memory::exception::allocation_failure();
 
-		if (auto it = init_list.find(info.value->get_name()); it != init_list.end())
-			info.value->get_type()->construct(instance, it->second);
+		if (auto it = init_list.find(info.decl->get_name()); it != init_list.end())
+			info.decl->get_type()->construct(instance, it->second);
 		else//Construct default
-			info.value->get_type()->construct(instance);
+			info.decl->get_type()->construct(instance);
 	});
 
 	function::evaluate_body_();
@@ -197,22 +197,22 @@ void cminus::declaration::copy_constructor::evaluate_body_() const{
 		);
 	}
 
-	parent_->traverse_declarations([&](const storage::object::declaration_info &info){//Initialize members
-		if (info.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.resolved))
+	parent_->traverse_entries([&](const storage::object::entry_info &info){//Initialize members
+		if (dynamic_cast<declaration::variable *>(info.decl.get()) == nullptr || info.decl->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.value))
 			return;
 
 		std::shared_ptr<memory::reference> instance, other_instance;
-		if (info.value->get_type()->is_ref()){
-			instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
-			other_instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.resolved), *info.value, other);
+		if (info.decl->get_type()->is_ref()){
+			instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.value), *info.decl, self);
+			other_instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.value), *info.decl, other);
 		}
 		else{
-			instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
-			other_instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.resolved), *info.value, other);
+			instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.value), *info.decl, self);
+			other_instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.value), *info.decl, other);
 		}
 
 		if (instance != nullptr && other_instance != nullptr)
-			info.value->get_type()->construct(instance, other_instance);
+			info.decl->get_type()->construct(instance, other_instance);
 		else
 			throw memory::exception::allocation_failure();
 	});
@@ -367,20 +367,20 @@ void cminus::declaration::copy_operator::evaluate_body_() const{
 		);
 	}
 
-	parent_->traverse_declarations([&](const storage::object::declaration_info &info){//Initialize members
-		if (info.value->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.resolved))
+	parent_->traverse_entries([&](const storage::object::entry_info &info){//Initialize members
+		if (dynamic_cast<declaration::variable *>(info.decl.get()) == nullptr || info.decl->is(declaration::flags::static_) || !std::holds_alternative<std::size_t>(info.value))
 			return;
 
-		auto decl_type = info.value->get_type();
+		auto decl_type = info.decl->get_type();
 		std::shared_ptr<memory::reference> instance, other_instance;
 
 		if (decl_type->is_ref()){
-			instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
-			other_instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.resolved), *info.value, other);
+			instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.value), *info.decl, self);
+			other_instance = std::make_shared<memory::indirect_member_reference>(std::get<std::size_t>(info.value), *info.decl, other);
 		}
 		else{
-			instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.resolved), *info.value, self);
-			other_instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.resolved), *info.value, other);
+			instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.value), *info.decl, self);
+			other_instance = std::make_shared<memory::member_reference>(std::get<std::size_t>(info.value), *info.decl, other);
 		}
 
 		if (instance != nullptr && other_instance != nullptr){
