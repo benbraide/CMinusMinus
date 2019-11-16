@@ -22,6 +22,10 @@ namespace cminus::declaration::exception{
 		void_function_value_return,
 		value_function_no_return,
 		invalid_function_return,
+		deleted_function_call,
+		deleted_constructor_call,
+		deleted_destructor_call,
+		deleted_operator_call,
 	};
 
 	class base : public exception_base{
@@ -183,6 +187,42 @@ namespace cminus::declaration::exception{
 		invalid_function_return();
 
 		virtual ~invalid_function_return();
+
+		virtual code get_code() const override;
+	};
+
+	class deleted_function_call : public base{
+	public:
+		deleted_function_call();
+
+		virtual ~deleted_function_call();
+
+		virtual code get_code() const override;
+	};
+
+	class deleted_constructor_call : public base{
+	public:
+		deleted_constructor_call();
+
+		virtual ~deleted_constructor_call();
+
+		virtual code get_code() const override;
+	};
+
+	class deleted_destructor_call : public base{
+	public:
+		deleted_destructor_call();
+
+		virtual ~deleted_destructor_call();
+
+		virtual code get_code() const override;
+	};
+
+	class deleted_operator_call : public base{
+	public:
+		deleted_operator_call();
+
+		virtual ~deleted_operator_call();
 
 		virtual code get_code() const override;
 	};

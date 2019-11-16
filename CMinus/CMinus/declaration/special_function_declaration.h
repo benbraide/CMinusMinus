@@ -46,6 +46,22 @@ namespace cminus::declaration{
 		std::shared_ptr<node::object> definition_;
 	};
 
+	class deleted_member_function : public member_function{
+	public:
+		using member_function::member_function;
+
+		virtual ~deleted_member_function();
+
+		virtual void define(std::shared_ptr<node::object> definition) override;
+
+		virtual std::shared_ptr<node::object> get_definition() const override;
+
+		virtual bool is_defined() const override;
+
+	protected:
+		virtual std::shared_ptr<memory::reference> call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const override;
+	};
+
 	class external_member_function : public member_function{
 	public:
 		using member_function::member_function;
@@ -57,6 +73,18 @@ namespace cminus::declaration{
 		virtual std::shared_ptr<node::object> get_definition() const override;
 
 		virtual bool is_defined() const override;
+	};
+
+	class deleted_constructor : public deleted_member_function{
+	public:
+		template <typename attributes_type>
+		deleted_constructor(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
+			: deleted_member_function(parent.get_name(), parent, attributes, (flags & ~(declaration::flags::const_ | declaration::flags::static_)), nullptr){}
+
+		virtual id_type get_id() const override;
+
+	protected:
+		virtual std::shared_ptr<memory::reference> call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const override;
 	};
 
 	class constructor : public member_function{
@@ -143,6 +171,18 @@ namespace cminus::declaration{
 		virtual void evaluate_body_() const override;
 	};
 
+	class deleted_destructor : public deleted_member_function{
+	public:
+		template <typename attributes_type>
+		deleted_destructor(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
+			: deleted_member_function(parent.get_name(), parent, attributes, (flags & ~(declaration::flags::const_ | declaration::flags::static_)), nullptr){}
+
+		virtual id_type get_id() const override;
+
+	protected:
+		virtual std::shared_ptr<memory::reference> call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const override;
+	};
+
 	class destructor : public member_function{
 	public:
 		template <typename attributes_type>
@@ -191,6 +231,18 @@ namespace cminus::declaration{
 		using external_destructor::external_destructor;
 
 		virtual ~default_destructor();
+	};
+
+	class deleted_operator : public deleted_member_function{
+	public:
+		template <typename attributes_type>
+		deleted_operator(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
+			: deleted_member_function(parent.get_name(), parent, attributes, (flags & ~(declaration::flags::const_ | declaration::flags::static_)), nullptr){}
+
+		virtual id_type get_id() const override;
+
+	protected:
+		virtual std::shared_ptr<memory::reference> call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const override;
 	};
 
 	class operator_ : public function{
@@ -303,6 +355,18 @@ namespace cminus::declaration{
 
 	protected:
 		virtual void evaluate_body_() const override;
+	};
+
+	class deleted_type_operator : public deleted_member_function{
+	public:
+		template <typename attributes_type>
+		deleted_type_operator(type::class_ &parent, const attributes_type &attributes, unsigned int flags)
+			: deleted_member_function(parent.get_name(), parent, attributes, (flags & ~(declaration::flags::const_ | declaration::flags::static_)), nullptr){}
+
+		virtual id_type get_id() const override;
+
+	protected:
+		virtual std::shared_ptr<memory::reference> call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const override;
 	};
 
 	class type_operator : public member_function{

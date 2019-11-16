@@ -69,6 +69,25 @@ std::shared_ptr<cminus::node::object> cminus::declaration::defined_member_functi
 	return definition_;
 }
 
+cminus::declaration::deleted_member_function::~deleted_member_function() = default;
+
+void cminus::declaration::deleted_member_function::define(std::shared_ptr<node::object> definition){
+	throw exception::function_redefinition();
+}
+
+std::shared_ptr<cminus::node::object> cminus::declaration::deleted_member_function::get_definition() const{
+	return nullptr;
+}
+
+bool cminus::declaration::deleted_member_function::is_defined() const{
+	return true;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::declaration::deleted_member_function::call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const{
+	throw exception::deleted_function_call();
+	return nullptr;
+}
+
 cminus::declaration::external_member_function::~external_member_function() = default;
 
 void cminus::declaration::external_member_function::define(std::shared_ptr<node::object> definition){
@@ -81,6 +100,15 @@ std::shared_ptr<cminus::node::object> cminus::declaration::external_member_funct
 
 bool cminus::declaration::external_member_function::is_defined() const{
 	return true;
+}
+
+cminus::declaration::callable::id_type cminus::declaration::deleted_constructor::get_id() const{
+	return id_type::constructor;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::declaration::deleted_constructor::call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const{
+	throw exception::deleted_constructor_call();
+	return nullptr;
 }
 
 cminus::declaration::constructor::~constructor() = default;
@@ -218,6 +246,15 @@ void cminus::declaration::copy_constructor::evaluate_body_() const{
 	});
 }
 
+cminus::declaration::callable::id_type cminus::declaration::deleted_destructor::get_id() const{
+	return id_type::destructor;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::declaration::deleted_destructor::call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const{
+	throw exception::deleted_destructor_call();
+	return nullptr;
+}
+
 cminus::declaration::destructor::~destructor() = default;
 
 cminus::declaration::callable::id_type cminus::declaration::destructor::get_id() const{
@@ -277,6 +314,15 @@ bool cminus::declaration::external_destructor::is_defined() const{
 }
 
 cminus::declaration::default_destructor::~default_destructor() = default;
+
+cminus::declaration::callable::id_type cminus::declaration::deleted_operator::get_id() const{
+	return id_type::operator_;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::declaration::deleted_operator::call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const{
+	throw exception::deleted_operator_call();
+	return nullptr;
+}
 
 cminus::declaration::operator_::~operator_() = default;
 
@@ -395,6 +441,15 @@ void cminus::declaration::copy_operator::evaluate_body_() const{
 	});
 
 	throw runtime::exception::return_interrupt(self);
+}
+
+cminus::declaration::callable::id_type cminus::declaration::deleted_type_operator::get_id() const{
+	return id_type::type_operator;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::declaration::deleted_type_operator::call_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const{
+	throw exception::deleted_operator_call();
+	return nullptr;
 }
 
 cminus::declaration::type_operator::~type_operator() = default;

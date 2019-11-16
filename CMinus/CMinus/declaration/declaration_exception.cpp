@@ -153,3 +153,39 @@ cminus::declaration::exception::invalid_function_return::~invalid_function_retur
 cminus::declaration::exception::code cminus::declaration::exception::invalid_function_return::get_code() const{
 	return code::invalid_function_return;
 }
+
+cminus::declaration::exception::deleted_function_call::deleted_function_call()
+	: base("Cannot call a deleted function"){}
+
+cminus::declaration::exception::deleted_function_call::~deleted_function_call() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::deleted_function_call::get_code() const{
+	return code::deleted_function_call;
+}
+
+cminus::declaration::exception::deleted_constructor_call::deleted_constructor_call()
+	: base("Cannot call a deleted constructor"){}
+
+cminus::declaration::exception::deleted_constructor_call::~deleted_constructor_call() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::deleted_constructor_call::get_code() const{
+	return code::deleted_constructor_call;
+}
+
+cminus::declaration::exception::deleted_destructor_call::deleted_destructor_call()
+	: base("Cannot call a deleted destructor"){}
+
+cminus::declaration::exception::deleted_destructor_call::~deleted_destructor_call() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::deleted_destructor_call::get_code() const{
+	return code::deleted_destructor_call;
+}
+
+cminus::declaration::exception::deleted_operator_call::deleted_operator_call()
+	: base("Cannot call a deleted operator"){}
+
+cminus::declaration::exception::deleted_operator_call::~deleted_operator_call() = default;
+
+cminus::declaration::exception::code cminus::declaration::exception::deleted_operator_call::get_code() const{
+	return code::deleted_operator_call;
+}
