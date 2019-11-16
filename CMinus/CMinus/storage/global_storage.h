@@ -95,6 +95,8 @@ namespace cminus::storage{
 
 		virtual std::shared_ptr<memory::reference> get_zero_value(std::shared_ptr<type::object> type) const;
 
+		virtual std::shared_ptr<memory::reference> get_zero_value(cached_type type) const;
+
 		virtual std::shared_ptr<memory::reference> create_string(const char *value, bool lval = false) const;
 
 		virtual std::shared_ptr<memory::reference> create_string(const std::string &value, bool lval = false) const;

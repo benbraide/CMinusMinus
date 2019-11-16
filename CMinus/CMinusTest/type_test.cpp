@@ -40,6 +40,7 @@
 #include "../CMinus/evaluator/initializer.cpp"
 #include "../CMinus/evaluator/number_evaluator.cpp"
 #include "../CMinus/evaluator/pointer_evaluator.cpp"
+#include "../CMinus/evaluator/class_evaluator.cpp"
 #include "../CMinus/evaluator/string_evaluator.cpp"
 
 #include "../CMinus/declaration/declaration_object.cpp"

@@ -30,6 +30,7 @@ cminus::storage::global::global()
 	evaluators_[evaluator::object::id_type::pointer] = std::make_shared<evaluator::pointer>();
 
 	evaluators_[evaluator::object::id_type::enum_] = std::make_shared<evaluator::enum_>();
+	evaluators_[evaluator::object::id_type::class_] = std::make_shared<evaluator::class_>();
 	evaluators_[evaluator::object::id_type::string] = std::make_shared<evaluator::string>();
 
 	cached_types_[cached_type::undefined] = std::make_shared<type::undefined_primitive>();
@@ -211,6 +212,10 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_zero_val
 		runtime::object::memory_object->set(reference->get_address(), std::byte(0), type->get_size());
 
 	return reference;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_zero_value(cached_type type) const{
+	return get_zero_value(get_cached_type(type));
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::storage::global::create_string(const char *value, bool lval) const{

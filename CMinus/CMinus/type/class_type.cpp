@@ -89,11 +89,15 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::cast(std::share
 	return nullptr;
 }
 
+std::shared_ptr<cminus::evaluator::object> cminus::type::class_::get_evaluator() const{
+	return runtime::object::global_storage->get_evaluator(evaluator::object::id_type::class_);
+}
+
 bool cminus::type::class_::is_default_constructible(bool ignore_callable) const{
 	if (!ignore_callable){//Search for function
 		if (auto constructor = find_function_(get_name()); constructor != nullptr && constructor->get_id() == declaration::callable::id_type::constructor){
 			try{
-				if (constructor->find_by_args(std::vector<declaration::callable::arg_info>{}) != nullptr)
+				if (auto matched = constructor->find_by_args(std::vector<declaration::callable::arg_info>{}); matched != nullptr && dynamic_cast<declaration::deleted_constructor *>(matched.get()) == nullptr)
 					return true;
 			}
 			catch (...){}
@@ -122,7 +126,7 @@ bool cminus::type::class_::is_copy_constructible(bool ignore_callable) const{
 	if (!ignore_callable){//Search for function
 		if (auto constructor = find_function_(get_name()); constructor != nullptr && constructor->get_id() == declaration::callable::id_type::constructor){
 			try{
-				if (constructor->find_by_args({ declaration::callable::arg_info{ this, true, false } }) != nullptr)
+				if (auto matched = constructor->find_by_args({ declaration::callable::arg_info{ this, true, false } }); matched != nullptr && dynamic_cast<declaration::deleted_constructor *>(matched.get()) == nullptr)
 					return true;
 			}
 			catch (...){}
@@ -151,7 +155,7 @@ bool cminus::type::class_::is_copy_assignable(bool ignore_callable) const{
 	if (!ignore_callable){//Search for function
 		if (auto constructor = find_operator_(operators::id::assignment); constructor != nullptr && constructor->get_id() == declaration::callable::id_type::operator_){
 			try{
-				if (constructor->find_by_args({ declaration::callable::arg_info{ this, true, false } }) != nullptr)
+				if (auto matched = constructor->find_by_args({ declaration::callable::arg_info{ this, true, false } }); matched != nullptr && dynamic_cast<declaration::deleted_operator *>(matched.get()) == nullptr)
 					return true;
 			}
 			catch (...){}
