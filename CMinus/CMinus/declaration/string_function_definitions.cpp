@@ -510,3 +510,13 @@ void cminus::declaration::string::insert_fill_def::evaluate_body_() const{
 	auto fill = helper::read_value<char>("fill", nullptr);
 	helper::insert(&fill, helper::read_value<std::size_t>("size", nullptr), helper::read_value<std::size_t>("offset", nullptr), true, nullptr);
 }
+
+cminus::declaration::string::index_operator_def::~index_operator_def() = default;
+
+void cminus::declaration::string::index_operator_def::evaluate_body_() const{
+	throw runtime::exception::return_interrupt(runtime::object::global_storage->get_evaluator(evaluator::object::id_type::string)->evaluate_binary(
+		index_operator::get_op(),
+		runtime::object::current_storage->get_first_of<storage::class_member>()->get_context(),
+		runtime::object::current_storage->find("position", true)
+	));
+}

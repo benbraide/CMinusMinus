@@ -231,4 +231,46 @@ namespace cminus::declaration::string{
 
 		virtual ~insert_fill();
 	};
+
+	class assignment_operator : public external_member_operator{
+	public:
+		explicit assignment_operator(type::class_ &parent);
+
+		virtual ~assignment_operator();
+	};
+
+	class compound_assignment_operator : public external_member_operator{
+	public:
+		explicit compound_assignment_operator(type::class_ &parent);
+
+		virtual ~compound_assignment_operator();
+	};
+
+	class index_operator : public external_member_operator{
+	public:
+		index_operator(type::class_ &parent, bool is_const);
+
+		virtual ~index_operator();
+	};
+
+	class concatenation_operator : public external_member_operator{
+	public:
+		explicit concatenation_operator(type::class_ &parent);
+
+		virtual ~concatenation_operator();
+	};
+
+	class spaceship_operator : public external_member_operator{
+	public:
+		explicit spaceship_operator(type::class_ &parent);
+
+		virtual ~spaceship_operator();
+	};
+
+	class relational_operator : public external_member_operator{
+	public:
+		relational_operator(type::class_ &parent, operators::id op);
+
+		virtual ~relational_operator();
+	};
 }

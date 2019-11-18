@@ -51,7 +51,7 @@ cminus::declaration::string::sub_copy_constructor::sub_copy_constructor(type::cl
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -72,7 +72,7 @@ cminus::declaration::string::buffer_constructor::buffer_constructor(type::class_
 		runtime::object::global_storage->get_char_pointer_type(true),			//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -93,7 +93,7 @@ cminus::declaration::string::fill_constructor::fill_constructor(type::class_ &pa
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -101,7 +101,7 @@ cminus::declaration::string::fill_constructor::fill_constructor(type::class_ &pa
 		runtime::object::global_storage->get_char_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 }
 
@@ -144,7 +144,7 @@ cminus::declaration::string::at::at(type::class_ &parent, bool is_const)
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 }
 
@@ -157,7 +157,7 @@ cminus::declaration::string::find_copy::find_copy(type::class_ &parent, bool is_
 		misc_helper::get_string_ref_type(parent, true),							//Type
 		attribute::collection::list_type{},										//Attributes
 		flags::nil,																//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -178,7 +178,7 @@ cminus::declaration::string::find_sub_copy::find_sub_copy(type::class_ &parent, 
 		misc_helper::get_string_ref_type(parent, true),							//Type
 		attribute::collection::list_type{},										//Attributes
 		flags::nil,																//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -186,7 +186,7 @@ cminus::declaration::string::find_sub_copy::find_sub_copy(type::class_ &parent, 
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -194,7 +194,7 @@ cminus::declaration::string::find_sub_copy::find_sub_copy(type::class_ &parent, 
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -215,7 +215,7 @@ cminus::declaration::string::find_buffer::find_buffer(type::class_ &parent, bool
 		runtime::object::global_storage->get_char_pointer_type(true),			//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -236,7 +236,7 @@ cminus::declaration::string::find_sized_buffer::find_sized_buffer(type::class_ &
 		runtime::object::global_storage->get_char_pointer_type(true),			//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -244,7 +244,7 @@ cminus::declaration::string::find_sized_buffer::find_sized_buffer(type::class_ &
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -252,7 +252,7 @@ cminus::declaration::string::find_sized_buffer::find_sized_buffer(type::class_ &
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 }
 
@@ -265,7 +265,7 @@ cminus::declaration::string::find_single::find_single(type::class_ &parent, bool
 		runtime::object::global_storage->get_char_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -307,7 +307,7 @@ cminus::declaration::string::resize::resize(type::class_ &parent)
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -328,7 +328,7 @@ cminus::declaration::string::erase::erase(type::class_ &parent)
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -354,7 +354,7 @@ cminus::declaration::string::swap::swap(type::class_ &parent)
 		misc_helper::get_string_ref_type(parent, false),						//Type
 		attribute::collection::list_type{},										//Attributes
 		flags::nil,																//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 }
 
@@ -367,7 +367,7 @@ cminus::declaration::string::assign_copy::assign_copy(type::class_ &parent, bool
 		misc_helper::get_string_ref_type(parent, true),							//Type
 		attribute::collection::list_type{},										//Attributes
 		flags::nil,																//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 }
 
@@ -380,7 +380,7 @@ cminus::declaration::string::assign_sub_copy::assign_sub_copy(type::class_ &pare
 		misc_helper::get_string_ref_type(parent, true),							//Type
 		attribute::collection::list_type{},										//Attributes
 		flags::nil,																//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -388,7 +388,7 @@ cminus::declaration::string::assign_sub_copy::assign_sub_copy(type::class_ &pare
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -409,7 +409,7 @@ cminus::declaration::string::assign_buffer::assign_buffer(type::class_ &parent, 
 		runtime::object::global_storage->get_char_pointer_type(true),			//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -430,7 +430,7 @@ cminus::declaration::string::assign_fill::assign_fill(type::class_ &parent, bool
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -438,7 +438,7 @@ cminus::declaration::string::assign_fill::assign_fill(type::class_ &parent, bool
 		runtime::object::global_storage->get_char_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 }
 
@@ -451,7 +451,7 @@ cminus::declaration::string::insert_copy::insert_copy(type::class_ &parent)
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<variable>(
@@ -459,7 +459,7 @@ cminus::declaration::string::insert_copy::insert_copy(type::class_ &parent)
 		misc_helper::get_string_ref_type(parent, true),							//Type
 		attribute::collection::list_type{},										//Attributes
 		flags::nil,																//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 }
 
@@ -472,7 +472,7 @@ cminus::declaration::string::insert_sub_copy::insert_sub_copy(type::class_ & par
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<variable>(
@@ -480,7 +480,7 @@ cminus::declaration::string::insert_sub_copy::insert_sub_copy(type::class_ & par
 		misc_helper::get_string_ref_type(parent, true),							//Type
 		attribute::collection::list_type{},										//Attributes
 		flags::nil,																//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -488,7 +488,7 @@ cminus::declaration::string::insert_sub_copy::insert_sub_copy(type::class_ & par
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -509,7 +509,7 @@ cminus::declaration::string::insert_buffer::insert_buffer(type::class_ & parent)
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -517,7 +517,7 @@ cminus::declaration::string::insert_buffer::insert_buffer(type::class_ & parent)
 		runtime::object::global_storage->get_char_pointer_type(true),			//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -538,7 +538,7 @@ cminus::declaration::string::insert_fill::insert_fill(type::class_ & parent)
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -546,7 +546,7 @@ cminus::declaration::string::insert_fill::insert_fill(type::class_ & parent)
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 
 	add_parameter(std::make_shared<declaration::variable>(
@@ -554,8 +554,86 @@ cminus::declaration::string::insert_fill::insert_fill(type::class_ & parent)
 		runtime::object::global_storage->get_char_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::nil,												//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	));
 }
 
 cminus::declaration::string::insert_fill::~insert_fill() = default;
+
+cminus::declaration::string::assignment_operator::assignment_operator(type::class_ &parent)
+	: external_member_operator(operators::id::assignment, parent, attribute::collection::list_type{}, flags::nil, misc_helper::get_string_ref_type(parent, false)){
+	add_parameter(std::make_shared<variable>(
+		"other",																//Name
+		misc_helper::get_string_ref_type(parent, true),							//Type
+		attribute::collection::list_type{},										//Attributes
+		flags::nil,																//Flags
+		std::shared_ptr<node::object>()											//Initialization
+	));
+}
+
+cminus::declaration::string::assignment_operator::~assignment_operator() = default;
+
+cminus::declaration::string::compound_assignment_operator::compound_assignment_operator(type::class_ &parent)
+	: external_member_operator(operators::id::compound_plus, parent, attribute::collection::list_type{}, flags::nil, misc_helper::get_string_ref_type(parent, false)){
+	add_parameter(std::make_shared<variable>(
+		"other",																//Name
+		misc_helper::get_string_ref_type(parent, true),							//Type
+		attribute::collection::list_type{},										//Attributes
+		flags::nil,																//Flags
+		std::shared_ptr<node::object>()											//Initialization
+	));
+}
+
+cminus::declaration::string::compound_assignment_operator::~compound_assignment_operator() = default;
+
+cminus::declaration::string::index_operator::index_operator(type::class_ &parent, bool is_const)
+	: external_member_operator(operators::id::index, parent, attribute::collection::list_type{}, (is_const ? flags::const_ : flags::nil), runtime::object::global_storage->get_char_ref_type(is_const)){
+	add_parameter(std::make_shared<declaration::variable>(
+		"position",																//Name
+		runtime::object::global_storage->get_size_type(),						//Type
+		attribute::collection::list_type{},										//Attributes
+		declaration::flags::nil,												//Flags
+		std::shared_ptr<node::object>()											//Initialization
+	));
+}
+
+cminus::declaration::string::index_operator::~index_operator() = default;
+
+cminus::declaration::string::concatenation_operator::concatenation_operator(type::class_ &parent)
+	: external_member_operator(operators::id::plus, parent, attribute::collection::list_type{}, flags::const_, std::make_shared<type::proxy>(parent)){
+	add_parameter(std::make_shared<variable>(
+		"other",																//Name
+		misc_helper::get_string_ref_type(parent, true),							//Type
+		attribute::collection::list_type{},										//Attributes
+		flags::nil,																//Flags
+		std::shared_ptr<node::object>()											//Initialization
+	));
+}
+
+cminus::declaration::string::concatenation_operator::~concatenation_operator() = default;
+
+cminus::declaration::string::spaceship_operator::spaceship_operator(type::class_ &parent)
+	: external_member_operator(operators::id::spaceship, parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_cached_type(storage::global::cached_type::compare_result)){
+	add_parameter(std::make_shared<variable>(
+		"other",																//Name
+		misc_helper::get_string_ref_type(parent, true),							//Type
+		attribute::collection::list_type{},										//Attributes
+		flags::nil,																//Flags
+		std::shared_ptr<node::object>()											//Initialization
+	));
+}
+
+cminus::declaration::string::spaceship_operator::~spaceship_operator() = default;
+
+cminus::declaration::string::relational_operator::relational_operator(type::class_ &parent, operators::id op)
+	: external_member_operator(op, parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_boolean_type()){
+	add_parameter(std::make_shared<variable>(
+		"other",																//Name
+		misc_helper::get_string_ref_type(parent, true),							//Type
+		attribute::collection::list_type{},										//Attributes
+		flags::nil,																//Flags
+		std::shared_ptr<node::object>()											//Initialization
+	));
+}
+
+cminus::declaration::string::relational_operator::~relational_operator() = default;

@@ -1,3 +1,4 @@
+#include "../node/literal_node.h"
 #include "../storage/global_storage.h"
 #include "../declaration/variable_declaration.h"
 #include "../declaration/string_function_definitions.h"
@@ -11,7 +12,7 @@ cminus::type::string::string()
 		runtime::object::global_storage->get_size_type(),						//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::private_,											//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	), 0u);
 
 	add_variable_(std::make_shared<declaration::variable>(
@@ -19,10 +20,8 @@ cminus::type::string::string()
 		runtime::object::global_storage->get_char_pointer_type(false),			//Type
 		attribute::collection::list_type{},										//Attributes
 		declaration::flags::private_,											//Flags
-		std::shared_ptr<memory::reference>()									//Initialization
+		std::shared_ptr<node::object>()											//Initialization
 	), 0u);
-
-	cminus::runtime::object::memory_object;
 
 	add_callable_(std::make_shared<declaration::string::destructor_def>(*this), 0u);
 	add_callable_(std::make_shared<declaration::string::default_constructor_def>(*this), 0u);
@@ -86,6 +85,21 @@ cminus::type::string::string()
 
 	add_callable_(std::make_shared<declaration::string::insert_buffer_def>(*this), 0u);
 	add_callable_(std::make_shared<declaration::string::insert_fill_def>(*this), 0u);
+
+	add_callable_(std::make_shared<declaration::string::index_operator_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::index_operator_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::operator_def<declaration::string::assignment_operator>>(*this), 0u);
+	add_callable_(std::make_shared<declaration::string::operator_def<declaration::string::compound_assignment_operator>>(*this), 0u);
+	add_callable_(std::make_shared<declaration::string::operator_def<declaration::string::concatenation_operator>>(*this), 0u);
+	add_callable_(std::make_shared<declaration::string::operator_def<declaration::string::spaceship_operator>>(*this), 0u);
+
+	add_callable_(std::make_shared<declaration::string::operator_def<declaration::string::relational_operator>>(*this, operators::id::less), 0u);
+	add_callable_(std::make_shared<declaration::string::operator_def<declaration::string::relational_operator>>(*this, operators::id::less_or_equal), 0u);
+	add_callable_(std::make_shared<declaration::string::operator_def<declaration::string::relational_operator>>(*this, operators::id::equal), 0u);
+	add_callable_(std::make_shared<declaration::string::operator_def<declaration::string::relational_operator>>(*this, operators::id::not_equal), 0u);
+	add_callable_(std::make_shared<declaration::string::operator_def<declaration::string::relational_operator>>(*this, operators::id::greater_or_equal), 0u);
+	add_callable_(std::make_shared<declaration::string::operator_def<declaration::string::relational_operator>>(*this, operators::id::greater), 0u);
 
 	compile_();
 }

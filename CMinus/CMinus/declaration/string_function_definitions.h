@@ -4,6 +4,7 @@
 #include <string_view>
 
 #include "../storage/global_storage.h"
+#include "../storage/specialized_storage.h"
 
 #include "string_function_declarations.h"
 
@@ -390,5 +391,32 @@ namespace cminus::declaration::string{
 
 	protected:
 		virtual void evaluate_body_() const override;
+	};
+
+	class index_operator_def : public index_operator{
+	public:
+		using index_operator::index_operator;
+
+		virtual ~index_operator_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	template <class base_type>
+	class operator_def : public base_type{
+	public:
+		using base_type::base_type;
+
+		virtual ~operator_def() = default;
+
+	protected:
+		virtual void evaluate_body_() const override{
+			throw runtime::exception::return_interrupt(runtime::object::global_storage->get_evaluator(evaluator::object::id_type::string)->evaluate_binary(
+				base_type::get_op(),
+				runtime::object::current_storage->get_first_of<storage::class_member>()->get_context(),
+				runtime::object::current_storage->find("other", true)
+			));
+		}
 	};
 }
