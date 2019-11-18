@@ -86,7 +86,22 @@ std::shared_ptr<cminus::memory::reference> cminus::type::class_::cast(std::share
 	if (auto callable = find_operator(*target_type); callable != nullptr)
 		return callable->call(data, {});
 
-	return nullptr;
+	auto data_is_lval = data->is_lvalue();
+	if (!is_valid_static_cast(type, data_is_lval, data->is_const()))
+		return nullptr;
+
+	auto class_target_type = target_type->as<class_>();
+	if (class_target_type == nullptr)
+		return nullptr;
+
+	auto offset = compute_base_offset_(*class_target_type, 0u);
+	if (offset == static_cast<std::size_t>(-1))
+		return nullptr;
+
+	if (offset == 0u)
+		return ((type == cast_type::static_) ? copy_data(data, target_type) : data);
+
+	return ((!data_is_lval || type != cast_type::static_) ? data->apply_offset(offset, target_type) : copy_data(data->apply_offset(offset, target_type), target_type));
 }
 
 std::shared_ptr<cminus::evaluator::object> cminus::type::class_::get_evaluator() const{

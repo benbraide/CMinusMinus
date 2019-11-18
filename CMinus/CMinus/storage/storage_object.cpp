@@ -145,8 +145,8 @@ void cminus::storage::unnamed_object::destroy_entries_(){
 		return;
 
 	for (auto it = entries_.rbegin(); it != entries_.rend(); ++it){
-		if (std::holds_alternative<std::shared_ptr<memory::reference>>(it->value))
-			it->decl->get_type()->destruct(std::get<std::shared_ptr<memory::reference>>(it->value));
+		if (auto mem_entry = std::get_if<std::shared_ptr<memory::reference>>(&it->value); mem_entry != nullptr && (*mem_entry)->is_constructed())
+			it->decl->get_type()->destruct(*mem_entry);
 		it->value = '\0';//Destroy value
 	}
 

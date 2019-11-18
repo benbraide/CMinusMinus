@@ -157,12 +157,11 @@ bool cminus::type::object::is_ref() const{
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::type::object::copy_data(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type){
-	auto copy = std::make_shared<memory::write_protected_rval_reference>(target_type->remove_const_ref(target_type));
-	if (copy == nullptr)
+	auto copy = std::make_shared<memory::rval_reference>(target_type->remove_const_ref(target_type));
+	if (copy != nullptr)
+		copy->get_type()->construct(copy, data);
+	else
 		throw memory::exception::allocation_failure();
-
-	runtime::value_guard guard(runtime::object::state, (runtime::object::state | runtime::flags::system));
-	copy->write(data);
 
 	return copy;
 }

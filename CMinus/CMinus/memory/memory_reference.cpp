@@ -131,11 +131,12 @@ void cminus::memory::reference::before_read_() const{}
 void cminus::memory::reference::after_read_() const{}
 
 void cminus::memory::reference::destruct_(){
-	if (is_constructed_ && type_ != nullptr){
+	/*if (is_constructed_ && type_ != nullptr){
 		is_constructed_ = false;
 		type_->destruct(clone());
-	}
+	}*/
 
+	is_constructed_ = false;
 	if (deallocator_ != nullptr){
 		deallocator_();
 		deallocator_ = nullptr;
