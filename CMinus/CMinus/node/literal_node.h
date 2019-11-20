@@ -21,4 +21,16 @@ namespace cminus::node{
 	protected:
 		value_type value_;
 	};
+
+	class string_literal : public object{
+	public:
+		explicit string_literal(const std::string &value);
+
+		virtual ~string_literal();
+
+		virtual std::shared_ptr<memory::reference> evaluate() const override;
+
+	protected:
+		std::string value_;
+	};
 }
