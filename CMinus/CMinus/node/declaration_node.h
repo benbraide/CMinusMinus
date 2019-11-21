@@ -13,6 +13,8 @@ namespace cminus::node{
 
 		virtual std::shared_ptr<memory::reference> evaluate() const override;
 
+		virtual std::shared_ptr<declaration::variable> get_decl_value() const;
+
 	protected:
 		std::shared_ptr<declaration::variable> value_;
 	};

@@ -39,6 +39,19 @@ cminus::runtime::exception::void_return_interrupt::void_return_interrupt()
 
 cminus::runtime::exception::void_return_interrupt::~void_return_interrupt() = default;
 
+cminus::runtime::exception::control_interrupt::control_interrupt(value_type value)
+	: base("'break' or 'continue' statement must be inside a iteration or switch context"), value_(value){}
+
+cminus::runtime::exception::control_interrupt::~control_interrupt() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::control_interrupt::get_code() const{
+	return code::control_interrupt;
+}
+
+cminus::runtime::exception::control_interrupt::value_type cminus::runtime::exception::control_interrupt::get_value() const{
+	return value_;
+}
+
 cminus::runtime::exception::bad_constructor::bad_constructor()
 	: base("Constructor is ill-formed"){}
 
@@ -91,6 +104,15 @@ cminus::runtime::exception::bad_pointer_member_access_left::~bad_pointer_member_
 
 cminus::runtime::exception::code cminus::runtime::exception::bad_pointer_member_access_left::get_code() const{
 	return code::bad_pointer_member_access_left;
+}
+
+cminus::runtime::exception::bad_control_condition::bad_control_condition()
+	: base("Control condition is required to evaluate to a boolean value"){}
+
+cminus::runtime::exception::bad_control_condition::~bad_control_condition() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::bad_control_condition::get_code() const{
+	return code::bad_control_condition;
 }
 
 cminus::runtime::exception::out_of_range::out_of_range()

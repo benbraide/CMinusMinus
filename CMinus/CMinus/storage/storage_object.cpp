@@ -151,6 +151,7 @@ void cminus::storage::unnamed_object::destroy_entries_(){
 	}
 
 	entries_.clear();
+	mapped_entries_.clear();
 }
 
 void cminus::storage::unnamed_object::acquire_lock_() const{

@@ -27,4 +27,19 @@ namespace cminus::storage{
 		const declaration::callable &owner_;
 		std::shared_ptr<memory::reference> context_;
 	};
+
+	class control : public named_object{
+	public:
+		control();
+
+		virtual ~control();
+
+		virtual void init_inner();
+
+		virtual void uninit_inner();
+
+	protected:
+		object *previous_ = nullptr;
+		std::size_t inner_offset_ = 0u;
+	};
 }

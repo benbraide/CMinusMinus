@@ -13,12 +13,14 @@ namespace cminus::runtime::exception{
 	enum class code{
 		nil,
 		return_interrupt,
+		control_interrupt,
 		bad_constructor,
 		bad_destructor,
 		bad_constructor_init_list,
 		bad_scope_left,
 		bad_member_access_left,
 		bad_pointer_member_access_left,
+		bad_control_condition,
 		out_of_range,
 		not_supported,
 	};
@@ -72,6 +74,26 @@ namespace cminus::runtime::exception{
 		virtual ~void_return_interrupt();
 	};
 
+	class control_interrupt : public base{
+	public:
+		enum class value_type{
+			nil,
+			break_,
+			continue_,
+		};
+
+		explicit control_interrupt(value_type value);
+
+		virtual ~control_interrupt();
+
+		virtual code get_code() const override;
+
+		virtual value_type get_value() const;
+
+	protected:
+		value_type value_;
+	};
+
 	class bad_constructor : public base{
 	public:
 		bad_constructor();
@@ -122,6 +144,15 @@ namespace cminus::runtime::exception{
 		bad_pointer_member_access_left();
 
 		virtual ~bad_pointer_member_access_left();
+
+		virtual code get_code() const override;
+	};
+
+	class bad_control_condition : public base{
+	public:
+		bad_control_condition();
+
+		virtual ~bad_control_condition();
 
 		virtual code get_code() const override;
 	};

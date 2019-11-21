@@ -43,3 +43,33 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::class_member::get_co
 const cminus::declaration::callable &cminus::storage::class_member::get_owner() const{
 	return owner_;
 }
+
+cminus::storage::control::control()
+	: named_object("", runtime::object::current_storage), previous_(runtime::object::current_storage){
+	runtime::object::current_storage = this;
+}
+
+cminus::storage::control::~control(){
+	destroy_entries_();
+	runtime::object::current_storage = previous_;
+	previous_ = nullptr;
+}
+
+void cminus::storage::control::init_inner(){
+	inner_offset_ = entries_.size();
+}
+
+void cminus::storage::control::uninit_inner(){
+	entry_info *entry = nullptr;
+	while (inner_offset_ < entries_.size()){
+		entry = &entries_.back();
+		if (auto mem_entry = std::get_if<std::shared_ptr<memory::reference>>(&entry->value); mem_entry != nullptr && (*mem_entry)->is_constructed())
+			entry->decl->get_type()->destruct(*mem_entry);
+
+		entry->value = '\0';//Destroy value
+		mapped_entries_.erase(entry->decl->get_name());
+		entries_.pop_back();
+	}
+
+	inner_offset_ = 0u;
+}

@@ -4,6 +4,10 @@
 
 #include "runtime_exception.h"
 
+namespace cminus::memory{
+	class reference;
+}
+
 namespace cminus::storage{
 	class object;
 	class global;
@@ -29,5 +33,7 @@ namespace cminus::runtime{
 
 		static storage::global *global_storage;
 		static thread_local storage::object *current_storage;
+
+		static thread_local std::shared_ptr<memory::reference> current_exception;
 	};
 }

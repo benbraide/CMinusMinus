@@ -9,3 +9,7 @@ std::shared_ptr<cminus::memory::reference> cminus::node::variable_declaration::e
 	value_->evaluate(0u);
 	return nullptr;
 }
+
+std::shared_ptr<cminus::declaration::variable> cminus::node::variable_declaration::get_decl_value() const{
+	return value_;
+}
