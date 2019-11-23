@@ -1,6 +1,37 @@
+#include "../storage/global_storage.h"
+
 #include "runtime_exception.h"
 
-#include "../memory/memory_reference.h"
+cminus::runtime::exception::base::~base() = default;
+
+std::shared_ptr<cminus::memory::reference> cminus::runtime::exception::base::create_value() const{
+	switch (get_code()){
+	case code::return_interrupt:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 41u);
+	case code::bad_constructor:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 44u);
+	case code::bad_destructor:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 45u);
+	case code::bad_constructor_init_list:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 46u);
+	case code::bad_scope_left:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 47u);
+	case code::bad_member_access_left:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 48u);
+	case code::bad_pointer_member_access_left:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 49u);
+	case code::bad_control_condition:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 50u);
+	case code::out_of_range:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 51u);
+	case code::not_supported:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 52u);
+	default:
+		break;
+	}
+
+	return nullptr;
+}
 
 cminus::runtime::exception::unnamed::unnamed(code code)
 	: base("Unknown evaluator error"), code_(code){}
@@ -43,6 +74,12 @@ cminus::runtime::exception::control_interrupt::control_interrupt(value_type valu
 	: base("'break' or 'continue' statement must be inside a iteration or switch context"), value_(value){}
 
 cminus::runtime::exception::control_interrupt::~control_interrupt() = default;
+
+std::shared_ptr<cminus::memory::reference> cminus::runtime::exception::control_interrupt::create_value() const{
+	if (value_ == value_type::break_)
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 42u);
+	return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 43u);
+}
 
 cminus::runtime::exception::code cminus::runtime::exception::control_interrupt::get_code() const{
 	return code::control_interrupt;

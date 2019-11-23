@@ -29,7 +29,9 @@ namespace cminus::runtime::exception{
 	public:
 		using exception_base::exception_base;
 
-		virtual ~base() = default;
+		virtual ~base();
+
+		virtual std::shared_ptr<memory::reference> create_value() const override;
 
 		virtual code get_code() const = 0;
 	};
@@ -85,6 +87,8 @@ namespace cminus::runtime::exception{
 		explicit control_interrupt(value_type value);
 
 		virtual ~control_interrupt();
+
+		virtual std::shared_ptr<memory::reference> create_value() const override;
 
 		virtual code get_code() const override;
 

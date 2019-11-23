@@ -1,4 +1,35 @@
-#include "memory_exception.h"
+#include "../storage/global_storage.h"
+
+#include "memory_reference.h"
+
+cminus::memory::exception::base::~base() = default;
+
+std::shared_ptr<cminus::memory::reference> cminus::memory::exception::base::create_value() const{
+	switch (get_code()){
+	case code::allocation_failure:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 0u);
+	case code::access_protected:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 1u);
+	case code::write_protected:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 2u);
+	case code::block_not_found:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 3u);
+	case code::block_misaligned:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 4u);
+	case code::block_not_resizable:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 5u);
+	case code::invalid_size:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 6u);
+	case code::incompatible_types:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 7u);
+	case code::uninitialized_memory:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 8u);
+	default:
+		break;
+	}
+
+	return nullptr;
+}
 
 cminus::memory::exception::meta_no_address::~meta_no_address() = default;
 

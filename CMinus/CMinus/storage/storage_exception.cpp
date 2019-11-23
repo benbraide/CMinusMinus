@@ -1,4 +1,29 @@
+#include "../storage/global_storage.h"
+
 #include "storage_exception.h"
+
+cminus::storage::exception::base::~base() = default;
+
+std::shared_ptr<cminus::memory::reference> cminus::storage::exception::base::create_value() const{
+	switch (get_code()){
+	case code::duplicate_entry:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 9u);
+	case code::duplicate_base:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 10u);
+	case code::entry_not_found:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 11u);
+	case code::unnamed_entry:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 12u);
+	case code::inaccessible_entry:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 13u);
+	case code::no_member_context:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 14u);
+	default:
+		break;
+	}
+
+	return nullptr;
+}
 
 cminus::storage::exception::unnamed::unnamed(code code)
 	: base("Unknown storage error"), code_(code){}

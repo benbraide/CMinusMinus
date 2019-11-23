@@ -117,7 +117,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::strin
 	case operators::id::greater:
 		return runtime::object::global_storage->get_boolean_value(result > 0);
 	case operators::id::spaceship:
-		return runtime::object::global_storage->get_compare_value(result);
+		return std::make_shared<memory::scalar_reference<int>>(runtime::object::global_storage->get_int_type(), result);
 	default:
 		break;
 	}

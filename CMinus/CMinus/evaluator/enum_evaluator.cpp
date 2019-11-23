@@ -20,7 +20,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::enum_
 	if (assignment::assign(op, left_value, right))
 		return left_value;
 
-	if (op != operators::id::equal && op != operators::id::not_equal && op != operators::id::spaceship)
+	if (op != operators::id::equal && op != operators::id::not_equal)
 		return nullptr;
 
 	auto right_value = right->evaluate();
@@ -35,12 +35,5 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::enum_
 	if (compatible_right_value == nullptr)
 		throw exception::unsupported_op();
 
-	auto result = runtime::object::global_storage->compare_enum(*left_type, left_value, right_value);
-	if (op == operators::id::spaceship){
-		if (result)
-			runtime::object::global_storage->get_compare_value(0);
-		return runtime::object::global_storage->get_not_equal_compare_value();
-	}
-
-	return runtime::object::global_storage->get_boolean_value(result  == (op == operators::id::equal));
+	return runtime::object::global_storage->get_boolean_value(runtime::object::global_storage->compare_enum(*left_type, left_value, right_value) == (op == operators::id::equal));
 }

@@ -80,7 +80,7 @@ cminus::storage::global::global()
 	nullptr_value_ = std::make_shared<memory::rval_reference>(0u, cached_types_[cached_type::nullptr_]);
 	undefined_value_ = std::make_shared<memory::rval_reference>(0u, cached_types_[cached_type::undefined]);
 
-	cached_types_[cached_type::compare_result] = std::make_shared<type::compare_result>();
+	cached_types_[cached_type::exception] = std::make_shared<type::exception>();
 	cached_types_[cached_type::attribute_stage] = std::make_shared<type::attribute_stage>();
 	cached_types_[cached_type::attribute_result] = std::make_shared<type::attribute_result>();
 
@@ -291,21 +291,6 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_enum_val
 
 std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_enum_value(cached_type type, std::size_t value) const{
 	return get_enum_value(get_cached_type(type), value);
-}
-
-std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_compare_value(int value) const{
-	if (value < 0)
-		value = 1;
-	else if (value == 0)
-		value = 2;
-	else
-		value = 3;
-
-	return get_enum_value(cached_type::compare_result, value);
-}
-
-std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_not_equal_compare_value() const{
-	return get_enum_value(cached_type::compare_result, 0);
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::storage::global::get_boolean_value(type::boolean_constant value) const{

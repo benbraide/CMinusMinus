@@ -1,4 +1,53 @@
+#include "../storage/global_storage.h"
+
 #include "declaration_exception.h"
+
+cminus::declaration::exception::base::~base() = default;
+
+std::shared_ptr<cminus::memory::reference> cminus::declaration::exception::base::create_value() const{
+	switch (get_code()){
+	case code::bad_declaration:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 15u);
+	case code::initialization_required:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 16u);
+	case code::function_redefinition:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 17u);
+	case code::function_redeclaration:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 18u);
+	case code::function_expected:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 19u);
+	case code::constructor_expected:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 20u);
+	case code::destructor_expected:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 21u);
+	case code::function_not_found:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 22u);
+	case code::function_not_defined:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 23u);
+	case code::ambiguous_function_call:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 24u);
+	case code::bad_parameter_list:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 25u);
+	case code::bad_init_list:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 26u);
+	case code::void_function_value_return:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 27u);
+	case code::value_function_no_return:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 28u);
+	case code::deleted_function_call:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 29u);
+	case code::deleted_constructor_call:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 30u);
+	case code::deleted_destructor_call:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 31u);
+	case code::deleted_operator_call:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 32u);
+	default:
+		break;
+	}
+
+	return nullptr;
+}
 
 cminus::declaration::exception::unnamed::unnamed(code code)
 	: unnamed(code, "Unknown evaluator error"){}

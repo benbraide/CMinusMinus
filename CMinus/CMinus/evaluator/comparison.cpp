@@ -153,7 +153,7 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::comparison::create
 }
 
 cminus::evaluator::object::memory_ptr_type cminus::evaluator::comparison::create_compare_value_(int value) const{
-	return runtime::object::global_storage->get_compare_value(value);
+	return std::make_shared<memory::scalar_reference<int>>(runtime::object::global_storage->get_int_type(), value);
 }
 
 cminus::evaluator::pointer_comparison::~pointer_comparison() = default;

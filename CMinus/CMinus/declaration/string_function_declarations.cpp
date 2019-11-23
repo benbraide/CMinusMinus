@@ -613,7 +613,7 @@ cminus::declaration::string::concatenation_operator::concatenation_operator(type
 cminus::declaration::string::concatenation_operator::~concatenation_operator() = default;
 
 cminus::declaration::string::spaceship_operator::spaceship_operator(type::class_ &parent)
-	: external_member_operator(operators::id::spaceship, parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_cached_type(storage::global::cached_type::compare_result)){
+	: external_member_operator(operators::id::spaceship, parent, attribute::collection::list_type{}, flags::const_, runtime::object::global_storage->get_int_type()){
 	add_parameter(std::make_shared<variable>(
 		"other",																//Name
 		misc_helper::get_string_ref_type(parent, true),							//Type

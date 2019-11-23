@@ -11,7 +11,7 @@ namespace cminus::type{
 		using type_base = type::object;
 		using storage_base = storage::unnamed_object;
 
-		enum_(const std::string &name, storage_base *parent);
+		enum_(const std::string &name, storage::object *parent);
 
 		virtual ~enum_();
 

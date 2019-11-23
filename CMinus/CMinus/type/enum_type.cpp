@@ -3,7 +3,7 @@
 #include "proxy_type.h"
 #include "enum_type.h"
 
-cminus::type::enum_::enum_(const std::string &name, storage_base *parent)
+cminus::type::enum_::enum_(const std::string &name, storage::object *parent)
 	: primitive(name, parent){}
 
 cminus::type::enum_::~enum_(){

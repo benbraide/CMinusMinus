@@ -1,4 +1,33 @@
+#include "../storage/global_storage.h"
+
 #include "evaluator_exception.h"
+
+cminus::evaluator::exception::base::~base() = default;
+
+std::shared_ptr<cminus::memory::reference> cminus::evaluator::exception::base::create_value() const{
+	switch (get_code()){
+	case code::invalid_type:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 33u);
+	case code::inferred_type:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 34u);
+	case code::incompatible_rval:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 35u);
+	case code::rval_assignment:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 36u);
+	case code::const_assignment:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 37u);
+	case code::rval_ref_assignment:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 38u);
+	case code::const_ref_assignment:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 39u);
+	case code::unsupported_op:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 40u);
+	default:
+		break;
+	}
+
+	return nullptr;
+}
 
 cminus::evaluator::exception::unnamed::unnamed(code code)
 	: base("Unknown evaluator error"), code_(code){}

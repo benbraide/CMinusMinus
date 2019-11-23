@@ -38,7 +38,7 @@ namespace cminus::storage{
 			function,
 			nullptr_,
 			string,
-			compare_result,
+			exception,
 			attribute_stage,
 			attribute_result,
 		};
@@ -112,10 +112,6 @@ namespace cminus::storage{
 		virtual std::shared_ptr<memory::reference> get_enum_value(std::shared_ptr<type::object> target_type, std::size_t value) const;
 
 		virtual std::shared_ptr<memory::reference> get_enum_value(cached_type type, std::size_t value) const;
-
-		virtual std::shared_ptr<memory::reference> get_compare_value(int value) const;
-
-		virtual std::shared_ptr<memory::reference> get_not_equal_compare_value() const;
 
 		virtual std::shared_ptr<memory::reference> get_boolean_value(type::boolean_constant value) const;
 

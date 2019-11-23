@@ -157,7 +157,7 @@ std::shared_ptr<cminus::memory::reference> cminus::node::try_control::evaluate_(
 		handle_(e);
 	}
 	catch (const exception_base &e){
-
+		handle_(e.create_value());
 	}
 
 	return nullptr;

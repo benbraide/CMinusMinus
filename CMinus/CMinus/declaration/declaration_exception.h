@@ -32,7 +32,9 @@ namespace cminus::declaration::exception{
 	public:
 		using exception_base::exception_base;
 
-		virtual ~base() = default;
+		virtual ~base();
+
+		virtual std::shared_ptr<memory::reference> create_value() const override;
 
 		virtual code get_code() const = 0;
 	};
