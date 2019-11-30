@@ -47,6 +47,8 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
 
+		virtual bool can_be_iterated() const override;
+
 		virtual bool is_const() const override;
 	};
 

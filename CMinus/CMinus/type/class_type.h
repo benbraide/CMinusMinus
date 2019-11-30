@@ -51,6 +51,8 @@ namespace cminus::type{
 
 		virtual bool is_copy_constructible(bool ignore_callable = false) const override;
 
+		virtual bool can_be_iterated() const override;
+
 		virtual bool is_copy_assignable(bool ignore_callable = false) const override;
 
 		virtual bool is_accessible(unsigned int access) const override;

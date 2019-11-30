@@ -183,6 +183,10 @@ bool cminus::type::string::is_constructible_from(const type_base &target_type, b
 	return (target_type.is<number_primitive>() || class_::is_constructible_from(target_type, is_lval, is_const));
 }
 
+bool cminus::type::string::can_be_iterated() const{
+	return true;
+}
+
 int cminus::type::string::get_score_(const type_base &target, bool is_lval, bool is_const) const{
 	return get_score_value(target.is<number_primitive>() ? score_result_type::assignable : score_result_type::nil);
 }

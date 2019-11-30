@@ -97,6 +97,8 @@ namespace cminus::memory{
 
 		declared_reference(std::size_t address, const declaration::object &declaration);
 
+		declared_reference(std::size_t address, std::shared_ptr<type::object> type);
+
 		virtual ~declared_reference();
 
 		virtual const declaration::object *get_declaration() const;
@@ -140,6 +142,8 @@ namespace cminus::memory{
 		explicit indirect_reference(const declaration::object &declaration);
 
 		indirect_reference(std::size_t address, const declaration::object &declaration);
+
+		indirect_reference(std::size_t address, std::shared_ptr<type::object> type);
 
 		virtual ~indirect_reference();
 

@@ -13,6 +13,7 @@ namespace cminus::evaluator{
 			number,
 			function,
 			pointer,
+			array_,
 			class_,
 			string,
 			enum_,

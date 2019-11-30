@@ -140,6 +140,10 @@ bool cminus::type::object::is_copy_assignable(bool ignore_callable) const{
 	return true;
 }
 
+bool cminus::type::object::can_be_iterated() const{
+	return false;
+}
+
 bool cminus::type::object::can_be_inferred_from(const object &target) const{
 	return false;
 }

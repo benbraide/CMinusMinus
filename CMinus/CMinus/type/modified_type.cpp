@@ -79,6 +79,10 @@ std::shared_ptr<cminus::type::object> cminus::type::constant::get_inferred(std::
 	return ((result == nullptr || result->is_const()) ? result : std::make_shared<constant>(result));
 }
 
+bool cminus::type::constant::can_be_iterated() const{
+	return base_type_->can_be_iterated();
+}
+
 bool cminus::type::constant::is_const() const{
 	return true;
 }

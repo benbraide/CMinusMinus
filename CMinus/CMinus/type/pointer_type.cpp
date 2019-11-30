@@ -49,7 +49,7 @@ bool cminus::type::pointer_primitive::is_exact(const object &target) const{
 	if (primitive::is_exact(target))
 		return true;
 
-	auto pointer_target = dynamic_cast<const pointer_primitive *>(target.remove_proxy());
+	auto pointer_target = target.as<pointer_primitive>(false);
 	return (pointer_target != nullptr && (base_type_ == nullptr) == (pointer_target->base_type_ == nullptr) && (base_type_ == nullptr || base_type_->is_exact(*pointer_target->base_type_)));
 }
 

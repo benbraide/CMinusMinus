@@ -94,6 +94,8 @@ namespace cminus::type{
 
 		virtual bool is_copy_assignable(bool ignore_callable = false) const;
 
+		virtual bool can_be_iterated() const;
+
 		virtual bool can_be_inferred_from(const object &target) const;
 
 		virtual bool is_inferred() const;

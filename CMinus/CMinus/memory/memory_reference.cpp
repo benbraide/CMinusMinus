@@ -154,6 +154,9 @@ cminus::memory::declared_reference::declared_reference(const declaration::object
 cminus::memory::declared_reference::declared_reference(std::size_t address, const declaration::object &declaration)
 	: reference(address, declaration.get_type()), declaration_(&declaration){}
 
+cminus::memory::declared_reference::declared_reference(std::size_t address, std::shared_ptr<type::object> type)
+	: reference(address, type), declaration_(nullptr){}
+
 cminus::memory::declared_reference::~declared_reference(){
 	destruct_();
 }
@@ -224,6 +227,9 @@ cminus::memory::indirect_reference::indirect_reference(const declaration::object
 
 cminus::memory::indirect_reference::indirect_reference(std::size_t address, const declaration::object &declaration)
 	: declared_reference(address, declaration){}
+
+cminus::memory::indirect_reference::indirect_reference(std::size_t address, std::shared_ptr<type::object> type)
+	: declared_reference(address, type){}
 
 cminus::memory::indirect_reference::~indirect_reference(){
 	destruct_();

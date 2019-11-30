@@ -166,6 +166,10 @@ bool cminus::type::class_::is_copy_constructible(bool ignore_callable) const{
 	return true;
 }
 
+bool cminus::type::class_::can_be_iterated() const{
+	return (find_function_("begin") != nullptr && find_function_("end") != nullptr);
+}
+
 bool cminus::type::class_::is_copy_assignable(bool ignore_callable) const{
 	if (!ignore_callable){//Search for function
 		if (auto constructor = find_operator_(operators::id::assignment); constructor != nullptr && constructor->get_id() == declaration::callable::id_type::operator_){

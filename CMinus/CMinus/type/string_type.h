@@ -20,6 +20,8 @@ namespace cminus::type{
 
 		virtual bool is_constructible_from(const type_base &target_type, bool is_lval, bool is_const) const override;
 
+		virtual bool can_be_iterated() const override;
+
 	protected:
 		virtual int get_score_(const type_base &target, bool is_lval, bool is_const) const override;
 	};
