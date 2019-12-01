@@ -45,15 +45,87 @@ std::size_t cminus::type::pointer_primitive::get_size() const{
 	return sizeof(void *);
 }
 
-bool cminus::type::pointer_primitive::is_exact(const object &target) const{
-	if (primitive::is_exact(target))
-		return true;
+cminus::evaluator::object::id_type cminus::type::pointer_primitive::get_evaluator_id() const{
+	return evaluator::object::id_type::pointer;
+}
 
+std::shared_ptr<cminus::type::object> cminus::type::pointer_primitive::get_inferred(std::shared_ptr<object> target) const{
+	if (base_type_ == nullptr)
+		return nullptr;
+
+	auto pointer_target = target->as<pointer_primitive>();
+	if (pointer_target == nullptr || pointer_target->base_type_ == nullptr)
+		return nullptr;
+
+	if (auto inferred_base_type = base_type_->get_inferred(pointer_target->base_type_); inferred_base_type != nullptr){
+		if (pointer_target->base_type_->is_const() && !inferred_base_type->is_const())
+			inferred_base_type = std::make_shared<constant>(inferred_base_type);
+		return std::make_shared<pointer_primitive>(inferred_base_type);
+	}
+
+	return nullptr;
+}
+
+bool cminus::type::pointer_primitive::can_be_inferred_from(const object &target) const{
+	if (base_type_ == nullptr)
+		return false;
+
+	auto pointer_target = target.as<pointer_primitive>();
+	return (pointer_target != nullptr && pointer_target->base_type_ != nullptr && base_type_->can_be_inferred_from(*pointer_target->base_type_));
+}
+
+bool cminus::type::pointer_primitive::is_inferred() const{
+	return (base_type_ != nullptr && base_type_->is_inferred());
+}
+
+std::shared_ptr<cminus::type::object> cminus::type::pointer_primitive::get_base_type() const{
+	return base_type_;
+}
+
+bool cminus::type::pointer_primitive::is_nullptr() const{
+	return (base_type_ == nullptr);
+}
+
+bool cminus::type::pointer_primitive::is_exact_(const object &target) const{
 	auto pointer_target = target.as<pointer_primitive>(false);
 	return (pointer_target != nullptr && (base_type_ == nullptr) == (pointer_target->base_type_ == nullptr) && (base_type_ == nullptr || base_type_->is_exact(*pointer_target->base_type_)));
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::type::pointer_primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
+int cminus::type::pointer_primitive::get_score_(const object &target, bool is_lval, bool is_const) const{
+	auto pointer_target = target.as<pointer_primitive>();
+	if (pointer_target == nullptr)
+		return get_score_value(score_result_type::nil);
+
+	if (pointer_target->base_type_ == nullptr)//Any * ==> Nullptr
+		return get_score_value(score_result_type::nil);
+
+	if (base_type_ == nullptr)//Nullptr ==> Any *
+		get_score_value(score_result_type::assignable);
+
+	auto is_const_base = base_type_->is_const();
+	auto is_const_target_base = pointer_target->base_type_->is_const();
+
+	if (is_const_base && !is_const_target_base)//Const Any * ==> Any *
+		return get_score_value(score_result_type::nil);
+
+	if (pointer_target->base_type_->is<void_primitive>())//Any * ==> Void *
+		return get_score_value(score_result_type::assignable, ((is_const_base == is_const_target_base) ? 0 : -1));
+
+	if (base_type_->is_exact(*pointer_target->base_type_->remove_const_ref()))
+		return get_score_value(score_result_type::exact, ((is_const_base == is_const_target_base) ? 0 : -1));
+
+	if (pointer_target->base_type_->can_be_inferred_from(*base_type_))
+		return get_score_value(score_result_type::inferable, ((is_const_base == is_const_target_base) ? 0 : -1));
+
+	if (auto class_base = base_type_->as<class_>(), class_target_base = pointer_target->base_type_->as<class_>(); class_base != nullptr && class_target_base != nullptr){
+		if (class_base->is_base_type(*class_target_base, true))
+			return get_score_value(score_result_type::assignable, ((is_const_base == is_const_target_base) ? 0 : -1));
+	}
+
+	return get_score_value(score_result_type::nil);
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::pointer_primitive::cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
 	if (is_inferred() || target_type->is_inferred())
 		return nullptr;
 
@@ -135,79 +207,4 @@ std::shared_ptr<cminus::memory::reference> cminus::type::pointer_primitive::cast
 	}
 
 	return nullptr;
-}
-
-cminus::evaluator::object::id_type cminus::type::pointer_primitive::get_evaluator_id() const{
-	return evaluator::object::id_type::pointer;
-}
-
-std::shared_ptr<cminus::type::object> cminus::type::pointer_primitive::get_inferred(std::shared_ptr<object> target) const{
-	if (base_type_ == nullptr)
-		return nullptr;
-
-	auto pointer_target = target->as<pointer_primitive>();
-	if (pointer_target == nullptr || pointer_target->base_type_ == nullptr)
-		return nullptr;
-
-	if (auto inferred_base_type = base_type_->get_inferred(pointer_target->base_type_); inferred_base_type != nullptr){
-		if (pointer_target->base_type_->is_const() && !inferred_base_type->is_const())
-			inferred_base_type = std::make_shared<constant>(inferred_base_type);
-		return std::make_shared<pointer_primitive>(inferred_base_type);
-	}
-
-	return nullptr;
-}
-
-bool cminus::type::pointer_primitive::can_be_inferred_from(const object &target) const{
-	if (base_type_ == nullptr)
-		return false;
-
-	auto pointer_target = target.as<pointer_primitive>();
-	return (pointer_target != nullptr && pointer_target->base_type_ != nullptr && base_type_->can_be_inferred_from(*pointer_target->base_type_));
-}
-
-bool cminus::type::pointer_primitive::is_inferred() const{
-	return (base_type_ != nullptr && base_type_->is_inferred());
-}
-
-std::shared_ptr<cminus::type::object> cminus::type::pointer_primitive::get_base_type() const{
-	return base_type_;
-}
-
-bool cminus::type::pointer_primitive::is_nullptr() const{
-	return (base_type_ == nullptr);
-}
-
-int cminus::type::pointer_primitive::get_score_(const object &target, bool is_lval, bool is_const) const{
-	auto pointer_target = target.as<pointer_primitive>();
-	if (pointer_target == nullptr)
-		return get_score_value(score_result_type::nil);
-
-	if (pointer_target->base_type_ == nullptr)//Any * ==> Nullptr
-		return get_score_value(score_result_type::nil);
-
-	if (base_type_ == nullptr)//Nullptr ==> Any *
-		get_score_value(score_result_type::assignable);
-
-	auto is_const_base = base_type_->is_const();
-	auto is_const_target_base = pointer_target->base_type_->is_const();
-
-	if (is_const_base && !is_const_target_base)//Const Any * ==> Any *
-		return get_score_value(score_result_type::nil);
-
-	if (pointer_target->base_type_->is<void_primitive>())//Any * ==> Void *
-		return get_score_value(score_result_type::assignable, ((is_const_base == is_const_target_base) ? 0 : -1));
-
-	if (base_type_->is_exact(*pointer_target->base_type_->remove_const_ref()))
-		return get_score_value(score_result_type::exact, ((is_const_base == is_const_target_base) ? 0 : -1));
-
-	if (pointer_target->base_type_->can_be_inferred_from(*base_type_))
-		return get_score_value(score_result_type::inferable, ((is_const_base == is_const_target_base) ? 0 : -1));
-
-	if (auto class_base = base_type_->as<class_>(), class_target_base = pointer_target->base_type_->as<class_>(); class_base != nullptr && class_target_base != nullptr){
-		if (class_base->is_base_type(*class_target_base, true))
-			return get_score_value(score_result_type::assignable, ((is_const_base == is_const_target_base) ? 0 : -1));
-	}
-
-	return get_score_value(score_result_type::nil);
 }

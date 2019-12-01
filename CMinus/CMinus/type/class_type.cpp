@@ -79,31 +79,6 @@ std::size_t cminus::type::class_::compute_base_offset(const class_ &base_type) c
 	return compute_base_offset_(base_type, 0u);
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::type::class_::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const{
-	if (!is_static_cast(type))
-		return nullptr;
-
-	if (auto callable = find_operator(*target_type); callable != nullptr)
-		return callable->call(data, {});
-
-	auto data_is_lval = data->is_lvalue();
-	if (!is_valid_static_cast(type, data_is_lval, data->is_const()))
-		return nullptr;
-
-	auto class_target_type = target_type->as<class_>();
-	if (class_target_type == nullptr)
-		return nullptr;
-
-	auto offset = compute_base_offset_(*class_target_type, 0u);
-	if (offset == static_cast<std::size_t>(-1))
-		return nullptr;
-
-	if (offset == 0u)
-		return ((type == cast_type::static_) ? copy_data(data, target_type) : data);
-
-	return ((!data_is_lval || type != cast_type::static_) ? data->apply_offset(offset, target_type) : copy_data(data->apply_offset(offset, target_type), target_type));
-}
-
 std::shared_ptr<cminus::evaluator::object> cminus::type::class_::get_evaluator() const{
 	return runtime::object::global_storage->get_evaluator(evaluator::object::id_type::class_);
 }
@@ -377,6 +352,31 @@ int cminus::type::class_::get_no_conversion_score_(const type_base &target, bool
 		return get_score_value(score_result_type::class_compatible);
 
 	return get_score_value(score_result_type::nil);
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::class_::cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const{
+	if (!is_static_cast(type))
+		return nullptr;
+
+	if (auto callable = find_operator(*target_type); callable != nullptr)
+		return callable->call(data, {});
+
+	auto data_is_lval = data->is_lvalue();
+	if (!is_valid_static_cast(type, data_is_lval, data->is_const()))
+		return nullptr;
+
+	auto class_target_type = target_type->as<class_>();
+	if (class_target_type == nullptr)
+		return nullptr;
+
+	auto offset = compute_base_offset_(*class_target_type, 0u);
+	if (offset == static_cast<std::size_t>(-1))
+		return nullptr;
+
+	if (offset == 0u)
+		return ((type == cast_type::static_) ? copy_data(data, target_type) : data);
+
+	return ((!data_is_lval || type != cast_type::static_) ? data->apply_offset(offset, target_type) : copy_data(data->apply_offset(offset, target_type), target_type));
 }
 
 void cminus::type::class_::acquire_lock_() const{}

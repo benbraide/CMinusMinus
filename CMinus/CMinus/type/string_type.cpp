@@ -113,7 +113,23 @@ void cminus::type::string::print_value(io::writer &writer, std::shared_ptr<memor
 	writer.write_buffer(str_data.data(), str_data.size());
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::type::string::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const{
+std::shared_ptr<cminus::evaluator::object> cminus::type::string::get_evaluator() const{
+	return runtime::object::global_storage->get_evaluator(evaluator::object::id_type::string);
+}
+
+bool cminus::type::string::is_constructible_from(const type_base &target_type, bool is_lval, bool is_const) const{
+	return (target_type.is<number_primitive>() || class_::is_constructible_from(target_type, is_lval, is_const));
+}
+
+bool cminus::type::string::can_be_iterated() const{
+	return true;
+}
+
+int cminus::type::string::get_score_(const type_base &target, bool is_lval, bool is_const) const{
+	return get_score_value(target.is<number_primitive>() ? score_result_type::assignable : score_result_type::nil);
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::string::cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const{
 	if (!is_static_rval_cast(type))
 		return nullptr;
 
@@ -173,20 +189,4 @@ std::shared_ptr<cminus::memory::reference> cminus::type::string::cast(std::share
 	}
 
 	return class_::cast(data, target_type, type);
-}
-
-std::shared_ptr<cminus::evaluator::object> cminus::type::string::get_evaluator() const{
-	return runtime::object::global_storage->get_evaluator(evaluator::object::id_type::string);
-}
-
-bool cminus::type::string::is_constructible_from(const type_base &target_type, bool is_lval, bool is_const) const{
-	return (target_type.is<number_primitive>() || class_::is_constructible_from(target_type, is_lval, is_const));
-}
-
-bool cminus::type::string::can_be_iterated() const{
-	return true;
-}
-
-int cminus::type::string::get_score_(const type_base &target, bool is_lval, bool is_const) const{
-	return get_score_value(target.is<number_primitive>() ? score_result_type::assignable : score_result_type::nil);
 }

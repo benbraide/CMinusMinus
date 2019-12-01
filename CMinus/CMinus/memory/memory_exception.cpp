@@ -1,3 +1,4 @@
+#include "../type/system_enum_types.h"
 #include "../storage/global_storage.h"
 
 #include "memory_reference.h"
@@ -7,23 +8,23 @@ cminus::memory::exception::base::~base() = default;
 std::shared_ptr<cminus::memory::reference> cminus::memory::exception::base::create_value() const{
 	switch (get_code()){
 	case code::allocation_failure:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 0u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::memory_allocation_failure));
 	case code::access_protected:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 1u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::access_protected_memory));
 	case code::write_protected:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 2u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::write_protected_memory));
 	case code::block_not_found:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 3u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::memory_block_not_found));
 	case code::block_misaligned:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 4u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::memory_block_misaligned));
 	case code::block_not_resizable:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 5u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::memory_block_not_resizable));
 	case code::invalid_size:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 6u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::invalid_memory_size));
 	case code::incompatible_types:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 7u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::incompatible_memory_types));
 	case code::uninitialized_memory:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 8u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::uninitialized_memory));
 	default:
 		break;
 	}

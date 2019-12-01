@@ -74,7 +74,7 @@ namespace cminus::type{
 
 		virtual int get_score(const object &target, bool is_lval, bool is_const) const;
 
-		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const = 0;
+		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const;
 
 		virtual std::shared_ptr<evaluator::object> get_evaluator() const;
 
@@ -131,9 +131,13 @@ namespace cminus::type{
 	protected:
 		virtual void construct_(std::shared_ptr<memory::reference> target, const std::vector<std::shared_ptr<memory::reference>> &args) const;
 
+		virtual bool is_exact_(const object &target) const;
+
 		virtual int get_score_(const object &target, bool is_lval, bool is_const) const;
 
 		virtual int get_no_conversion_score_(const object &target, bool is_lval, bool is_const) const;
+
+		virtual std::shared_ptr<memory::reference> cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const;
 
 		std::string name_;
 		storage::object *parent_;

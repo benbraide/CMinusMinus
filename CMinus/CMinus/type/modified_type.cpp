@@ -66,14 +66,6 @@ std::string cminus::type::constant::get_qname() const{
 	return ("Const " + base_type_->get_qname());
 }
 
-bool cminus::type::constant::is_exact(const object &target) const{
-	if (modified::is_exact(target))
-		return true;
-
-	auto constant_target = dynamic_cast<const constant *>(target.remove_proxy());
-	return (constant_target != nullptr && base_type_->is_exact(*constant_target->base_type_));
-}
-
 std::shared_ptr<cminus::type::object> cminus::type::constant::get_inferred(std::shared_ptr<object> target) const{
 	auto result = base_type_->get_inferred(target);
 	return ((result == nullptr || result->is_const()) ? result : std::make_shared<constant>(result));
@@ -85,6 +77,11 @@ bool cminus::type::constant::can_be_iterated() const{
 
 bool cminus::type::constant::is_const() const{
 	return true;
+}
+
+bool cminus::type::constant::is_exact_(const object &target) const{
+	auto constant_target = dynamic_cast<const constant *>(target.remove_proxy());
+	return (constant_target != nullptr && base_type_->is_exact(*constant_target->base_type_));
 }
 
 cminus::type::ref::ref(std::shared_ptr<object> base_type)
@@ -100,14 +97,6 @@ std::string cminus::type::ref::get_qname() const{
 
 std::shared_ptr<cminus::memory::reference> cminus::type::ref::get_default_value() const{
 	return nullptr;
-}
-
-bool cminus::type::ref::is_exact(const object &target) const{
-	if (modified::is_exact(target))
-		return true;
-
-	auto constant_target = dynamic_cast<const ref *>(target.remove_proxy());
-	return (constant_target != nullptr && base_type_->is_exact(*constant_target->base_type_));
 }
 
 std::shared_ptr<cminus::type::object> cminus::type::ref::get_inferred(std::shared_ptr<object> target) const{
@@ -135,4 +124,9 @@ bool cminus::type::ref::is_copy_assignable(bool ignore_callable) const{
 
 bool cminus::type::ref::is_ref() const{
 	return true;
+}
+
+bool cminus::type::ref::is_exact_(const object &target) const{
+	auto constant_target = dynamic_cast<const ref *>(target.remove_proxy());
+	return (constant_target != nullptr && base_type_->is_exact(*constant_target->base_type_));
 }

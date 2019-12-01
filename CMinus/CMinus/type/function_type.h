@@ -19,10 +19,6 @@ namespace cminus::type{
 
 		virtual std::size_t get_size() const override;
 
-		virtual bool is_exact(const object &target) const override;
-
-		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
-
 		virtual void add_parameter_type(std::shared_ptr<object> value);
 
 		virtual bool is_exact_parameter_types(const function &target) const;
@@ -30,6 +26,10 @@ namespace cminus::type{
 		virtual bool is_exact_return_type(const function &function_target) const;
 
 	protected:
+		virtual bool is_exact_(const object &target) const override;
+
+		virtual std::shared_ptr<memory::reference> cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
+
 		virtual void compute_name_();
 
 		bool is_constant_;

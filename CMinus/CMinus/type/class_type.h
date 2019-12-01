@@ -43,8 +43,6 @@ namespace cminus::type{
 
 		virtual std::size_t get_size() const override;
 
-		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const override;
-
 		virtual std::shared_ptr<evaluator::object> get_evaluator() const override;
 
 		virtual bool is_default_constructible(bool ignore_callable = false) const override;
@@ -99,6 +97,8 @@ namespace cminus::type{
 		virtual int get_score_(const type_base &target, bool is_lval, bool is_const) const override;
 
 		virtual int get_no_conversion_score_(const type_base &target, bool is_lval, bool is_const) const override;
+
+		virtual std::shared_ptr<memory::reference> cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<type_base> target_type, cast_type type) const override;
 
 		using storage_base::exists_;
 		using storage_base::find_;

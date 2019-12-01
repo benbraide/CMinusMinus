@@ -13,8 +13,6 @@ namespace cminus::type{
 
 		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 
-		virtual bool is_exact(const object &target) const override;
-
 		virtual int get_score(const object &target, bool is_lval, bool is_const) const override;
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
@@ -22,6 +20,8 @@ namespace cminus::type{
 		virtual std::shared_ptr<object> get_base_type() const;
 
 	protected:
+		virtual bool is_exact_(const object &target) const override;
+
 		std::shared_ptr<object> base_type_;
 	};
 

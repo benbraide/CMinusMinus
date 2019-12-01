@@ -1,3 +1,4 @@
+#include "../type/system_enum_types.h"
 #include "../storage/global_storage.h"
 
 #include "storage_exception.h"
@@ -7,17 +8,17 @@ cminus::storage::exception::base::~base() = default;
 std::shared_ptr<cminus::memory::reference> cminus::storage::exception::base::create_value() const{
 	switch (get_code()){
 	case code::duplicate_entry:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 9u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::duplicate_entry));
 	case code::duplicate_base:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 10u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::duplicate_base));
 	case code::entry_not_found:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 11u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::entry_not_found));
 	case code::unnamed_entry:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 12u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::unnamed_entry));
 	case code::inaccessible_entry:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 13u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::inaccessible_entry));
 	case code::no_member_context:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 14u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::no_member_context));
 	default:
 		break;
 	}

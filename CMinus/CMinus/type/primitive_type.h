@@ -20,8 +20,6 @@ namespace cminus::type{
 
 		virtual ~primitive();
 
-		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
-
 		virtual std::shared_ptr<evaluator::object> get_evaluator() const override;
 
 		virtual evaluator::object::id_type get_evaluator_id() const;
@@ -61,6 +59,9 @@ namespace cminus::type{
 
 			return nullptr;
 		}
+
+	protected:
+		virtual std::shared_ptr<memory::reference> cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 	};
 
 	class no_storage_primitive : public primitive{
@@ -75,7 +76,8 @@ namespace cminus::type{
 
 		virtual std::size_t get_size() const override;
 
-		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
+	protected:
+		virtual std::shared_ptr<memory::reference> cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 	};
 
 	class undefined_primitive : public no_storage_primitive{
@@ -87,6 +89,9 @@ namespace cminus::type{
 		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
 
 		virtual evaluator::object::id_type get_evaluator_id() const override;
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 
 	class void_primitive : public no_storage_primitive{
@@ -94,6 +99,9 @@ namespace cminus::type{
 		void_primitive();
 
 		virtual ~void_primitive();
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 
 	class boolean_primitive : public primitive{
@@ -107,6 +115,9 @@ namespace cminus::type{
 		virtual std::size_t get_size() const override;
 
 		virtual evaluator::object::id_type get_evaluator_id() const override;
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 
 	class byte_primitive : public primitive{
@@ -120,6 +131,9 @@ namespace cminus::type{
 		virtual std::size_t get_size() const override;
 
 		virtual evaluator::object::id_type get_evaluator_id() const override;
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 
 	class char_primitive : public primitive{
@@ -133,6 +147,9 @@ namespace cminus::type{
 		virtual std::size_t get_size() const override;
 
 		virtual evaluator::object::id_type get_evaluator_id() const override;
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 
 	class wchar_primitive : public primitive{
@@ -146,6 +163,9 @@ namespace cminus::type{
 		virtual std::size_t get_size() const override;
 
 		virtual evaluator::object::id_type get_evaluator_id() const override;
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 
 	template <class target_type>
@@ -381,8 +401,6 @@ namespace cminus::type{
 
 		virtual std::size_t get_size() const override;
 
-		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
-
 		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
 
 		virtual bool can_be_inferred_from(const object &target) const override;
@@ -460,7 +478,11 @@ namespace cminus::type{
 		virtual state_type get_precedence(const number_primitive &target) const;
 
 	protected:
+		virtual bool is_exact_(const object &target) const override;
+
 		virtual int get_score_(const object &target, bool is_lval, bool is_const) const override;
+
+		virtual std::shared_ptr<memory::reference> cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 
 		template <typename target_type>
 		bool is_nan_(const memory::reference &data) const{
@@ -487,6 +509,9 @@ namespace cminus::type{
 		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
 
 		virtual bool can_be_inferred_from(const object &target) const override;
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 
 	class function_return_primitive : public primitive{
@@ -494,6 +519,9 @@ namespace cminus::type{
 		function_return_primitive();
 
 		virtual ~function_return_primitive();
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 
 	class auto_primitive : public inferred<primitive>{
@@ -507,5 +535,8 @@ namespace cminus::type{
 		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
 
 		virtual bool can_be_inferred_from(const object &target) const override;
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 }

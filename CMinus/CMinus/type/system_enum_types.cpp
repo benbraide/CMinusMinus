@@ -101,7 +101,9 @@ cminus::type::exception::exception()
 	add_("BadMemberPointerAccessLeft");
 	add_("BadControlCondition");
 	add_("OutOfRange");
-	add_("FeatureNoSupported");
+	add_("ConstructionFailure");
+	add_("CopyFailure");
+	add_("FeatureNotSupported");
 
 	compile_();
 }

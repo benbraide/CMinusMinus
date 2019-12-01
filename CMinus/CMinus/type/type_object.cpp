@@ -72,7 +72,7 @@ std::size_t cminus::type::object::get_memory_size() const{
 }
 
 bool cminus::type::object::is_exact(const object &target) const{
-	return (target.remove_proxy() == this);
+	return (target.remove_proxy() == this || is_exact_(target));
 }
 
 int cminus::type::object::get_score(const object &target, bool is_lval, bool is_const) const{
@@ -102,6 +102,10 @@ int cminus::type::object::get_score(const object &target, bool is_lval, bool is_
 		return result;
 
 	return (result + ((is_const_target == is_const) ? 0 : -1));
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::object::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
+	return ((type == cast_type::static_rval && is_exact(*target_type->remove_const_ref())) ? data : cast_(data, target_type, type));
 }
 
 std::shared_ptr<cminus::evaluator::object> cminus::type::object::get_evaluator() const{
@@ -162,10 +166,18 @@ bool cminus::type::object::is_ref() const{
 
 std::shared_ptr<cminus::memory::reference> cminus::type::object::copy_data(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type){
 	auto copy = std::make_shared<memory::rval_reference>(target_type->remove_const_ref(target_type));
-	if (copy != nullptr)
-		copy->get_type()->construct(copy, data);
-	else
+	if (copy == nullptr)
 		throw memory::exception::allocation_failure();
+
+	try{
+		copy->get_type()->construct(copy, data);
+	}
+	catch (const declaration::exception::function_not_found &){
+		throw runtime::exception::copy_failure();
+	}
+	catch (const declaration::exception::function_not_defined &){
+		throw runtime::exception::copy_failure();
+	}
 
 	return copy;
 }
@@ -254,10 +266,18 @@ void cminus::type::object::construct_(std::shared_ptr<memory::reference> target,
 		throw declaration::exception::initialization_required();
 }
 
+bool cminus::type::object::is_exact_(const object &target) const{
+	return false;
+}
+
 int cminus::type::object::get_score_(const object &target, bool is_lval, bool is_const) const{
 	return get_score_value(score_result_type::nil);
 }
 
 int cminus::type::object::get_no_conversion_score_(const object &target, bool is_lval, bool is_const) const{
 	return get_score_value(score_result_type::nil);
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::object::cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
+	return nullptr;
 }

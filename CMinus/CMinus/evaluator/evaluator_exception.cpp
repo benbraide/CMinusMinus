@@ -1,3 +1,4 @@
+#include "../type/system_enum_types.h"
 #include "../storage/global_storage.h"
 
 #include "evaluator_exception.h"
@@ -7,21 +8,21 @@ cminus::evaluator::exception::base::~base() = default;
 std::shared_ptr<cminus::memory::reference> cminus::evaluator::exception::base::create_value() const{
 	switch (get_code()){
 	case code::invalid_type:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 33u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::invalid_type_in_expression));
 	case code::inferred_type:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 34u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::type_inference_failure));
 	case code::incompatible_rval:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 35u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::incompatible_right_operand));
 	case code::rval_assignment:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 36u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::rval_assignment));
 	case code::const_assignment:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 37u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::constant_assignment));
 	case code::rval_ref_assignment:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 38u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::rval_ref_assignment));
 	case code::const_ref_assignment:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 39u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::constant_ref_assignment));
 	case code::unsupported_op:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 40u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::unsupported_operator));
 	default:
 		break;
 	}

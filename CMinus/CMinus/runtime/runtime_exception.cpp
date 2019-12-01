@@ -1,3 +1,4 @@
+#include "../type/system_enum_types.h"
 #include "../storage/global_storage.h"
 
 #include "runtime_exception.h"
@@ -7,25 +8,29 @@ cminus::runtime::exception::base::~base() = default;
 std::shared_ptr<cminus::memory::reference> cminus::runtime::exception::base::create_value() const{
 	switch (get_code()){
 	case code::return_interrupt:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 41u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::invalid_return));
 	case code::bad_constructor:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 44u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::bad_constructor));
 	case code::bad_destructor:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 45u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::bad_destructor));
 	case code::bad_constructor_init_list:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 46u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::bad_constructor_initialization_list));
 	case code::bad_scope_left:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 47u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::bad_scope_left));
 	case code::bad_member_access_left:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 48u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::bad_member_access_left));
 	case code::bad_pointer_member_access_left:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 49u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::bad_member_pointer_access_left));
 	case code::bad_control_condition:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 50u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::bad_control_condition));
 	case code::out_of_range:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 51u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::out_of_range));
+	case code::construction_failure:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::construction_failure));
+	case code::copy_failure:
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::copy_failure));
 	case code::not_supported:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 52u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::feature_not_supported));
 	default:
 		break;
 	}
@@ -159,6 +164,24 @@ cminus::runtime::exception::out_of_range::~out_of_range() = default;
 
 cminus::runtime::exception::code cminus::runtime::exception::out_of_range::get_code() const{
 	return code::out_of_range;
+}
+
+cminus::runtime::exception::construction_failure::construction_failure()
+	: base("Failed to construct object"){}
+
+cminus::runtime::exception::construction_failure::~construction_failure() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::construction_failure::get_code() const{
+	return code::construction_failure;
+}
+
+cminus::runtime::exception::copy_failure::copy_failure()
+	: base("Failed to copy object"){}
+
+cminus::runtime::exception::copy_failure::~copy_failure() = default;
+
+cminus::runtime::exception::code cminus::runtime::exception::copy_failure::get_code() const{
+	return code::copy_failure;
 }
 
 cminus::runtime::exception::not_supported::not_supported()

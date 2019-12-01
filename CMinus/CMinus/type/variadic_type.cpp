@@ -13,14 +13,6 @@ void cminus::type::variadic::print_value(io::writer &writer, std::shared_ptr<mem
 	throw runtime::exception::not_supported();
 }
 
-bool cminus::type::variadic::is_exact(const object &target) const{
-	if (object::is_exact(target))
-		return true;
-
-	auto variadic_target = target.as<variadic>(false);
-	return (variadic_target != nullptr && base_type_->is_exact(*variadic_target->base_type_));
-}
-
 int cminus::type::variadic::get_score(const object &target, bool is_lval, bool is_const) const{
 	return get_score_value(score_result_type::nil);
 }
@@ -31,6 +23,11 @@ std::shared_ptr<cminus::memory::reference> cminus::type::variadic::cast(std::sha
 
 std::shared_ptr<cminus::type::object> cminus::type::variadic::get_base_type() const{
 	return base_type_;
+}
+
+bool cminus::type::variadic::is_exact_(const object &target) const{
+	auto variadic_target = target.as<variadic>(false);
+	return (variadic_target != nullptr && base_type_->is_exact(*variadic_target->base_type_));
 }
 
 cminus::type::in_memory_variadic::in_memory_variadic(std::shared_ptr<object> base_type, std::size_t count)

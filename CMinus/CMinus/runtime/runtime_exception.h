@@ -22,6 +22,8 @@ namespace cminus::runtime::exception{
 		bad_pointer_member_access_left,
 		bad_control_condition,
 		out_of_range,
+		construction_failure,
+		copy_failure,
 		not_supported,
 	};
 
@@ -166,6 +168,24 @@ namespace cminus::runtime::exception{
 		out_of_range();
 
 		virtual ~out_of_range();
+
+		virtual code get_code() const override;
+	};
+
+	class construction_failure : public base{
+	public:
+		construction_failure();
+
+		virtual ~construction_failure();
+
+		virtual code get_code() const override;
+	};
+
+	class copy_failure : public base{
+	public:
+		copy_failure();
+
+		virtual ~copy_failure();
 
 		virtual code get_code() const override;
 	};

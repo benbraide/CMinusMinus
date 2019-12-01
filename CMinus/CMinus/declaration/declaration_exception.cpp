@@ -1,3 +1,4 @@
+#include "../type/system_enum_types.h"
 #include "../storage/global_storage.h"
 
 #include "declaration_exception.h"
@@ -7,41 +8,41 @@ cminus::declaration::exception::base::~base() = default;
 std::shared_ptr<cminus::memory::reference> cminus::declaration::exception::base::create_value() const{
 	switch (get_code()){
 	case code::bad_declaration:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 15u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::bad_declaration));
 	case code::initialization_required:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 16u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::declaration_initialization_required));
 	case code::function_redefinition:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 17u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::function_redefinition));
 	case code::function_redeclaration:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 18u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::function_redeclaration));
 	case code::function_expected:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 19u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::function_expected));
 	case code::constructor_expected:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 20u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::constructor_expected));
 	case code::destructor_expected:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 21u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::destructor_expected));
 	case code::function_not_found:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 22u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::function_not_found));
 	case code::function_not_defined:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 23u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::function_not_defined));
 	case code::ambiguous_function_call:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 24u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::ambiguous_function_call));
 	case code::bad_parameter_list:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 25u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::bad_parameter_list));
 	case code::bad_init_list:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 26u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::bad_initialization_list));
 	case code::void_function_value_return:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 27u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::void_function_value_return));
 	case code::value_function_no_return:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 28u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::value_function_no_return));
 	case code::deleted_function_call:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 29u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::deleted_function_call));
 	case code::deleted_constructor_call:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 30u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::deleted_constructor_call));
 	case code::deleted_destructor_call:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 31u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::deleted_destructor_call));
 	case code::deleted_operator_call:
-		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, 32u);
+		return runtime::object::global_storage->get_enum_value(storage::global::cached_type::exception, static_cast<std::size_t>(type::exception::code_type::deleted_operator_call));
 	default:
 		break;
 	}

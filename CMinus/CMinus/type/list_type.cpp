@@ -46,18 +46,6 @@ std::size_t cminus::type::array_primitive::get_memory_size() const{
 	return (base_type_->get_memory_size() * count_);
 }
 
-bool cminus::type::array_primitive::is_exact(const object &target) const{
-	if (primitive::is_exact(target))
-		return true;
-
-	auto array_target = target.as<array_primitive>(false);
-	return (array_target != nullptr && base_type_->is_exact(*array_target->base_type_));
-}
-
-std::shared_ptr<cminus::memory::reference> cminus::type::array_primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
-	return nullptr;
-}
-
 cminus::evaluator::object::id_type cminus::type::array_primitive::get_evaluator_id() const{
 	return evaluator::object::id_type::array_;
 }
@@ -131,8 +119,9 @@ std::size_t cminus::type::array_primitive::get_count() const{
 	return count_;
 }
 
-int cminus::type::array_primitive::get_score_(const object &target, bool is_lval, bool is_const) const{
-	return 0;
+bool cminus::type::array_primitive::is_exact_(const object &target) const{
+	auto array_target = target.as<array_primitive>(false);
+	return (array_target != nullptr && base_type_->is_exact(*array_target->base_type_));
 }
 
 cminus::type::initializer_list_primitive::initializer_list_primitive(std::shared_ptr<object> base_type, std::size_t count)
@@ -154,18 +143,6 @@ std::size_t cminus::type::initializer_list_primitive::get_size() const{
 
 std::size_t cminus::type::initializer_list_primitive::get_memory_size() const{
 	return (base_type_->get_memory_size() * count_);
-}
-
-bool cminus::type::initializer_list_primitive::is_exact(const object &target) const{
-	if (primitive::is_exact(target))
-		return true;
-
-	auto initializer_list_target = target.as<initializer_list_primitive>(false);
-	return (initializer_list_target != nullptr && base_type_->is_exact(*initializer_list_target->base_type_));
-}
-
-std::shared_ptr<cminus::memory::reference> cminus::type::initializer_list_primitive::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
-	return nullptr;
 }
 
 std::shared_ptr<cminus::type::object> cminus::type::initializer_list_primitive::get_inferred(std::shared_ptr<object> target) const{
@@ -199,6 +176,15 @@ std::size_t cminus::type::initializer_list_primitive::get_count() const{
 	return count_;
 }
 
+bool cminus::type::initializer_list_primitive::is_exact_(const object &target) const{
+	auto initializer_list_target = target.as<initializer_list_primitive>(false);
+	return (initializer_list_target != nullptr && base_type_->is_exact(*initializer_list_target->base_type_));
+}
+
 int cminus::type::initializer_list_primitive::get_score_(const object &target, bool is_lval, bool is_const) const{
-	return 0;
+	return get_score_value(target.is<array_primitive>() ? score_result_type::assignable : score_result_type::nil);
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::initializer_list_primitive::cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
+	return ((type == cast_type::static_rval && target_type->is<array_primitive>()) ? data : nullptr);
 }

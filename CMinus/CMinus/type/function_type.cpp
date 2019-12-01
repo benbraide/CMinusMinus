@@ -31,16 +31,47 @@ std::size_t cminus::type::function::get_size() const{
 	return 0u;
 }
 
-bool cminus::type::function::is_exact(const object &target) const{
-	if (primitive::is_exact(target))
+void cminus::type::function::add_parameter_type(std::shared_ptr<object> value){
+	parameter_types_.push_back(value);
+	name_.insert(name_.find_last_of(')'), ("," + value->get_name()));
+	qname_.insert(qname_.find_last_of(')'), ("," + value->get_name()));
+}
+
+bool cminus::type::function::is_exact_parameter_types(const function &target) const{
+	if (is_constant_ != target.is_constant_ || parameter_types_.size() != target.parameter_types_.size())
+		return false;
+
+	for (auto it = parameter_types_.begin(), target_it = target.parameter_types_.begin(); it != parameter_types_.end(); ++it, ++target_it){
+		if (!(*it)->is_exact(**target_it))
+			return false;
+	}
+
+	return true;
+}
+
+bool cminus::type::function::is_exact_return_type(const function &function_target) const{
+	if (return_type_ != nullptr && return_type_->is<function_return_primitive>())
 		return true;
 
+	if (function_target.return_type_ != nullptr && function_target.return_type_->is<function_return_primitive>())
+		return true;
+
+	if (return_type_ == nullptr)
+		return (function_target.return_type_ == nullptr || function_target.return_type_->is<undefined_primitive>());
+
+	if (function_target.return_type_ == nullptr)
+		return (return_type_ == nullptr || return_type_->is<undefined_primitive>());
+
+	return return_type_->is_exact(*function_target.return_type_);
+}
+
+bool cminus::type::function::is_exact_(const object &target) const{
 	auto function_target = target.as<function>(false);
 	return (function_target != nullptr && is_exact_return_type(*function_target) && is_exact_parameter_types(*function_target));
 }
 
-std::shared_ptr<cminus::memory::reference> cminus::type::function::cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
-	if (auto result = primitive::cast(data, target_type, type); result != nullptr)
+std::shared_ptr<cminus::memory::reference> cminus::type::function::cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const{
+	if (auto result = primitive::cast_(data, target_type, type); result != nullptr)
 		return result;
 
 	if (type != cast_type::reinterpret)
@@ -86,40 +117,6 @@ std::shared_ptr<cminus::memory::reference> cminus::type::function::cast(std::sha
 	}
 
 	return nullptr;
-}
-
-void cminus::type::function::add_parameter_type(std::shared_ptr<object> value){
-	parameter_types_.push_back(value);
-	name_.insert(name_.find_last_of(')'), ("," + value->get_name()));
-	qname_.insert(qname_.find_last_of(')'), ("," + value->get_name()));
-}
-
-bool cminus::type::function::is_exact_parameter_types(const function &target) const{
-	if (is_constant_ != target.is_constant_ || parameter_types_.size() != target.parameter_types_.size())
-		return false;
-
-	for (auto it = parameter_types_.begin(), target_it = target.parameter_types_.begin(); it != parameter_types_.end(); ++it, ++target_it){
-		if (!(*it)->is_exact(**target_it))
-			return false;
-	}
-
-	return true;
-}
-
-bool cminus::type::function::is_exact_return_type(const function &function_target) const{
-	if (return_type_ != nullptr && return_type_->is<function_return_primitive>())
-		return true;
-
-	if (function_target.return_type_ != nullptr && function_target.return_type_->is<function_return_primitive>())
-		return true;
-
-	if (return_type_ == nullptr)
-		return (function_target.return_type_ == nullptr || function_target.return_type_->is<undefined_primitive>());
-
-	if (function_target.return_type_ == nullptr)
-		return (return_type_ == nullptr || return_type_->is<undefined_primitive>());
-
-	return return_type_->is_exact(*function_target.return_type_);
 }
 
 void cminus::type::function::compute_name_(){

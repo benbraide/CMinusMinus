@@ -43,13 +43,14 @@ namespace cminus::type{
 
 		virtual std::string get_qname() const override;
 
-		virtual bool is_exact(const object &target) const override;
-
 		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
 
 		virtual bool can_be_iterated() const override;
 
 		virtual bool is_const() const override;
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 
 	class ref : public modified{
@@ -62,8 +63,6 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> get_default_value() const override;
 
-		virtual bool is_exact(const object &target) const override;
-
 		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
 
 		virtual bool is_default_constructible(bool ignore_callable = false) const override;
@@ -73,5 +72,8 @@ namespace cminus::type{
 		virtual bool is_copy_assignable(bool ignore_callable = false) const override;
 
 		virtual bool is_ref() const override;
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 }
