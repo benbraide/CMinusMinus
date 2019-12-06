@@ -11,3 +11,5 @@ cminus::storage::global *cminus::runtime::object::global_storage = nullptr;
 thread_local cminus::storage::object *cminus::runtime::object::current_storage = nullptr;
 
 thread_local std::shared_ptr<cminus::memory::reference> cminus::runtime::object::current_exception;
+
+thread_local cminus::memory::block *cminus::runtime::object::system_block = nullptr;

@@ -168,6 +168,22 @@ namespace cminus::type{
 		virtual bool is_exact_(const object &target) const override;
 	};
 
+	class type_primitive : public primitive{
+	public:
+		type_primitive();
+
+		virtual ~type_primitive();
+
+		virtual void print_value(io::writer &writer, std::shared_ptr<memory::reference> data) const override;
+
+		virtual std::size_t get_size() const override;
+
+		virtual evaluator::object::id_type get_evaluator_id() const override;
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
+	};
+
 	template <class target_type>
 	struct get_nan;
 

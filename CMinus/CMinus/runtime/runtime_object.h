@@ -35,5 +35,6 @@ namespace cminus::runtime{
 		static thread_local storage::object *current_storage;
 
 		static thread_local std::shared_ptr<memory::reference> current_exception;
+		static thread_local memory::block *system_block;
 	};
 }

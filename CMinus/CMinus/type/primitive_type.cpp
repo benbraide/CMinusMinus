@@ -178,6 +178,28 @@ bool cminus::type::wchar_primitive::is_exact_(const object &target) const{
 	return target.is<wchar_primitive>(false);
 }
 
+cminus::type::type_primitive::type_primitive()
+	: primitive("Type"){}
+
+cminus::type::type_primitive::~type_primitive() = default;
+
+void cminus::type::type_primitive::print_value(io::writer & writer, std::shared_ptr<memory::reference> data) const{
+	auto value = data->read_scalar<object *>()->get_qname();
+	writer.write_buffer(value.data(), value.size());
+}
+
+std::size_t cminus::type::type_primitive::get_size() const{
+	return sizeof(void *);
+}
+
+cminus::evaluator::object::id_type cminus::type::type_primitive::get_evaluator_id() const{
+	return evaluator::object::id_type::type;
+}
+
+bool cminus::type::type_primitive::is_exact_(const object & target) const{
+	return target.is<type_primitive>(false);
+}
+
 cminus::type::number_primitive::number_primitive(state_type state)
 	: primitive(""), state_(state){
 	switch (state_){

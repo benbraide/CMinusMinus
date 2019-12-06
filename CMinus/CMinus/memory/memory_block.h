@@ -11,6 +11,11 @@
 namespace cminus::memory{
 	class object;
 
+	class value{
+	public:
+		virtual ~value() = default;
+	};
+
 	class block : public io::binary_writer, public io::binary_reader{
 	public:
 		block(std::size_t address, std::byte *buffer, std::size_t size);
@@ -39,11 +44,17 @@ namespace cminus::memory{
 
 		virtual std::shared_ptr<block> get_offset_block(std::size_t value) const;
 
+		virtual bool contains(std::size_t address) const;
+
 		virtual bool is_write_protected() const;
 
 		virtual bool is_access_protected() const;
 
 		virtual bool is_resizable() const;
+
+		virtual void set_value(std::shared_ptr<memory::value> value);
+
+		virtual std::shared_ptr<memory::value> get_value() const;
 
 	protected:
 		friend class object;
@@ -57,6 +68,7 @@ namespace cminus::memory{
 		std::size_t address_;
 		std::byte *buffer_;
 		std::size_t size_;
+		std::shared_ptr<memory::value> value_;
 	};
 
 	class write_protected_block : public block{

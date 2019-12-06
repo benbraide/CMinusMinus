@@ -9,7 +9,7 @@ cminus::evaluator::object::id_type cminus::evaluator::class_::get_id() const{
 	return id_type::class_;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::class_::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::class_::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
 	auto callable = find_operator_(op, target->get_type());
 	if (callable == nullptr)
 		throw exception::unsupported_op();
@@ -25,7 +25,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::class
 	return result;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::class_::evaluate_unary_right(operators::id op, memory_ptr_type target) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::class_::evaluate_unary_right(operators::id op, memory_ptr_type target) const{
 	auto callable = find_operator_(op, target->get_type());
 	if (callable == nullptr)
 		throw exception::unsupported_op();
@@ -41,7 +41,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::class
 	return result;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::class_::evaluate_binary_(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::class_::evaluate_binary_(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
 	auto callable = find_operator_(op, left_value->get_type());
 	if (callable == nullptr)
 		throw exception::unsupported_op();

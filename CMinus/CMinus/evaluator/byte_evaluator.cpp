@@ -8,17 +8,17 @@ cminus::evaluator::object::id_type cminus::evaluator::byte::get_id() const{
 	return id_type::byte;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::byte::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::byte::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
 	if (op == operators::id::bitwise_inverse && target->get_type()->is<type::byte_primitive>())
 		return std::make_shared<memory::scalar_reference<std::byte>>(target->get_type(), ~target->read_scalar<std::byte>());
 	return nullptr;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::byte::evaluate_unary_right(operators::id op, memory_ptr_type target) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::byte::evaluate_unary_right(operators::id op, memory_ptr_type target) const{
 	return nullptr;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::byte::evaluate_binary_(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::byte::evaluate_binary_(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
 	if (assignment::assign(op, left_value, right))
 		return left_value;
 

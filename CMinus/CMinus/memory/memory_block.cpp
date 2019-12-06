@@ -45,6 +45,9 @@ std::size_t cminus::memory::block::write(const io::binary_reader &buffer, std::s
 	before_write_();
 	size = buffer.read(buffer_, size);
 
+	if (auto block_buffer = dynamic_cast<const block *>(&buffer); block_buffer != nullptr)
+		value_ = block_buffer->value_;
+
 	return size;
 }
 
@@ -65,6 +68,9 @@ std::size_t cminus::memory::block::read(io::binary_writer &buffer, std::size_t s
 	before_read_();
 	size = buffer.write(buffer_, size);
 
+	if (auto block_buffer = dynamic_cast<block *>(&buffer); block_buffer != nullptr)
+		block_buffer->value_ = value_;
+
 	return size;
 }
 
@@ -80,6 +86,10 @@ std::shared_ptr<cminus::memory::block> cminus::memory::block::get_offset_block(s
 	return ((value < size_) ? get_block_((address_ + value), ((buffer_ == nullptr) ? nullptr : (buffer_ + value)), (size_ - value)) : nullptr);
 }
 
+bool cminus::memory::block::contains(std::size_t address) const{
+	return (address_ <= address && address < (address_ + size_));
+}
+
 bool cminus::memory::block::is_write_protected() const{
 	return (buffer_ == nullptr);
 }
@@ -90,6 +100,14 @@ bool cminus::memory::block::is_access_protected() const{
 
 bool cminus::memory::block::is_resizable() const{
 	return false;
+}
+
+void cminus::memory::block::set_value(std::shared_ptr<memory::value> value){
+	value_ = value;
+}
+
+std::shared_ptr<cminus::memory::value> cminus::memory::block::get_value() const{
+	return value_;
 }
 
 void cminus::memory::block::before_write_() const{
@@ -119,7 +137,13 @@ std::shared_ptr<cminus::memory::block> cminus::memory::write_protected_block::ge
 }
 
 bool cminus::memory::write_protected_block::is_write_protected() const{
-	return ((runtime::object::state & runtime::flags::system) == 0u || block::is_write_protected());
+	if (block::is_write_protected())
+		return true;
+
+	if ((runtime::object::state & runtime::flags::system) != 0u)
+		return false;
+
+	return (runtime::object::system_block == nullptr || !runtime::object::system_block->contains(address_));
 }
 
 std::shared_ptr<cminus::memory::block> cminus::memory::write_protected_block::get_block_(std::size_t address, std::byte *buffer, std::size_t size) const{
@@ -139,7 +163,13 @@ std::shared_ptr<cminus::memory::block> cminus::memory::access_protected_block::g
 }
 
 bool cminus::memory::access_protected_block::is_access_protected() const{
-	return ((runtime::object::state & runtime::flags::system) == 0u || block::is_access_protected());
+	if (block::is_access_protected())
+		return true;
+
+	if ((runtime::object::state & runtime::flags::system) != 0u)
+		return false;
+
+	return (runtime::object::system_block == nullptr || !runtime::object::system_block->contains(address_));
 }
 
 std::shared_ptr<cminus::memory::block> cminus::memory::access_protected_block::get_block_(std::size_t address, std::byte *buffer, std::size_t size) const{
@@ -159,11 +189,23 @@ std::shared_ptr<cminus::memory::block> cminus::memory::protected_block::get_offs
 }
 
 bool cminus::memory::protected_block::is_write_protected() const{
-	return ((runtime::object::state & runtime::flags::system) == 0u || block::is_write_protected());
+	if (block::is_write_protected())
+		return true;
+
+	if ((runtime::object::state & runtime::flags::system) != 0u)
+		return false;
+
+	return (runtime::object::system_block == nullptr || !runtime::object::system_block->contains(address_));
 }
 
 bool cminus::memory::protected_block::is_access_protected() const{
-	return ((runtime::object::state & runtime::flags::system) == 0u || block::is_access_protected());
+	if (block::is_access_protected())
+		return true;
+
+	if ((runtime::object::state & runtime::flags::system) != 0u)
+		return false;
+
+	return (runtime::object::system_block == nullptr || !runtime::object::system_block->contains(address_));
 }
 
 std::shared_ptr<cminus::memory::block> cminus::memory::protected_block::get_block_(std::size_t address, std::byte *buffer, std::size_t size) const{
@@ -200,11 +242,11 @@ cminus::memory::free_block::free_block(std::size_t address, std::byte *buffer, s
 cminus::memory::free_block::free_block(std::size_t address, std::size_t size)
 	: protected_block(address, nullptr, size){}
 
+cminus::memory::free_block::~free_block() = default;
+
 std::shared_ptr<cminus::memory::block> cminus::memory::free_block::get_block_(std::size_t address, std::byte *buffer, std::size_t size) const{
 	return std::make_shared<memory::free_block>(address, size);
 }
-
-cminus::memory::free_block::~free_block() = default;
 
 cminus::memory::heap_block::heap_block(std::size_t address, std::byte *buffer, std::size_t size)
 	: block(address, buffer, size){}

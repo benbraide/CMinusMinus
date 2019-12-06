@@ -1,5 +1,6 @@
 #include "../type/function_type.h"
 #include "../type/pointer_type.h"
+
 #include "../type/string_type.h"
 #include "../type/system_enum_types.h"
 
@@ -9,6 +10,9 @@
 
 #include "../evaluator/number_evaluator.h"
 #include "../evaluator/pointer_evaluator.h"
+
+#include "../evaluator/list_evaluator.h"
+#include "../evaluator/type_evaluator.h"
 
 #include "../evaluator/enum_evaluator.h"
 #include "../evaluator/string_evaluator.h"
@@ -23,11 +27,16 @@ cminus::storage::global::global()
 	runtime::object::current_storage = this;
 
 	default_initializer_ = std::make_shared<evaluator::initializer>();
+	evaluators_[evaluator::object::id_type::nil] = std::make_shared<evaluator::noop>();
+
 	evaluators_[evaluator::object::id_type::byte] = std::make_shared<evaluator::byte>();
 	evaluators_[evaluator::object::id_type::boolean] = std::make_shared<evaluator::boolean>();
 
 	evaluators_[evaluator::object::id_type::number] = std::make_shared<evaluator::number>();
 	evaluators_[evaluator::object::id_type::pointer] = std::make_shared<evaluator::pointer>();
+
+	evaluators_[evaluator::object::id_type::array_] = std::make_shared<evaluator::list>();
+	evaluators_[evaluator::object::id_type::type] = std::make_shared<evaluator::type_value>();
 
 	evaluators_[evaluator::object::id_type::enum_] = std::make_shared<evaluator::enum_>();
 	evaluators_[evaluator::object::id_type::class_] = std::make_shared<evaluator::class_>();

@@ -6,7 +6,7 @@ cminus::evaluator::object::id_type cminus::evaluator::pointer::get_id() const{
 	return id_type::pointer;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::pointer::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
 	auto is_lval = (op == operators::id::increment || op == operators::id::decrement);
 	if (!is_lval && op != operators::id::times)
 		return nullptr;
@@ -45,7 +45,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::point
 	return std::make_shared<memory::reference>(target->read_scalar<std::size_t>(), base_type);
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::pointer::evaluate_unary_right(operators::id op, memory_ptr_type target) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer::evaluate_unary_right(operators::id op, memory_ptr_type target) const{
 	if (op != operators::id::increment && op != operators::id::decrement)
 		return nullptr;
 
@@ -80,7 +80,7 @@ cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::point
 	return std::make_shared<memory::scalar_reference<std::size_t>>(target_type, old_value);
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::pointer::evaluate_binary_(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer::evaluate_binary_(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
 	if (assignment::assign(op, left_value, right))
 		return left_value;
 

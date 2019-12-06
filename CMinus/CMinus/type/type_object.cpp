@@ -109,7 +109,7 @@ std::shared_ptr<cminus::memory::reference> cminus::type::object::cast(std::share
 }
 
 std::shared_ptr<cminus::evaluator::object> cminus::type::object::get_evaluator() const{
-	return nullptr;
+	return runtime::object::global_storage->get_evaluator(evaluator::object::id_type::nil);
 }
 
 std::shared_ptr<cminus::evaluator::initializer> cminus::type::object::get_initializer() const{

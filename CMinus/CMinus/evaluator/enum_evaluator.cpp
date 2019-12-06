@@ -8,15 +8,15 @@ cminus::evaluator::object::id_type cminus::evaluator::enum_::get_id() const{
 	return id_type::enum_;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::enum_::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::enum_::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
 	return nullptr;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::enum_::evaluate_unary_right(operators::id op, memory_ptr_type target) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::enum_::evaluate_unary_right(operators::id op, memory_ptr_type target) const{
 	return nullptr;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::enum_::evaluate_binary_(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::enum_::evaluate_binary_(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
 	if (assignment::assign(op, left_value, right))
 		return left_value;
 

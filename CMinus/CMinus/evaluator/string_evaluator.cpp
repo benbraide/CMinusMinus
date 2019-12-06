@@ -9,15 +9,15 @@ cminus::evaluator::object::id_type cminus::evaluator::string::get_id() const{
 	return id_type::string;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::string::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::string::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
 	return nullptr;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::string::evaluate_unary_right(operators::id op, memory_ptr_type target) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::string::evaluate_unary_right(operators::id op, memory_ptr_type target) const{
 	return nullptr;
 }
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::string::evaluate_binary_(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::string::evaluate_binary_(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
 	auto is_relational = (op == operators::id::less || op == operators::id::less_or_equal || op == operators::id::equal ||
 		op == operators::id::not_equal || op == operators::id::greater_or_equal || op == operators::id::greater || op == operators::id::spaceship);
 

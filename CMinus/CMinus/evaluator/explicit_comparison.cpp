@@ -4,7 +4,7 @@
 
 cminus::evaluator::explicit_comparison::~explicit_comparison() = default;
 
-cminus::evaluator::explicit_comparison::memory_ptr_type cminus::evaluator::explicit_comparison::evaluate(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
+cminus::evaluator::object::memory_ptr_type cminus::evaluator::explicit_comparison::evaluate(operators::id op, memory_ptr_type left_value, node_ptr_type right) const{
 	auto is_explicit_equal = (op == operators::id::explicit_equal);
 	if (!is_explicit_equal && op != operators::id::explicit_not_equal)
 		return nullptr;
