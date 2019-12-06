@@ -125,6 +125,16 @@ std::shared_ptr<cminus::type::object> cminus::storage::global::get_pointer_type(
 	return get_pointer_type(get_cached_type(base_type), is_const);
 }
 
+std::shared_ptr<cminus::type::object> cminus::storage::global::get_reversed_pointer_type(std::shared_ptr<type::object> base_type, bool is_const) const{
+	if (!is_const || base_type->is_const())
+		return std::make_shared<cminus::type::reversed_pointer_primitive>(base_type);
+	return std::make_shared<cminus::type::reversed_pointer_primitive>(std::make_shared<cminus::type::constant>(base_type));
+}
+
+std::shared_ptr<cminus::type::object> cminus::storage::global::get_reversed_pointer_type(cached_type base_type, bool is_const) const{
+	return get_reversed_pointer_type(get_cached_type(base_type), is_const);
+}
+
 std::shared_ptr<cminus::type::object> cminus::storage::global::get_ref_type(std::shared_ptr<type::object> base_type, bool is_const) const{
 	if (!is_const)
 		return std::make_shared<cminus::type::ref>(base_type);
@@ -145,6 +155,10 @@ std::shared_ptr<cminus::type::object> cminus::storage::global::get_auto_ref_type
 
 std::shared_ptr<cminus::type::object> cminus::storage::global::get_char_pointer_type(bool is_const) const{
 	return get_pointer_type(get_cached_type(cached_type::char_), is_const);
+}
+
+std::shared_ptr<cminus::type::object> cminus::storage::global::get_reversed_char_pointer_type(bool is_const) const{
+	return get_reversed_pointer_type(get_cached_type(cached_type::char_), is_const);
 }
 
 std::shared_ptr<cminus::type::object> cminus::storage::global::get_char_ref_type(bool is_const) const{

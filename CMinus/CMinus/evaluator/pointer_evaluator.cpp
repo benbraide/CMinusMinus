@@ -34,7 +34,13 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer::evaluate_
 		if (target->is_const())
 			throw exception::const_assignment();
 
-		if (op == operators::id::increment)
+		if (pointer_target_type->is_reversed()){
+			if (op == operators::id::increment)
+				target->write(std::make_shared<memory::scalar_reference<std::size_t>>(target_type, (target->read_scalar<std::size_t>() - base_size)));
+			else//Decrement
+				target->write(std::make_shared<memory::scalar_reference<std::size_t>>(target_type, (target->read_scalar<std::size_t>() + base_size)));
+		}
+		else if (op == operators::id::increment)
 			target->write(std::make_shared<memory::scalar_reference<std::size_t>>(target_type, (target->read_scalar<std::size_t>() + base_size)));
 		else
 			target->write(std::make_shared<memory::scalar_reference<std::size_t>>(target_type, (target->read_scalar<std::size_t>() - base_size)));
@@ -72,7 +78,13 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer::evaluate_
 		throw exception::unsupported_op();
 
 	auto old_value = target->read_scalar<std::size_t>();
-	if (op == operators::id::increment)
+	if (pointer_target_type->is_reversed()){
+		if (op == operators::id::increment)
+			target->write(std::make_shared<memory::scalar_reference<std::size_t>>(target_type, (old_value - base_size)));
+		else//Decrement
+			target->write(std::make_shared<memory::scalar_reference<std::size_t>>(target_type, (old_value + base_size)));
+	}
+	else if (op == operators::id::increment)
 		target->write(std::make_shared<memory::scalar_reference<std::size_t>>(target_type, (old_value + base_size)));
 	else//Decrement
 		target->write(std::make_shared<memory::scalar_reference<std::size_t>>(target_type, (old_value - base_size)));
@@ -133,7 +145,13 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer::evaluate_
 		if (left_value->is_const())
 			throw exception::const_assignment();
 
-		if (op == operators::id::compound_plus)
+		if (left_pointer_type->is_reversed()){
+			if (op == operators::id::compound_plus)
+				left_value->write(std::make_shared<memory::scalar_reference<std::size_t>>(left_type, (left_value->read_scalar<std::size_t>() - value)));
+			else
+				left_value->write(std::make_shared<memory::scalar_reference<std::size_t>>(left_type, (left_value->read_scalar<std::size_t>() + value)));
+		}
+		else if (op == operators::id::compound_plus)
 			left_value->write(std::make_shared<memory::scalar_reference<std::size_t>>(left_type, (left_value->read_scalar<std::size_t>() + value)));
 		else
 			left_value->write(std::make_shared<memory::scalar_reference<std::size_t>>(left_type, (left_value->read_scalar<std::size_t>() - value)));
@@ -141,11 +159,24 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer::evaluate_
 		return left_value;
 	}
 
-	if (op == operators::id::plus)
+	if (op == operators::id::plus){
+		if (left_pointer_type->is_reversed())
+			return std::make_shared<memory::scalar_reference<std::size_t>>(left_type, (left_value->read_scalar<std::size_t>() - value));
 		return std::make_shared<memory::scalar_reference<std::size_t>>(left_type, (left_value->read_scalar<std::size_t>() + value));
+	}
 
-	if (op == operators::id::minus)
+	if (op == operators::id::minus){
+		if (left_pointer_type->is_reversed())
+			return std::make_shared<memory::scalar_reference<std::size_t>>(left_type, (left_value->read_scalar<std::size_t>() + value));
 		return std::make_shared<memory::scalar_reference<std::size_t>>(left_type, (left_value->read_scalar<std::size_t>() - value));
+	}
+
+	if (left_pointer_type->is_reversed()){
+		return std::make_shared<memory::reference>(
+			(left_value->read_scalar<std::size_t>() - value),
+			left_base_type
+		);
+	}
 
 	return std::make_shared<memory::reference>(
 		(left_value->read_scalar<std::size_t>() + value),

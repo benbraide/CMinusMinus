@@ -262,6 +262,17 @@ void cminus::declaration::string::begin_def::evaluate_body_() const{
 	throw runtime::exception::return_interrupt(helper::retrieve_data(nullptr));
 }
 
+cminus::declaration::string::rbegin_def::~rbegin_def() = default;
+
+void cminus::declaration::string::rbegin_def::evaluate_body_() const{
+	helper::data_address_size_value_info info{};
+	helper::retrieve_info(info, nullptr);
+	throw runtime::exception::return_interrupt(std::make_shared<memory::scalar_reference<std::size_t>>(
+		runtime::object::global_storage->get_reversed_char_pointer_type(false),
+		((info.data + info.size) - 1u)
+	));
+}
+
 cminus::declaration::string::end_def::~end_def() = default;
 
 void cminus::declaration::string::end_def::evaluate_body_() const{
@@ -269,7 +280,18 @@ void cminus::declaration::string::end_def::evaluate_body_() const{
 	helper::retrieve_info(info, nullptr);
 	throw runtime::exception::return_interrupt(std::make_shared<memory::scalar_reference<std::size_t>>(
 		runtime::object::global_storage->get_char_pointer_type(false),
-		(info.data + info.size)//Address data is pointing to plus size as offset
+		(info.data + info.size)
+	));
+}
+
+cminus::declaration::string::rend_def::~rend_def() = default;
+
+void cminus::declaration::string::rend_def::evaluate_body_() const{
+	helper::data_address_size_value_info info{};
+	helper::retrieve_info(info, nullptr);
+	throw runtime::exception::return_interrupt(std::make_shared<memory::scalar_reference<std::size_t>>(
+		runtime::object::global_storage->get_reversed_char_pointer_type(false),
+		(info.data - 1u)
 	));
 }
 

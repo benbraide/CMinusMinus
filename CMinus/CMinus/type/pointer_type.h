@@ -27,6 +27,8 @@ namespace cminus::type{
 
 		virtual bool is_nullptr() const;
 
+		virtual bool is_reversed() const;
+
 	protected:
 		virtual bool is_exact_(const object &target) const override;
 
@@ -35,5 +37,19 @@ namespace cminus::type{
 		virtual std::shared_ptr<memory::reference> cast_(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const override;
 
 		std::shared_ptr<object> base_type_;
+	};
+
+	class reversed_pointer_primitive : public pointer_primitive{
+	public:
+		explicit reversed_pointer_primitive(std::shared_ptr<object> base_type);
+
+		virtual ~reversed_pointer_primitive();
+
+		virtual std::string get_qname() const override;
+
+		virtual bool is_reversed() const override;
+
+	protected:
+		virtual bool is_exact_(const object &target) const override;
 	};
 }

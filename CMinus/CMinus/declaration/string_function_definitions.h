@@ -193,11 +193,31 @@ namespace cminus::declaration::string{
 		virtual void evaluate_body_() const override;
 	};
 
+	class rbegin_def : public rbegin{
+	public:
+		using rbegin::rbegin;
+
+		virtual ~rbegin_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
 	class end_def : public end{
 	public:
 		using end::end;
 
 		virtual ~end_def();
+
+	protected:
+		virtual void evaluate_body_() const override;
+	};
+
+	class rend_def : public rend{
+	public:
+		using rend::rend;
+
+		virtual ~rend_def();
 
 	protected:
 		virtual void evaluate_body_() const override;

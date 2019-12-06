@@ -86,6 +86,10 @@ bool cminus::type::pointer_primitive::is_nullptr() const{
 	return (base_type_ == nullptr);
 }
 
+bool cminus::type::pointer_primitive::is_reversed() const{
+	return false;
+}
+
 bool cminus::type::pointer_primitive::is_exact_(const object &target) const{
 	auto pointer_target = target.as<pointer_primitive>(false);
 	return (pointer_target != nullptr && (base_type_ == nullptr) == (pointer_target->base_type_ == nullptr) && (base_type_ == nullptr || base_type_->is_exact(*pointer_target->base_type_)));
@@ -111,8 +115,11 @@ int cminus::type::pointer_primitive::get_score_(const object &target, bool is_lv
 	if (pointer_target->base_type_->is<void_primitive>())//Any * ==> Void *
 		return get_score_value(score_result_type::assignable, ((is_const_base == is_const_target_base) ? 0 : -1));
 
-	if (base_type_->is_exact(*pointer_target->base_type_->remove_const_ref()))
-		return get_score_value(score_result_type::exact, ((is_const_base == is_const_target_base) ? 0 : -1));
+	if (base_type_->is_exact(*pointer_target->base_type_->remove_const_ref())){
+		if (is<reversed_pointer_primitive>() == target.is<reversed_pointer_primitive>())
+			return get_score_value(score_result_type::exact, ((is_const_base == is_const_target_base) ? 0 : -1));
+		return get_score_value(score_result_type::assignable, ((is_const_base == is_const_target_base) ? 0 : -1));
+	}
 
 	if (pointer_target->base_type_->can_be_inferred_from(*base_type_))
 		return get_score_value(score_result_type::inferable, ((is_const_base == is_const_target_base) ? 0 : -1));
@@ -207,4 +214,27 @@ std::shared_ptr<cminus::memory::reference> cminus::type::pointer_primitive::cast
 	}
 
 	return nullptr;
+}
+
+cminus::type::reversed_pointer_primitive::reversed_pointer_primitive(std::shared_ptr<object> base_type)
+	: pointer_primitive(base_type){
+	if (base_type_ == nullptr)
+		name_ = "NullptrType";
+	else
+		name_ = ("ReversedPointerType<" + base_type_->get_name() + ">");
+}
+
+cminus::type::reversed_pointer_primitive::~reversed_pointer_primitive() = default;
+
+std::string cminus::type::reversed_pointer_primitive::get_qname() const{
+	return ((base_type_ == nullptr) ? "NullptrType" : ("ReversedPointerType<" + base_type_->get_qname() + ">"));
+}
+
+bool cminus::type::reversed_pointer_primitive::is_reversed() const{
+	return true;
+}
+
+bool cminus::type::reversed_pointer_primitive::is_exact_(const object &target) const{
+	auto pointer_target = target.as<reversed_pointer_primitive>(false);
+	return (pointer_target != nullptr && (base_type_ == nullptr) == (pointer_target->base_type_ == nullptr) && (base_type_ == nullptr || base_type_->is_exact(*pointer_target->base_type_)));
 }

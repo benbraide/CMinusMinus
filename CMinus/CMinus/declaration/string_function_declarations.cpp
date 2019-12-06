@@ -132,10 +132,20 @@ cminus::declaration::string::begin::begin(type::class_ &parent, bool is_const)
 
 cminus::declaration::string::begin::~begin() = default;
 
+cminus::declaration::string::rbegin::rbegin(type::class_ &parent, bool is_const)
+	: external_member_function("ReverseBegin", parent, attribute::collection::list_type{}, (is_const ? flags::const_ : flags::nil), runtime::object::global_storage->get_reversed_char_pointer_type(is_const)){}
+
+cminus::declaration::string::rbegin::~rbegin() = default;
+
 cminus::declaration::string::end::end(type::class_ & parent, bool is_const)
 	: external_member_function("End", parent, attribute::collection::list_type{}, (is_const ? flags::const_ : flags::nil), runtime::object::global_storage->get_char_pointer_type(is_const)){}
 
 cminus::declaration::string::end::~end() = default;
+
+cminus::declaration::string::rend::rend(type::class_ &parent, bool is_const)
+	: external_member_function("ReverseEnd", parent, attribute::collection::list_type{}, (is_const ? flags::const_ : flags::nil), runtime::object::global_storage->get_reversed_char_pointer_type(is_const)){}
+
+cminus::declaration::string::rend::~rend() = default;
 
 cminus::declaration::string::at::at(type::class_ &parent, bool is_const)
 	: external_member_function("GetChar", parent, attribute::collection::list_type{}, (is_const ? flags::const_ : flags::nil), runtime::object::global_storage->get_char_ref_type(is_const)){

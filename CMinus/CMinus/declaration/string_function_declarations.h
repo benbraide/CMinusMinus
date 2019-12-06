@@ -92,11 +92,25 @@ namespace cminus::declaration::string{
 		virtual ~begin();
 	};
 
+	class rbegin : public external_member_function{
+	public:
+		rbegin(type::class_ &parent, bool is_const);
+
+		virtual ~rbegin();
+	};
+
 	class end : public external_member_function{
 	public:
 		end(type::class_ &parent, bool is_const);
 
 		virtual ~end();
+	};
+
+	class rend : public external_member_function{
+	public:
+		rend(type::class_ &parent, bool is_const);
+
+		virtual ~rend();
 	};
 
 	class at : public external_member_function{
