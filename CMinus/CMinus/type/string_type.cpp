@@ -41,8 +41,14 @@ cminus::type::string::string()
 	add_callable_(std::make_shared<declaration::string::begin_def>(*this, true), 0u);
 	add_callable_(std::make_shared<declaration::string::begin_def>(*this, false), 0u);
 
+	add_callable_(std::make_shared<declaration::string::rbegin_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::rbegin_def>(*this, false), 0u);
+
 	add_callable_(std::make_shared<declaration::string::end_def>(*this, true), 0u);
 	add_callable_(std::make_shared<declaration::string::end_def>(*this, false), 0u);
+
+	add_callable_(std::make_shared<declaration::string::rend_def>(*this, true), 0u);
+	add_callable_(std::make_shared<declaration::string::rend_def>(*this, false), 0u);
 
 	add_callable_(std::make_shared<declaration::string::at_def>(*this, true), 0u);
 	add_callable_(std::make_shared<declaration::string::at_def>(*this, false), 0u);
@@ -121,7 +127,11 @@ bool cminus::type::string::is_constructible_from(const type_base &target_type, b
 	return (target_type.is<number_primitive>() || class_::is_constructible_from(target_type, is_lval, is_const));
 }
 
-bool cminus::type::string::can_be_iterated() const{
+bool cminus::type::string::is_forward_traversable() const{
+	return true;
+}
+
+bool cminus::type::string::is_reverse_traversable() const{
 	return true;
 }
 

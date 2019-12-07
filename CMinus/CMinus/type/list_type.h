@@ -19,11 +19,21 @@ namespace cminus::type{
 
 		virtual std::size_t get_memory_size() const override;
 
+		virtual std::shared_ptr<memory::reference> begin(std::shared_ptr<memory::reference> data) const override;
+
+		virtual std::shared_ptr<memory::reference> rbegin(std::shared_ptr<memory::reference> data) const override;
+
+		virtual std::shared_ptr<memory::reference> end(std::shared_ptr<memory::reference> data) const override;
+
+		virtual std::shared_ptr<memory::reference> rend(std::shared_ptr<memory::reference> data) const override;
+
 		virtual evaluator::object::id_type get_evaluator_id() const override;
 
 		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
 
-		virtual bool can_be_iterated() const override;
+		virtual bool is_forward_traversable() const override;
+
+		virtual bool is_reverse_traversable() const override;
 
 		virtual bool can_be_inferred_from(const object &target) const override;
 

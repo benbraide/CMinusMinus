@@ -34,6 +34,14 @@ std::shared_ptr<cminus::type::object> cminus::type::modified::remove_const_ref(s
 	return base_type_->remove_const_ref(base_type_);
 }
 
+bool cminus::type::modified::is_forward_traversable() const{
+	return base_type_->is_forward_traversable();
+}
+
+bool cminus::type::modified::is_reverse_traversable() const{
+	return base_type_->is_reverse_traversable();
+}
+
 bool cminus::type::modified::can_be_inferred_from(const object &target) const{
 	return base_type_->can_be_inferred_from(target);
 }
@@ -69,10 +77,6 @@ std::string cminus::type::constant::get_qname() const{
 std::shared_ptr<cminus::type::object> cminus::type::constant::get_inferred(std::shared_ptr<object> target) const{
 	auto result = base_type_->get_inferred(target);
 	return ((result == nullptr || result->is_const()) ? result : std::make_shared<constant>(result));
-}
-
-bool cminus::type::constant::can_be_iterated() const{
-	return base_type_->can_be_iterated();
 }
 
 bool cminus::type::constant::is_const() const{

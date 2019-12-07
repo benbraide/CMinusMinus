@@ -79,6 +79,26 @@ std::size_t cminus::type::class_::compute_base_offset(const class_ &base_type) c
 	return compute_base_offset_(base_type, 0u);
 }
 
+std::shared_ptr<cminus::memory::reference> cminus::type::class_::begin(std::shared_ptr<memory::reference> data) const{
+	auto callable = find_function_(("Begin"));
+	return ((callable == nullptr) ? nullptr : callable->call(data, {}));
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::class_::rbegin(std::shared_ptr<memory::reference> data) const{
+	auto callable = find_function_(("ReverseBegin"));
+	return ((callable == nullptr) ? nullptr : callable->call(data, {}));
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::class_::end(std::shared_ptr<memory::reference> data) const{
+	auto callable = find_function_(("End"));
+	return ((callable == nullptr) ? nullptr : callable->call(data, {}));
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::class_::rend(std::shared_ptr<memory::reference> data) const{
+	auto callable = find_function_(("ReverseEnd"));
+	return ((callable == nullptr) ? nullptr : callable->call(data, {}));
+}
+
 std::shared_ptr<cminus::evaluator::object> cminus::type::class_::get_evaluator() const{
 	return runtime::object::global_storage->get_evaluator(evaluator::object::id_type::class_);
 }
@@ -141,10 +161,6 @@ bool cminus::type::class_::is_copy_constructible(bool ignore_callable) const{
 	return true;
 }
 
-bool cminus::type::class_::can_be_iterated() const{
-	return (find_function_("begin") != nullptr && find_function_("end") != nullptr);
-}
-
 bool cminus::type::class_::is_copy_assignable(bool ignore_callable) const{
 	if (!ignore_callable){//Search for function
 		if (auto constructor = find_operator_(operators::id::assignment); constructor != nullptr && constructor->get_id() == declaration::callable::id_type::operator_){
@@ -172,6 +188,14 @@ bool cminus::type::class_::is_copy_assignable(bool ignore_callable) const{
 	}
 
 	return true;
+}
+
+bool cminus::type::class_::is_forward_traversable() const{
+	return (find_function_("Begin") != nullptr && find_function_("End") != nullptr);
+}
+
+bool cminus::type::class_::is_reverse_traversable() const{
+	return (find_function_("ReverseBegin") != nullptr && find_function_("ReverseEnd") != nullptr);
 }
 
 bool cminus::type::class_::is_accessible(unsigned int access) const{

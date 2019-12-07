@@ -51,13 +51,6 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::list::evaluate_bin
 	if (left_array_type->get_count() <= value)
 		throw runtime::exception::out_of_range();
 
-	if (left_base_type->is_ref()){
-		return std::make_shared<memory::indirect_reference>(
-			(left_value->get_address() + (value * left_base_size)),
-			left_base_type->remove_const_ref(left_base_type)
-		);
-	}
-
 	return std::make_shared<memory::reference>(
 		(left_value->get_address() + (value * left_base_size)),
 		left_base_type->remove_const_ref(left_base_type)

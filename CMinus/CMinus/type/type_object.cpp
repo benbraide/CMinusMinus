@@ -108,6 +108,22 @@ std::shared_ptr<cminus::memory::reference> cminus::type::object::cast(std::share
 	return ((type == cast_type::static_rval && is_exact(*target_type->remove_const_ref())) ? data : cast_(data, target_type, type));
 }
 
+std::shared_ptr<cminus::memory::reference> cminus::type::object::begin(std::shared_ptr<memory::reference> data) const{
+	return nullptr;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::object::rbegin(std::shared_ptr<memory::reference> data) const{
+	return nullptr;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::object::end(std::shared_ptr<memory::reference> data) const{
+	return nullptr;
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::object::rend(std::shared_ptr<memory::reference> data) const{
+	return nullptr;
+}
+
 std::shared_ptr<cminus::evaluator::object> cminus::type::object::get_evaluator() const{
 	return runtime::object::global_storage->get_evaluator(evaluator::object::id_type::nil);
 }
@@ -144,7 +160,11 @@ bool cminus::type::object::is_copy_assignable(bool ignore_callable) const{
 	return true;
 }
 
-bool cminus::type::object::can_be_iterated() const{
+bool cminus::type::object::is_forward_traversable() const{
+	return false;
+}
+
+bool cminus::type::object::is_reverse_traversable() const{
 	return false;
 }
 

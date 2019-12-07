@@ -76,6 +76,14 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<memory::reference> cast(std::shared_ptr<memory::reference> data, std::shared_ptr<object> target_type, cast_type type) const;
 
+		virtual std::shared_ptr<memory::reference> begin(std::shared_ptr<memory::reference> data) const;
+
+		virtual std::shared_ptr<memory::reference> rbegin(std::shared_ptr<memory::reference> data) const;
+
+		virtual std::shared_ptr<memory::reference> end(std::shared_ptr<memory::reference> data) const;
+
+		virtual std::shared_ptr<memory::reference> rend(std::shared_ptr<memory::reference> data) const;
+
 		virtual std::shared_ptr<evaluator::object> get_evaluator() const;
 
 		virtual std::shared_ptr<evaluator::initializer> get_initializer() const;
@@ -94,7 +102,9 @@ namespace cminus::type{
 
 		virtual bool is_copy_assignable(bool ignore_callable = false) const;
 
-		virtual bool can_be_iterated() const;
+		virtual bool is_forward_traversable() const;
+
+		virtual bool is_reverse_traversable() const;
 
 		virtual bool can_be_inferred_from(const object &target) const;
 

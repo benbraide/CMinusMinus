@@ -25,6 +25,8 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<object> get_base_type() const;
 
+		virtual std::shared_ptr<object> get_reversed_type() const;
+
 		virtual bool is_nullptr() const;
 
 		virtual bool is_reversed() const;
@@ -46,6 +48,8 @@ namespace cminus::type{
 		virtual ~reversed_pointer_primitive();
 
 		virtual std::string get_qname() const override;
+
+		virtual std::shared_ptr<object> get_reversed_type() const override;
 
 		virtual bool is_reversed() const override;
 

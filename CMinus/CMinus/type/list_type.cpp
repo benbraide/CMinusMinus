@@ -39,18 +39,11 @@ void cminus::type::array_primitive::print_value(io::writer &writer, std::shared_
 	auto start_address = data->get_address();
 	auto base_memory_size = base_type_->get_memory_size();
 
-	auto is_ref_base = base_type_->is_ref();
-	std::shared_ptr<memory::reference> base_value;
-
 	for (std::size_t count = 0u; count < count_; ++count){
 		if (count != 0u)
 			writer.write_scalar(',');
 
-		if (is_ref_base)
-			base_value = std::make_shared<memory::indirect_reference>((start_address + (base_memory_size * count)), base_type_);
-		else
-			base_value = std::make_shared<memory::reference>((start_address + (base_memory_size * count)), base_type_);
-
+		auto base_value = std::make_shared<memory::reference>((start_address + (base_memory_size * count)), base_type_);
 		if (base_value != nullptr)
 			base_type_->print_value(writer, base_value);
 		else
@@ -66,6 +59,34 @@ std::size_t cminus::type::array_primitive::get_size() const{
 
 std::size_t cminus::type::array_primitive::get_memory_size() const{
 	return (base_type_->get_memory_size() * count_);
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::array_primitive::begin(std::shared_ptr<memory::reference> data) const{
+	return std::make_shared<memory::scalar_reference<std::size_t>>(
+		runtime::object::global_storage->get_pointer_type(base_type_, false),
+		data->get_address()
+	);
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::array_primitive::rbegin(std::shared_ptr<memory::reference> data) const{
+	return std::make_shared<memory::scalar_reference<std::size_t>>(
+		runtime::object::global_storage->get_reversed_pointer_type(base_type_, false),
+		((data->get_address() + (base_type_->get_memory_size() * count_)) - base_type_->get_memory_size())
+	);
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::array_primitive::end(std::shared_ptr<memory::reference> data) const{
+	return std::make_shared<memory::scalar_reference<std::size_t>>(
+		runtime::object::global_storage->get_pointer_type(base_type_, false),
+		(data->get_address() + (base_type_->get_memory_size() * count_))
+	);
+}
+
+std::shared_ptr<cminus::memory::reference> cminus::type::array_primitive::rend(std::shared_ptr<memory::reference> data) const{
+	return std::make_shared<memory::scalar_reference<std::size_t>>(
+		runtime::object::global_storage->get_reversed_pointer_type(base_type_, false),
+		(data->get_address() - base_type_->get_memory_size())
+	);
 }
 
 cminus::evaluator::object::id_type cminus::type::array_primitive::get_evaluator_id() const{
@@ -106,7 +127,11 @@ std::shared_ptr<cminus::type::object> cminus::type::array_primitive::get_inferre
 	return nullptr;
 }
 
-bool cminus::type::array_primitive::can_be_iterated() const{
+bool cminus::type::array_primitive::is_forward_traversable() const{
+	return true;
+}
+
+bool cminus::type::array_primitive::is_reverse_traversable() const{
 	return true;
 }
 
@@ -223,14 +248,8 @@ std::shared_ptr<cminus::memory::reference> cminus::type::array_primitive::cast_(
 	if (get_score_(*target_type, false, false) == get_score_value(score_result_type::nil))
 		return nullptr;
 
-	if (target_type->is<pointer_primitive>()){
-		auto copy = std::make_shared<memory::rval_reference>(target_type->remove_const_ref(target_type));
-		if (copy == nullptr)
-			throw memory::exception::allocation_failure();
-
-		runtime::object::memory_object->write_scalar(copy->get_address(), data->get_address());
-		return copy;
-	}
+	if (target_type->is<pointer_primitive>())
+		return std::make_shared<memory::scalar_reference<std::size_t>>(target_type->remove_const_ref(target_type), data->get_address());
 
 	return ((type == cast_type::static_rval) ? data : nullptr);
 }

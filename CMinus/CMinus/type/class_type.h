@@ -43,15 +43,25 @@ namespace cminus::type{
 
 		virtual std::size_t get_size() const override;
 
+		virtual std::shared_ptr<memory::reference> begin(std::shared_ptr<memory::reference> data) const override;
+
+		virtual std::shared_ptr<memory::reference> rbegin(std::shared_ptr<memory::reference> data) const override;
+
+		virtual std::shared_ptr<memory::reference> end(std::shared_ptr<memory::reference> data) const override;
+
+		virtual std::shared_ptr<memory::reference> rend(std::shared_ptr<memory::reference> data) const override;
+
 		virtual std::shared_ptr<evaluator::object> get_evaluator() const override;
 
 		virtual bool is_default_constructible(bool ignore_callable = false) const override;
 
 		virtual bool is_copy_constructible(bool ignore_callable = false) const override;
 
-		virtual bool can_be_iterated() const override;
-
 		virtual bool is_copy_assignable(bool ignore_callable = false) const override;
+
+		virtual bool is_forward_traversable() const override;
+
+		virtual bool is_reverse_traversable() const override;
 
 		virtual bool is_accessible(unsigned int access) const override;
 

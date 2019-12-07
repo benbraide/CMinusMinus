@@ -8,7 +8,7 @@ cminus::evaluator::object::id_type cminus::evaluator::pointer::get_id() const{
 
 cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer::evaluate_unary_left(operators::id op, memory_ptr_type target) const{
 	auto is_lval = (op == operators::id::increment || op == operators::id::decrement);
-	if (!is_lval && op != operators::id::times)
+	if (!is_lval && op != operators::id::times && op != operators::id::bitwise_xor)
 		return nullptr;
 
 	auto target_type = target->get_type();
@@ -18,6 +18,9 @@ cminus::evaluator::object::memory_ptr_type cminus::evaluator::pointer::evaluate_
 	auto pointer_target_type = target_type->as<type::pointer_primitive>();
 	if (pointer_target_type == nullptr)
 		throw exception::unsupported_op();
+
+	if (op == operators::id::bitwise_xor)
+		return std::make_shared<memory::scalar_reference<std::size_t>>(pointer_target_type->get_reversed_type(), target->read_scalar<std::size_t>());
 
 	auto base_type = pointer_target_type->get_base_type();
 	if (base_type == nullptr)

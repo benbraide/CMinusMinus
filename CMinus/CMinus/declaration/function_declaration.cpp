@@ -98,6 +98,8 @@ std::shared_ptr<cminus::memory::reference> cminus::declaration::function::call_(
 	runtime::value_guard guard(runtime::object::current_storage, storage.get());
 	try{
 		copy_args_(context, args, required_size);
+		runtime::value_guard<memory::block *> block_guard(runtime::object::system_block, nullptr);
+
 		evaluate_body_();
 		if (return_declaration_ != nullptr)
 			return_value = copy_return_value_(nullptr);
@@ -129,17 +131,7 @@ int cminus::declaration::function::get_context_score_(std::shared_ptr<memory::re
 	return get_arg_score_((*it++)->get_type(), context);
 }
 
-void cminus::declaration::function::copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const{
-	if (runtime::object::current_storage->exists((*it)->get_name()))
-		throw exception::bad_parameter_list();
-
-	auto entry = (*it)->evaluate(0u, context);
-	if (entry == nullptr)
-		throw memory::exception::allocation_failure();
-
-	runtime::object::current_storage->add_entry(*it, entry, false);
-	++it;
-}
+void cminus::declaration::function::copy_context_(std::shared_ptr<memory::reference> context, parameter_list_type::const_iterator &it) const{}
 
 void cminus::declaration::function::copy_args_(std::shared_ptr<memory::reference> context, const std::vector<std::shared_ptr<memory::reference>> &args, std::size_t required_size) const{
 	auto arg_it = args.begin();

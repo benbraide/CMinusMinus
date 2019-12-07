@@ -85,8 +85,12 @@ bool cminus::type::proxy::is_copy_assignable(bool ignore_callable) const{
 	return target_->is_copy_assignable(ignore_callable);
 }
 
-bool cminus::type::proxy::can_be_iterated() const{
-	return target_->can_be_iterated();
+bool cminus::type::proxy::is_forward_traversable() const{
+	return target_->is_forward_traversable();
+}
+
+bool cminus::type::proxy::is_reverse_traversable() const{
+	return target_->is_reverse_traversable();
 }
 
 bool cminus::type::proxy::can_be_inferred_from(const object &target) const{

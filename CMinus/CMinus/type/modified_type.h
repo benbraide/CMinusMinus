@@ -23,6 +23,10 @@ namespace cminus::type{
 
 		virtual std::shared_ptr<object> remove_const_ref(std::shared_ptr<object> self) const override;
 
+		virtual bool is_forward_traversable() const override;
+
+		virtual bool is_reverse_traversable() const override;
+
 		virtual bool can_be_inferred_from(const object &target) const override;
 
 		virtual bool is_inferred() const override;
@@ -44,8 +48,6 @@ namespace cminus::type{
 		virtual std::string get_qname() const override;
 
 		virtual std::shared_ptr<object> get_inferred(std::shared_ptr<object> target) const override;
-
-		virtual bool can_be_iterated() const override;
 
 		virtual bool is_const() const override;
 
