@@ -5,6 +5,8 @@
 #include "node_object.h"
 
 namespace cminus::node{
+	class variable_declaration;
+
 	class control : public object{
 	public:
 		control(std::shared_ptr<object> condition, std::shared_ptr<object> statement);
@@ -92,6 +94,13 @@ namespace cminus::node{
 		virtual void update_() const override;
 
 		std::shared_ptr<object> update_value_;
+	};
+
+	class for_each_control : public for_control{
+	public:
+		for_each_control(std::shared_ptr<variable_declaration> decl, std::shared_ptr<object> target, std::shared_ptr<object> statement, std::shared_ptr<object> else_value);
+
+		virtual ~for_each_control();
 	};
 
 	class try_control : public control_with_else{

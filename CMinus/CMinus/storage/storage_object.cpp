@@ -2,6 +2,7 @@
 #include "../declaration/function_declaration_group.h"
 #include "../declaration/special_function_declaration.h"
 
+#include "global_storage.h"
 #include "storage_object.h"
 
 cminus::storage::unnamed_object::~unnamed_object(){
@@ -208,15 +209,33 @@ void cminus::storage::unnamed_object::add_callable_(std::shared_ptr<declaration:
 }
 
 void cminus::storage::unnamed_object::add_attribute_(std::shared_ptr<attribute::object> entry){
-	
+	auto &name = entry->get_name();
+	if (!name.empty() && mapped_entries_.find(name) != mapped_entries_.end())
+		throw exception::duplicate_entry();
+
+	entries_.push_back(entry_info{ nullptr, entry });
+	if (!name.empty())
+		mapped_entries_[name] = &entries_.back();
 }
 
 void cminus::storage::unnamed_object::add_type_(std::shared_ptr<type::object> entry){
+	auto &name = entry->get_name();
+	if (!name.empty() && mapped_entries_.find(name) != mapped_entries_.end())
+		throw exception::duplicate_entry();
 
+	entries_.push_back(entry_info{ nullptr, entry });
+	if (!name.empty())
+		mapped_entries_[name] = &entries_.back();
 }
 
 void cminus::storage::unnamed_object::add_storage_(std::shared_ptr<object> entry){
+	auto &name = entry->get_name();
+	if (!name.empty() && mapped_entries_.find(name) != mapped_entries_.end())
+		throw exception::duplicate_entry();
 
+	entries_.push_back(entry_info{ nullptr, entry });
+	if (!name.empty())
+		mapped_entries_[name] = &entries_.back();
 }
 
 void cminus::storage::unnamed_object::add_entry_(std::shared_ptr<declaration::object> decl, std::shared_ptr<memory::reference> value, bool check_existing){
@@ -341,7 +360,12 @@ std::shared_ptr<cminus::memory::reference> cminus::storage::unnamed_object::reso
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::storage::unnamed_object::resolved_declaration_type_visitor::operator()(std::shared_ptr<type::object> val){
-	return nullptr;
+	auto block = runtime::object::memory_object->get_block(runtime::object::memory_object->allocate_write_protected_block(sizeof(void *)));
+
+	runtime::value_guard guard(runtime::object::system_block, block.get());
+	block->write_scalar(val.get());
+
+	return std::make_shared<memory::rval_reference>(block->get_address(), runtime::object::global_storage->get_cached_type(global::cached_type::type));
 }
 
 std::shared_ptr<cminus::memory::reference> cminus::storage::unnamed_object::resolved_declaration_type_visitor::operator()(std::shared_ptr<object> val){

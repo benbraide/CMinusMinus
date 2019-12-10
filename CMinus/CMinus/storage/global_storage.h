@@ -3,6 +3,7 @@
 #include <string_view>
 
 #include "../type/primitive_type.h"
+#include "../node/identifier_node.h"
 #include "../evaluator/evaluator_object.h"
 
 #include "storage_object.h"
@@ -14,34 +15,7 @@ namespace cminus::type{
 namespace cminus::storage{
 	class global : public named_object{
 	public:
-		enum class cached_type{
-			nil,
-			undefined,
-			auto_,
-			void_,
-			bool_,
-			byte_,
-			char_,
-			wchar_,
-			small_number,
-			number,
-			big_number,
-			small_integer,
-			unsigned_small_integer,
-			integer,
-			unsigned_integer,
-			big_integer,
-			unsigned_big_integer,
-			small_float,
-			float_,
-			big_float,
-			function,
-			nullptr_,
-			string,
-			exception,
-			attribute_stage,
-			attribute_result,
-		};
+		using cached_type = node::primtive_type::id_type;
 
 		global();
 

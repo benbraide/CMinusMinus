@@ -1,6 +1,8 @@
 #include "../storage/global_storage.h"
 #include "../declaration/variable_declaration.h"
 
+#include "identifier_node.h"
+#include "expression_node.h"
 #include "declaration_node.h"
 #include "control_node.h"
 
@@ -137,6 +139,38 @@ void cminus::node::for_control::update_() const{
 	if (update_value_ != nullptr)
 		update_value_->evaluate();
 }
+
+cminus::node::for_each_control::for_each_control(std::shared_ptr<variable_declaration> decl, std::shared_ptr<object> target, std::shared_ptr<object> statement, std::shared_ptr<object> else_value)
+	: for_control(nullptr, nullptr, nullptr, statement, else_value){
+	auto core_scope = std::make_shared<scoped_identifier>(nullptr, "Core");								// ::Core
+
+	auto begin = std::make_shared<scoped_identifier>(core_scope, "Begin");								// ::Core::Begin
+	auto end = std::make_shared<scoped_identifier>(core_scope, "End");									// ::Core::End
+
+	auto begin_call = std::make_shared<binary_expression>(operators::id::call, begin, target);			// ::Core::Begin(<TARGET>)
+	auto end_call = std::make_shared<binary_expression>(operators::id::call, end, target);				// ::Core::End(<TARGET>)
+
+	auto &decl_name = decl->get_decl_value()->get_name();
+	auto auto_type = std::make_shared<primtive_type>(primtive_type::id_type::auto_);					// Auto
+
+	auto begin_decl = std::make_shared<variable_declaration>(
+		("__" + decl_name + "__BEGIN__"),
+		auto_type,
+		nullptr,
+		declaration::flags::nil,
+		begin_call
+	);																									// Auto __<NAME>__BEGIN__ = ::Core::Begin(<TARGET>)
+
+	auto end_decl = std::make_shared<variable_declaration>(
+		("__" + decl_name + "__END__"),
+		auto_type,
+		nullptr,
+		declaration::flags::nil,
+		end_call
+	);																									// Auto __<NAME>__END__ = ::Core::End(<TARGET>)
+}
+
+cminus::node::for_each_control::~for_each_control() = default;
 
 cminus::node::try_control::try_control(std::shared_ptr<object> statement, std::shared_ptr<object> catch_value)
 	: control_with_else(nullptr, statement, catch_value){}

@@ -8,12 +8,28 @@
 
 #include "memory_exception.h"
 
+namespace cminus::type{
+	class object;
+}
+
 namespace cminus::memory{
 	class object;
 
 	class value{
 	public:
 		virtual ~value() = default;
+	};
+
+	class type_value : public value{
+	public:
+		explicit type_value(std::shared_ptr<type::object> value);
+
+		virtual ~type_value();
+
+		virtual std::shared_ptr<type::object> get_value() const;
+
+	protected:
+		std::shared_ptr<type::object> value_;
 	};
 
 	class block : public io::binary_writer, public io::binary_reader{

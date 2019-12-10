@@ -7,7 +7,7 @@
 namespace cminus::node{
 	class variable_declaration : public object{
 	public:
-		explicit variable_declaration(std::shared_ptr<declaration::variable> value);
+		variable_declaration(const std::string &name, std::shared_ptr<object> type, std::shared_ptr<object> attributes, unsigned int flags, std::shared_ptr<object> initialization);
 
 		virtual ~variable_declaration();
 
@@ -16,6 +16,12 @@ namespace cminus::node{
 		virtual std::shared_ptr<declaration::variable> get_decl_value() const;
 
 	protected:
-		std::shared_ptr<declaration::variable> value_;
+		std::string name_;
+		std::shared_ptr<object> type_;
+		std::shared_ptr<object> attributes_;
+
+		unsigned int flags_;
+		std::shared_ptr<object> initialization_;
+		mutable std::shared_ptr<declaration::variable> value_;
 	};
 }

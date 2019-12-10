@@ -1,6 +1,16 @@
+#include "../type/type_object.h"
 #include "../runtime/runtime_object.h"
 
 #include "memory_block.h"
+
+cminus::memory::type_value::type_value(std::shared_ptr<type::object> value)
+	: value_(value){}
+
+cminus::memory::type_value::~type_value() = default;
+
+std::shared_ptr<cminus::type::object> cminus::memory::type_value::get_value() const{
+	return value_;
+}
 
 cminus::memory::block::block(std::size_t address, std::byte *buffer, std::size_t size)
 	: address_(address), buffer_(buffer), size_(size){}

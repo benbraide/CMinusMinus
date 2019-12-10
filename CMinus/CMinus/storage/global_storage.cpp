@@ -70,7 +70,7 @@ cminus::storage::global::global()
 
 	cached_types_[cached_type::function] = std::make_shared<type::function_primitive>();
 	cached_types_[cached_type::nullptr_] = std::make_shared<type::pointer_primitive>(nullptr);
-
+	
 	boolean_values_[type::boolean_constant::false_] = std::make_shared<memory::scalar_reference<type::boolean_constant>>(
 		cached_types_[cached_type::bool_],
 		type::boolean_constant::false_
@@ -92,6 +92,8 @@ cminus::storage::global::global()
 	cached_types_[cached_type::exception] = std::make_shared<type::exception>();
 	cached_types_[cached_type::attribute_stage] = std::make_shared<type::attribute_stage>();
 	cached_types_[cached_type::attribute_result] = std::make_shared<type::attribute_result>();
+
+	cached_types_[cached_type::type] = std::make_shared<type::type_primitive>();
 
 	cached_types_[cached_type::string] = std::make_shared<type::string>();
 }
