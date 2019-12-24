@@ -21,6 +21,8 @@ namespace cminus::storage{
 
 		virtual ~global();
 
+		virtual object *get_core_storage() const;
+
 		virtual std::shared_ptr<type::object> get_cached_type(cached_type type) const;
 
 		virtual std::shared_ptr<type::object> get_cached_type(const type::object &type) const;
@@ -105,12 +107,15 @@ namespace cminus::storage{
 
 	protected:
 		std::unordered_map<cached_type, std::shared_ptr<type::object>> cached_types_;
+		std::unordered_map<type::boolean_constant, std::shared_ptr<memory::reference>> boolean_values_;
+
 		std::unordered_map<evaluator::object::id_type, std::shared_ptr<evaluator::object>> evaluators_;
 		std::shared_ptr<evaluator::initializer> default_initializer_;
 
-		std::unordered_map<type::boolean_constant, std::shared_ptr<memory::reference>> boolean_values_;
 		std::shared_ptr<memory::reference> nullptr_value_;
 		std::shared_ptr<memory::reference> undefined_value_;
+
+		std::shared_ptr<object> core_storage_;
 	};
 
 	template <class target_type>

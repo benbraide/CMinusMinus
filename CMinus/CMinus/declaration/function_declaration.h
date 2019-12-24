@@ -2,6 +2,7 @@
 
 #include "../attribute/attribute_collection.h"
 
+#include "variable_declaration.h"
 #include "callable_declaration.h"
 
 namespace cminus::declaration{
@@ -20,6 +21,8 @@ namespace cminus::declaration{
 		virtual id_type get_id() const override;
 
 		virtual storage::object *get_parent() const override;
+
+		using callable::add_parameter;
 
 		virtual void add_parameter(std::shared_ptr<variable> value) override;
 

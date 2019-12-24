@@ -26,7 +26,9 @@
 
 #include "../CMinus/storage/storage_object.cpp"
 #include "../CMinus/storage/global_storage.cpp"
+#include "../CMinus/storage/core_storage.cpp"
 #include "../CMinus/storage/specialized_storage.cpp"
+#include "../CMinus/storage/compiled_storage.cpp"
 
 #include "../CMinus/evaluator/evaluator_object.cpp"
 #include "../CMinus/evaluator/arithmetic.cpp"
@@ -53,6 +55,7 @@
 #include "../CMinus/declaration/special_function_declaration.cpp"
 #include "../CMinus/declaration/string_function_declarations.cpp"
 #include "../CMinus/declaration/string_function_definitions.cpp"
+#include "../CMinus/declaration/core_functions.cpp"
 #include "../CMinus/declaration/variable_declaration.cpp"
 
 #include "../CMinus/node/node_object.cpp"

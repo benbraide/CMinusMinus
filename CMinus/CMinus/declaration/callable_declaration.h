@@ -45,6 +45,8 @@ namespace cminus::declaration{
 
 		virtual storage::object *get_parent() const = 0;
 
+		virtual void add_parameter(const std::string &name, std::shared_ptr<type::object> type, std::shared_ptr<node::object> init = nullptr);
+
 		virtual void add_parameter(std::shared_ptr<variable> value) = 0;
 
 		virtual void define(std::shared_ptr<node::object> definition) = 0;

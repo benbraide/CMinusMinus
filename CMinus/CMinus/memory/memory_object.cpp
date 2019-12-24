@@ -41,7 +41,12 @@ std::size_t cminus::memory::object::reallocate_heap_block(std::size_t address, s
 
 void cminus::memory::object::deallocate_block(std::size_t address){
 	std::lock_guard<std::shared_mutex> guard(lock_);
-	deallocate_block_(address);
+	deallocate_block_(address, false);
+}
+
+void cminus::memory::object::deallocate_heap_block(std::size_t address){
+	std::lock_guard<std::shared_mutex> guard(lock_);
+	deallocate_block_(address, true);
 }
 
 std::size_t cminus::memory::object::set(std::size_t destination_address, std::byte value, std::size_t size){
@@ -192,17 +197,20 @@ std::size_t cminus::memory::object::reallocate_heap_block_(std::size_t address, 
 			return block->address_;
 	}
 
-	deallocate_block_(address);
+	deallocate_block_(address, true);
 	auto new_block_address = allocate_block_<data_block<heap_block>>(size);
 	write_(new_block_address, *block, std::min(size, block->size_));
 
 	return new_block_address;
 }
 
-void cminus::memory::object::deallocate_block_(std::size_t address){
+void cminus::memory::object::deallocate_block_(std::size_t address, bool is_heap){
 	auto it = blocks_.end();
 	if (get_block_(address, &it) == nullptr || it == blocks_.end())
 		throw exception::block_not_found(address);
+
+	if (is_heap && !(*it)->is_resizable())
+		throw exception::block_not_resizable(address);
 
 	(*it)->before_read_();
 	auto next_it = std::next(it);

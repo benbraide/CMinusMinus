@@ -29,6 +29,8 @@ namespace cminus::memory{
 
 		void deallocate_block(std::size_t address);
 
+		void deallocate_heap_block(std::size_t address);
+
 		std::size_t set(std::size_t destination_address, std::byte value, std::size_t size);
 
 		std::size_t write(std::size_t destination_address, const std::byte *buffer, std::size_t size);
@@ -130,7 +132,7 @@ namespace cminus::memory{
 
 		std::size_t reallocate_heap_block_(std::size_t address, std::size_t size);
 
-		void deallocate_block_(std::size_t address);
+		void deallocate_block_(std::size_t address, bool is_heap);
 
 		std::size_t set_(std::size_t destination_address, std::byte value, std::size_t size);
 

@@ -18,8 +18,9 @@
 #include "../evaluator/string_evaluator.h"
 
 #include "../declaration/string_function_definitions.h"
+#include "../declaration/core_functions.h"
 
-#include "global_storage.h"
+#include "core_storage.h"
 
 cminus::storage::global::global()
 	: named_object("", nullptr){
@@ -94,12 +95,18 @@ cminus::storage::global::global()
 	cached_types_[cached_type::attribute_result] = std::make_shared<type::attribute_result>();
 
 	cached_types_[cached_type::type] = std::make_shared<type::type_primitive>();
-
 	cached_types_[cached_type::string] = std::make_shared<type::string>();
+
+	core_storage_ = std::make_shared<core>();
+	add_storage_(core_storage_);
 }
 
 cminus::storage::global::~global(){
 	destroy_entries_();
+}
+
+cminus::storage::object *cminus::storage::global::get_core_storage() const{
+	return core_storage_.get();
 }
 
 std::shared_ptr<cminus::type::object> cminus::storage::global::get_cached_type(cached_type type) const{
